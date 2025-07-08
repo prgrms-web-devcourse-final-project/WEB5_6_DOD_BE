@@ -1,7 +1,8 @@
 ---
 name: DOD 이슈 생성 템플릿 사용하기
 about: 해당 이슈 생성 템플릿을 사용하여 이슈를 생성해주세요.
-title: 이슈제목     +Label, Assignee 체크하기!!
+title: '이슈제목     +Label, Assignee 체크하기!!  issue title 작성 규칙 : -- 했습니다. -- 입니다. (X)
+  로그인 기능 구현 예정입니다.(x) -> 로그인 기능 구현 (O)'
 labels: ''
 assignees: ''
 
