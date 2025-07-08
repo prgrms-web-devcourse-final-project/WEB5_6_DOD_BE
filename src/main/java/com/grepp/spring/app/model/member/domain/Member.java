@@ -31,7 +31,6 @@ public class Member {
     @Column(nullable = false)
     private Role role;
 
-    @Email
     @Column(nullable = false, unique = true)
     private String email;
 
