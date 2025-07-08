@@ -1,7 +1,7 @@
 ---
-name: 이슈 생성 템플릿
+name: DOD 이슈 생성 템플릿 사용하기
 about: 해당 이슈 생성 템플릿을 사용하여 이슈를 생성해주세요.
-title: 이슈제목
+title: 이슈제목     +Label, Assign 체크하기!!
 labels: ''
 assignees: ''
 
