@@ -1,0 +1,106 @@
+plugins {
+    id 'org.springframework.boot' version '3.5.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'com.github.node-gradle.node' version '7.1.0'
+}
+
+group = 'com.grepp'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+bootRun {
+    environment SPRING_PROFILES_ACTIVE: environment.SPRING_PROFILES_ACTIVE ?: 'local'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Spring Cloud GCP 및 Spring Cloud Dependencies 버전 관리
+ext {
+    set('springCloudVersion', '2024.0.1')
+    set('springCloudGcpVersion', '6.2.2')
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        mavenBom "com.google.cloud:spring-cloud-gcp-dependencies:${springCloudGcpVersion}"
+    }
+}
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.boot:spring-boot-starter-validation')
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-data-redis')
+    implementation('org.springframework.cloud:spring-cloud-dependencies:2024.0.1')
+
+    runtimeOnly('org.postgresql:postgresql')
+    implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:4.6.0')
+
+    // Swagger
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
+
+    // Google Cloud Storage
+    implementation('com.google.cloud:google-cloud-storage')
+    // Google Cloud Secret Manager
+    implementation('com.google.cloud:spring-cloud-gcp-starter-secretmanager')
+    implementation('com.google.cloud:spring-cloud-gcp-dependencies:6.2.2')
+
+    // OAuth2
+    implementation('org.springframework.security:spring-security-oauth2-client')
+    implementation('org.springframework.security:spring-security-oauth2-jose')
+
+    // Querydsl
+    implementation('com.querydsl:querydsl-jpa:5.0.0:jakarta')
+    implementation('com.querydsl:querydsl-apt:5.0.0:jakarta')
+
+    // jwt
+    implementation('io.jsonwebtoken:jjwt-api:0.12.6')
+    implementation('io.jsonwebtoken:jjwt-impl:0.12.6')
+    implementation('io.jsonwebtoken:jjwt-jackson:0.12.6')
+
+    // modelmapper
+    implementation('org.modelmapper:modelmapper:3.2.2')
+
+    compileOnly('org.projectlombok:lombok')
+    annotationProcessor('org.projectlombok:lombok')
+    testCompileOnly('org.projectlombok:lombok')
+    testAnnotationProcessor('org.projectlombok:lombok')
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+//node {
+//    download.set(true)
+//    version.set('22.16.0')
+//}
+//
+//tasks.register('npmRunBuild', NpmTask) {
+//    args = ['run', 'build']
+//    dependsOn npmInstall
+//
+//    inputs.files(fileTree('node_modules'))
+//    inputs.files(fileTree('src/main/webapp'))
+//    inputs.file('.env')
+//    inputs.file('package.json')
+//    inputs.file('tsconfig.json')
+//    inputs.file('webpack.config.js')
+//    outputs.dir(layout.buildDirectory.dir('resources/main/static'))
+//}
+//
+//processResources {
+//    dependsOn npmRunBuild
+//}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}

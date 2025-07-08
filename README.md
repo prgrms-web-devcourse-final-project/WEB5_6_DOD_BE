@@ -9,6 +9,47 @@
 
 ---
 
+## 🧑‍💻 팀원 소개
+
+<div align="center">
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><b>이서준</b></td>
+      <td align="center"><b>이강현</b></td>
+      <td align="center"><b>안준희</b></td>
+      <td align="center"><b>정서윤</b></td>
+      <td align="center"><b>최동준</b></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/leeseojun34"><img src="https://github.com/leeseojun34.png" width="100px;" alt="이서준"/></a></td>
+      <td align="center"><a href="https://github.com/Leeka99"><img src="https://github.com/Leeka99.png" width="100px;" alt="이강현"/></a></td>
+      <td align="center"><a href="https://github.com/june3780"><img src="https://github.com/june3780.png" width="100px;" alt="안준희"/></a></td>
+      <td align="center"><a href="https://github.com/yoozafree"><img src="https://github.com/yoozafree.png" width="100px;" alt="정서윤"/></a></td>
+      <td align="center"><a href="https://github.com/qkqehenr7"><img src="https://github.com/qkqehenr7.png" width="100px;" alt="최동준"/></a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/Leeka99"><sub><b>GitHub</b></sub></a></td>
+      <td align="center"><a href="https://github.com/childstone"><sub><b>GitHub</b></sub></a></td>
+      <td align="center"><a href="https://github.com/KangDaegyeom"><sub><b>GitHub</b></sub></a></td>
+      <td align="center"><a href="https://github.com/lnvisibledragon"><sub><b>GitHub</b></sub></a></td>
+      <td align="center"><a href="https://github.com/june3780"><sub><b>GitHub</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center"><img src="https://img.shields.io/badge/Product Owner-FF5733" /></td>
+      <td align="center"><img src="https://img.shields.io/badge/BE Read-FF5733" /></td>
+      <td align="center"><img src="https://img.shields.io/badge/TM-FF5733" /></td>
+      <td align="center"><img src="https://img.shields.io/badge/TM-FF5733" /></td>
+      <td align="center"><img src="https://img.shields.io/badge/TM-FF5733" /></td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
+
+---
+
 ## 🧾 코드 컨벤션
 
 커밋 메시지는 다음 규칙에 맞춰 작성합니다
