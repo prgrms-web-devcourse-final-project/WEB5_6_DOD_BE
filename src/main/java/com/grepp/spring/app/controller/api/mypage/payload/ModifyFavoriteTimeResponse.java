@@ -18,7 +18,7 @@ public class ModifyFavoriteTimeResponse {
     private Long favoriteTimeId;
     private LocalTime startTime;
     private LocalTime endTime;
-    private LocalDateTime dateTime; // 필요없지 않나 흠. // TODO: 요일 어떻게 받을지 더 고민하고 수정하삼
+    private LocalDateTime dateTime;
     private DayOfWeek weekday;
     private LocalDateTime updatedAt;
   }
