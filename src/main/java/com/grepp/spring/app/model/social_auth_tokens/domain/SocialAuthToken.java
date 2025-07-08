@@ -17,10 +17,10 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "SocialAuthTokenses")
+@Table(name = "SocialAuthTokens")
 @Getter
 @Setter
-public class SocialAuthTokens {
+public class SocialAuthToken {
 
     @Id
     @Column(nullable = false, updatable = false)
