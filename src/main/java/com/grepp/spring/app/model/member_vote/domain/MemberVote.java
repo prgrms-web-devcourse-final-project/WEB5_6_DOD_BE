@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.member_vote.domain;
 
 import com.grepp.spring.app.model.location.domain.Location;
+import com.grepp.spring.app.model.schedule_member.domain.ScheduleMember;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,11 +36,12 @@ public class MemberVote {
     )
     private Long id;
 
-    @Column(nullable = false)
-    private Long voter;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_member_id")
+    private ScheduleMember scheduleMember;
 
 }

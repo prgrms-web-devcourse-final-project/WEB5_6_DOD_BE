@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.schedule_member.domain;
 
 import com.grepp.spring.app.model.member.domain.Member;
-import com.grepp.spring.app.model.middle_region.domain.MiddleRegion;
 import com.grepp.spring.app.model.schedule.domain.Schedule;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,9 +55,5 @@ public class ScheduleMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "middle_region_id")
-    private MiddleRegion middleRegion;
 
 }
