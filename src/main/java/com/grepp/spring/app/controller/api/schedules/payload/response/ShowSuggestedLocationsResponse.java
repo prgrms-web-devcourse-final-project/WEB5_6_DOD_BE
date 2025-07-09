@@ -1,6 +1,6 @@
 package com.grepp.spring.app.controller.api.schedules.payload.response;
 
-import com.grepp.spring.app.model.schedule.code.VOTE_STATUS;
+import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ public class ShowSuggestedLocationsResponse {
     private	Double longitude;
     private	Long suggestedMemberId;
     private Long voteCount;
-    private VOTE_STATUS SCHEDULES_STATUS;
+    private VoteStatus SCHEDULES_STATUS;
 
     private List<String> metroLines; // 추가
     private List<String> stationColors; // 추가

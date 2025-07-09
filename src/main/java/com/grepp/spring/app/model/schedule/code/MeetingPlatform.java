@@ -1,6 +1,6 @@
 package com.grepp.spring.app.model.schedule.code;
 
-public enum MEETING_PLATFORM {
+public enum MeetingPlatform {
     GOOGLE_MEET,
     ZOOM,
     NONE
