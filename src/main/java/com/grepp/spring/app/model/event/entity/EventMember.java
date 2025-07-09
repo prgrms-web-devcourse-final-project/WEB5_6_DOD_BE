@@ -1,6 +1,6 @@
-package com.grepp.spring.app.model.event.domain;
+package com.grepp.spring.app.model.event.entity;
 
-import com.grepp.spring.app.model.group.domain.Group;
+import com.grepp.spring.app.model.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,10 +16,10 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "Events")
+@Table(name = "EventMembers")
 @Getter
 @Setter
-public class Event {
+public class EventMember {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -36,19 +36,14 @@ public class Event {
     private Long id;
 
     @Column(nullable = false)
-    private String title;
-
-    @Column(columnDefinition = "text")
-    private String description;
-
-    @Column(nullable = false)
-    private String meetingType;
-
-    @Column(nullable = false)
-    private Integer maxMember;
+    private String role;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
-    private Group group;
+    @JoinColumn(name = "member_id")
+    private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
 
 }

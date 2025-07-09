@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.event.payload;
+package com.grepp.spring.app.controller.api.event.payload.response;
 
 import java.time.LocalDateTime;
 import lombok.Getter;

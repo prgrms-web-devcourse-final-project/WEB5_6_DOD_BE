@@ -1,17 +1,12 @@
-package com.grepp.spring.app.controller.api.event.payload;
+package com.grepp.spring.app.controller.api.event.payload.request;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @Setter

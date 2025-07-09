@@ -1,7 +1,5 @@
-package com.grepp.spring.app.model.event_member.domain;
+package com.grepp.spring.app.model.event.entity;
 
-import com.grepp.spring.app.model.event.domain.Event;
-import com.grepp.spring.app.model.member.domain.Member;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,15 +10,16 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 
 @Entity
-@Table(name = "EventMembers")
+@Table(name = "TempSchedules")
 @Getter
 @Setter
-public class EventMember {
+public class TempSchedule {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -37,14 +36,13 @@ public class EventMember {
     private Long id;
 
     @Column(nullable = false)
-    private String role;
+    private LocalDateTime date;
+
+    @Column(nullable = false)
+    private Long timeBit;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
+    @JoinColumn(name = "event_member_id")
+    private EventMember eventMember;
 
 }

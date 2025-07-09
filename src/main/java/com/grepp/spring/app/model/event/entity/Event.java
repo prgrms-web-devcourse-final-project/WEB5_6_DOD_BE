@@ -1,6 +1,6 @@
-package com.grepp.spring.app.model.candidate_date.domain;
+package com.grepp.spring.app.model.event.entity;
 
-import com.grepp.spring.app.model.event.domain.Event;
+import com.grepp.spring.app.model.group.domain.Group;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,16 +11,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 
 @Entity
-@Table(name = "CandidateDates")
+@Table(name = "Events")
 @Getter
 @Setter
-public class CandidateDate {
+public class Event {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -36,14 +35,20 @@ public class CandidateDate {
     )
     private Long id;
 
-    @Column
-    private LocalDateTime startTime;
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "text")
+    private String description;
 
     @Column(nullable = false)
-    private LocalDateTime endTime;
+    private String meetingType;
+
+    @Column(nullable = false)
+    private Integer maxMember;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
+    @JoinColumn(name = "group_id")
+    private Group group;
 
 }

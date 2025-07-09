@@ -1,6 +1,6 @@
 package com.grepp.spring.app.model.schedule.domain;
 
-import com.grepp.spring.app.model.event.domain.Event;
+import com.grepp.spring.app.model.event.entity.Event;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

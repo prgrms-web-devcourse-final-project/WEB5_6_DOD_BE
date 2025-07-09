@@ -1,6 +1,9 @@
 package com.grepp.spring.app.controller.api.event;
 
-import com.grepp.spring.app.controller.api.event.payload.*;
+import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
+import com.grepp.spring.app.controller.api.event.payload.request.CreateScheduleResultRequest;
+import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
+import com.grepp.spring.app.controller.api.event.payload.response.*;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
