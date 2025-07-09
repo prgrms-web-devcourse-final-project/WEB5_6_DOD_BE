@@ -1,7 +1,6 @@
 package com.grepp.spring.app.controller.api.mainpage.payload;
 
 
-import com.grepp.spring.app.controller.api.group.groupDto.groupRole.GroupRole;
 import com.grepp.spring.app.model.schedule.domain.MEETING_PLATFORM;
 import com.grepp.spring.app.model.schedule.domain.MEETING_TYPE;
 import com.grepp.spring.app.model.schedule.domain.SCHEDULES_STATUS;

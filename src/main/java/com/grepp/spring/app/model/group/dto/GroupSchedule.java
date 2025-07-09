@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.group.groupDto.groupSchedule;
+package com.grepp.spring.app.model.group.dto;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;

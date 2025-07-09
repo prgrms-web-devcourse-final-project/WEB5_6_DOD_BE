@@ -1,4 +1,4 @@
-package com.grepp.spring.app.model.group.domain;
+package com.grepp.spring.app.model.group.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

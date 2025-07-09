@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.group.payload;
+package com.grepp.spring.app.controller.api.group.payload.response;
 
 import lombok.Builder;
 import lombok.Data;

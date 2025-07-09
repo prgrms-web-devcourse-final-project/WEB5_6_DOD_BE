@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.group.groupDto.groupRole;
+package com.grepp.spring.app.model.group.code;
 
 public enum GroupRole{
     GROUP_LEADER,
