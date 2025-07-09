@@ -1,6 +1,5 @@
 package com.grepp.spring.app.controller.api.schedules.payload;
 
-import com.grepp.spring.app.model.middle_region.domain.MiddleRegion;
 import com.grepp.spring.app.model.schedule.domain.VOTE_STATUS;
 import java.util.List;
 import lombok.Getter;
