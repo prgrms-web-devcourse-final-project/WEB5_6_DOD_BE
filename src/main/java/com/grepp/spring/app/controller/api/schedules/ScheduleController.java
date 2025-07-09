@@ -20,10 +20,9 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSchedu
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
-import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
-import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.service.ScheduleService;
+import com.grepp.spring.app.model.schedule.code.SchedulesStatus;
+import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
@@ -134,8 +133,16 @@ public class ScheduleController {
 
             scheduleService.modifySchedule(scheduleId);
 
-            return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
-//        }
+            ShowSchedulesResponse  response = new ShowSchedulesResponse();
+            response.setEventId(20000L);
+            response.setStartTime(LocalDateTime.of(2025, 7, 6, 3, 7));
+            response.setEndTime(LocalDateTime.of(2025, 7, 7, 3, 7));
+            response.setSchedulesStatus(SchedulesStatus.FIXED);
+            response.setLocation("강남역");
+            response.setSpecificLocation("강남역 스타벅스");
+            response.setDescription("DOD의 즐거운 미팅 날");
+            response.setMeetingPlatform(MeetingPlatform.ZOOM);
+            response.setPlatformUrl("https://zoom.us/test-meeting");
 
 //         catch (Exception e) {
 //            if (e instanceof AuthApiException) {
@@ -216,33 +223,33 @@ public class ScheduleController {
             response1.setLocationName("동대문역사문화공원역");
             response1.setLatitude(37.4979);
             response1.setLongitude(127.0276);
-//            response1.setSuggestedMemberId(1L);
-//            response1.setVoteCount(5L);
-//            response1.setSCHEDULES_STATUS(VoteStatus.ALMOST);
-//            response1.setMetroLines(Arrays.asList("2", "4", "5"));
-//            response1.setStationColors(Arrays.asList("G222","B342","P234"));
+            response1.setSuggestedMemberId(1L);
+            response1.setVoteCount(5L);
+            response1.setSCHEDULES_STATUS(VoteStatus.ALMOST);
+            response1.setMetroLines(Arrays.asList("2", "4", "5"));
+            response1.setStationColors(Arrays.asList("G222","B342","P234"));
 
 
             ShowSuggestedLocationsResponse response2 = new ShowSuggestedLocationsResponse();
             response2.setLocationName("역삼역");
             response2.setLatitude(37.5008);
             response2.setLongitude(127.0365);
-//            response2.setSuggestedMemberId(2L);
-//            response2.setVoteCount(2L);
-//            response2.setSCHEDULES_STATUS(VoteStatus.WINNER);
-//            response2.setMetroLines(Arrays.asList("2","8"));
-//            response2.setStationColors(Arrays.asList("G222","R342"));
+            response2.setSuggestedMemberId(2L);
+            response2.setVoteCount(2L);
+            response2.setSCHEDULES_STATUS(VoteStatus.WINNER);
+            response2.setMetroLines(Arrays.asList("2","8"));
+            response2.setStationColors(Arrays.asList("G222","R342"));
 
 
             ShowSuggestedLocationsResponse response3 = new ShowSuggestedLocationsResponse();
             response3.setLocationName("홍대입구역");
             response3.setLatitude(37.5572);
             response3.setLongitude(126.9245);
-//            response3.setSuggestedMemberId(3L);
-//            response3.setVoteCount(8L);
-//            response3.setSCHEDULES_STATUS(VoteStatus.DEFAULT);
-//            response3.setMetroLines(Arrays.asList("2","5","경의중앙","수인분당"));
-//            response3.setStationColors(Arrays.asList("G222","P234","b12314","y097234"));
+            response3.setSuggestedMemberId(3L);
+            response3.setVoteCount(8L);
+            response3.setSCHEDULES_STATUS(VoteStatus.DEFAULT);
+            response3.setMetroLines(Arrays.asList("2","5","경의중앙","수인분당"));
+            response3.setStationColors(Arrays.asList("G222","P234","b12314","y097234"));
 
 
             List<ShowSuggestedLocationsResponse> list = Arrays.asList(response1, response2, response3);
