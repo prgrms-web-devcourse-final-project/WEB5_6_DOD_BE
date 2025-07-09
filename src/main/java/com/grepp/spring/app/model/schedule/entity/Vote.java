@@ -16,10 +16,10 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "MemberVotes")
+@Table(name = "Vote")
 @Getter
 @Setter
-public class MemberVote extends BaseEntity {
+public class Vote extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
