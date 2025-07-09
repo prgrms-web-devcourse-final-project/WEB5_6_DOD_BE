@@ -1,6 +1,5 @@
 package com.grepp.spring.app.model.location.domain;
 
-import com.grepp.spring.app.model.middle_region.domain.MiddleRegion;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -52,9 +51,4 @@ public class Location {
 
     @Column(nullable = false)
     private String status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "middle_region_id")
-    private MiddleRegion middleRegion;
-
 }
