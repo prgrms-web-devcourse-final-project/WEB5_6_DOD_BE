@@ -1,14 +1,14 @@
 package com.grepp.spring.app.controller.api.auth;
 
-import com.grepp.spring.app.controller.api.auth.payload.AccountDeactivateRequest;
-import com.grepp.spring.app.controller.api.auth.payload.AccountDeactivateResponse;
-import com.grepp.spring.app.controller.api.auth.payload.GroupAdminResponse;
-import com.grepp.spring.app.controller.api.auth.payload.LoginRequest;
-import com.grepp.spring.app.controller.api.auth.payload.SocialAccountConnectionRequest;
-import com.grepp.spring.app.controller.api.auth.payload.SocialAccountConnectionResponse;
-import com.grepp.spring.app.controller.api.auth.payload.SocialAccountResponse;
-import com.grepp.spring.app.controller.api.auth.payload.TokenResponse;
-import com.grepp.spring.app.controller.api.auth.payload.UpdateAccessTokenResponse;
+import com.grepp.spring.app.controller.api.auth.payload.request.AccountDeactivateRequest;
+import com.grepp.spring.app.controller.api.auth.payload.response.AccountDeactivateResponse;
+import com.grepp.spring.app.controller.api.auth.payload.response.GroupAdminResponse;
+import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
+import com.grepp.spring.app.controller.api.auth.payload.request.SocialAccountConnectionRequest;
+import com.grepp.spring.app.controller.api.auth.payload.response.SocialAccountConnectionResponse;
+import com.grepp.spring.app.controller.api.auth.payload.response.SocialAccountResponse;
+import com.grepp.spring.app.controller.api.auth.payload.response.TokenResponse;
+import com.grepp.spring.app.controller.api.auth.payload.response.UpdateAccessTokenResponse;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.code.AuthToken;

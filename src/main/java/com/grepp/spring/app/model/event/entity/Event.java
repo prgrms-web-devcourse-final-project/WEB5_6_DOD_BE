@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.event.entity;
 
+import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.group.entity.Group;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -42,7 +43,7 @@ public class Event {
     private String description;
 
     @Column(nullable = false)
-    private String meetingType;
+    private MeetingType meetingType;
 
     @Column(nullable = false)
     private Integer maxMember;

@@ -1,18 +1,17 @@
 package com.grepp.spring.app.controller.api.mypage;
 
 
-import com.grepp.spring.app.controller.api.mypage.payload.CreateFavoritePlaceRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.CreateFavoritePlaceResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.CreateFavoriteTimeRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.CreateFavoriteTimeResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyFavoritePlaceRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyFavoritePlaceResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyFavoritePlaceResponse.ModifyFavLocationList;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyFavoriteTimeRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyFavoriteTimeResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.ModifyProfileResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.SetCalendarSyncRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.SetCalendarSyncResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoritePlaceRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoriteTimeRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoriteTimeResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyProfileResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyncRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,14 +1,13 @@
 package com.grepp.spring.app.model.auth;
 
-import com.grepp.spring.app.controller.api.auth.payload.LoginRequest;
+import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
-import com.grepp.spring.app.model.member.domain.Member;
-import com.grepp.spring.app.model.member.repos.MemberRepository;
+import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;

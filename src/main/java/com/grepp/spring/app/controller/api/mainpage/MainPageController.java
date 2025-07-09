@@ -1,13 +1,13 @@
 package com.grepp.spring.app.controller.api.mainpage;
 
-import com.grepp.spring.app.controller.api.mainpage.payload.ShowMainPageResponse;
-import com.grepp.spring.app.controller.api.mainpage.payload.ShowMainPageResponse.CalendarScheduleList;
-import com.grepp.spring.app.controller.api.mainpage.payload.ShowMainPageResponse.GroupList;
-import com.grepp.spring.app.controller.api.mainpage.payload.ShowMainPageResponse.ScheduleList;
-import com.grepp.spring.app.controller.api.mainpage.payload.ShowMainPageResponse.WeeklySchedules;
-import com.grepp.spring.app.model.schedule.domain.MEETING_PLATFORM;
-import com.grepp.spring.app.model.schedule.domain.MEETING_TYPE;
-import com.grepp.spring.app.model.schedule.domain.SCHEDULES_STATUS;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse.CalendarScheduleList;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse.GroupList;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse.ScheduleList;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse.WeeklySchedules;
+import com.grepp.spring.app.model.schedule.code.MEETING_PLATFORM;
+import com.grepp.spring.app.model.event.code.MeetingType;
+import com.grepp.spring.app.model.schedule.code.SCHEDULES_STATUS;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -91,7 +91,7 @@ public class MainPageController {
     group1.setGroupName("HMD");
     group1.setGroupId(10000L);
     group1.setDescription("Q3 계획 수립을 위한 팀 미팅 1");
-    group1.setMeetingType(MEETING_TYPE.OFFLINE);
+    group1.setMeetingType(MeetingType.OFFLINE);
     group1.setMaxMember(5);
     group1.setCurrentMember(3);
     group1.setCreatedAt(LocalDateTime.of(2025, 7, 5, 9, 0));
@@ -103,7 +103,7 @@ public class MainPageController {
     group2.setGroupName("LKH");
     group2.setGroupId(10000L);
     group2.setDescription("Q3 계획 수립을 위한 팀 미팅 1");
-    group2.setMeetingType(MEETING_TYPE.ONLINE);
+    group2.setMeetingType(MeetingType.ONLINE);
     group2.setMaxMember(10);
     group2.setCurrentMember(7);
     group2.setCreatedAt(LocalDateTime.of(2025, 7, 8, 16, 30));
@@ -116,7 +116,7 @@ public class MainPageController {
     group3.setGroupName("백엔드 DOD");
     group3.setGroupId(10000L);
     group3.setDescription("이때어때를 위한 팀 회의");
-    group3.setMeetingType(MEETING_TYPE.OFFLINE);
+    group3.setMeetingType(MeetingType.OFFLINE);
     group3.setMaxMember(10);
     group3.setCurrentMember(5);
     group3.setCreatedAt(LocalDateTime.of(2025, 7, 13, 9, 30));
@@ -139,7 +139,7 @@ public class MainPageController {
     schedule1.setScheduleId(30000L);
     schedule1.setGroupId(10000L);
     schedule1.setName("팀 회의");
-    schedule1.setMeetingType(MEETING_TYPE.OFFLINE);
+    schedule1.setMeetingType(MeetingType.OFFLINE);
     schedule1.setStartTime(LocalDateTime.of(2025, 7, 8, 14, 0));
     schedule1.setEndTime(LocalDateTime.of(2025, 7, 8, 16, 0));
     schedule1.setSchedulesStatus(SCHEDULES_STATUS.FIXED);
@@ -152,7 +152,7 @@ public class MainPageController {
     schedule2.setScheduleId(30001L);
     schedule2.setGroupId(10001L);
     schedule2.setName("DOD 회의");
-    schedule2.setMeetingType(MEETING_TYPE.ONLINE);
+    schedule2.setMeetingType(MeetingType.ONLINE);
     schedule2.setMeetingPlatform(MEETING_PLATFORM.ZOOM);
     schedule2.setStartTime(LocalDateTime.of(2025, 7, 13, 9, 0));
     schedule2.setEndTime(LocalDateTime.of(2025, 7, 13, 13, 0));
@@ -185,7 +185,7 @@ public class MainPageController {
     googleSchedule1.setStartTime(LocalDateTime.of(2025, 7, 2, 15, 0));
     googleSchedule1.setEndTime(LocalDateTime.of(2025, 7, 2, 16, 0));
     googleSchedule1.setLocation("구글 미트");
-    googleSchedule1.setMeetingType(MEETING_TYPE.OFFLINE);
+    googleSchedule1.setMeetingType(MeetingType.OFFLINE);
 
     CalendarScheduleList googleSchedule2 = new CalendarScheduleList();
     googleSchedule2.setScheduleId(30002L);
@@ -195,7 +195,7 @@ public class MainPageController {
     googleSchedule2.setDescription("UI/UX 검토");
     googleSchedule2.setStartTime(LocalDateTime.of(2025, 7, 3, 10, 0));
     googleSchedule2.setEndTime(LocalDateTime.of(2025, 7, 3, 11, 30));
-    googleSchedule2.setMeetingType(MEETING_TYPE.ONLINE);
+    googleSchedule2.setMeetingType(MeetingType.ONLINE);
 
     CalendarScheduleList googleSchedule4 = new CalendarScheduleList();
     googleSchedule4.setScheduleId(30004L);
@@ -206,7 +206,7 @@ public class MainPageController {
     googleSchedule4.setStartTime(LocalDateTime.of(2025, 7, 31, 16, 0));
     googleSchedule4.setEndTime(LocalDateTime.of(2025, 7, 31, 17, 0));
     googleSchedule4.setLocation("대회의실");
-    googleSchedule4.setMeetingType(MEETING_TYPE.OFFLINE);
+    googleSchedule4.setMeetingType(MeetingType.OFFLINE);
 
     // 8월 초 일정 (7월 마지막 주에 포함)
     CalendarScheduleList googleSchedule5 = new CalendarScheduleList();
@@ -217,7 +217,7 @@ public class MainPageController {
     googleSchedule5.setDescription("8월 프로젝트 시작");
     googleSchedule5.setStartTime(LocalDateTime.of(2025, 8, 1, 9, 0));
     googleSchedule5.setEndTime(LocalDateTime.of(2025, 8, 1, 10, 0));
-    googleSchedule5.setMeetingType(MEETING_TYPE.ONLINE);
+    googleSchedule5.setMeetingType(MeetingType.ONLINE);
     googleSchedule5.setIsGrouped(true);
     googleSchedule5.setGroupName("BBBB비비비");
 
@@ -255,7 +255,7 @@ public class MainPageController {
     internalSchedule1.setStartTime(LocalDateTime.of(2025, 7, 3, 10, 0));
     internalSchedule1.setEndTime(LocalDateTime.of(2025, 7, 3, 12, 0));
     internalSchedule1.setLocation("강남역");
-    internalSchedule1.setMeetingType(MEETING_TYPE.OFFLINE);
+    internalSchedule1.setMeetingType(MeetingType.OFFLINE);
 
     CalendarScheduleList internalSchedule2 = new CalendarScheduleList();
     internalSchedule2.setScheduleId(30005L);
@@ -266,7 +266,7 @@ public class MainPageController {
     internalSchedule2.setStartTime(LocalDateTime.of(2025, 7, 4, 14, 0));
     internalSchedule2.setEndTime(LocalDateTime.of(2025, 7, 4, 15, 30));
     internalSchedule2.setLocation("개발실");
-    internalSchedule2.setMeetingType(MEETING_TYPE.OFFLINE);
+    internalSchedule2.setMeetingType(MeetingType.OFFLINE);
 
     CalendarScheduleList internalSchedule3 = new CalendarScheduleList();
     internalSchedule3.setScheduleId(30012L);
@@ -277,7 +277,7 @@ public class MainPageController {
     internalSchedule3.setStartTime(LocalDateTime.of(2025, 7, 18, 18, 0));
     internalSchedule3.setEndTime(LocalDateTime.of(2025, 7, 18, 21, 0));
     internalSchedule3.setLocation("홍대");
-    internalSchedule3.setMeetingType(MEETING_TYPE.OFFLINE);
+    internalSchedule3.setMeetingType(MeetingType.OFFLINE);
 
 
     CalendarScheduleList internalSchedule4 = new CalendarScheduleList();
@@ -289,7 +289,7 @@ public class MainPageController {
     internalSchedule4.setStartTime(LocalDateTime.of(2025, 7, 25, 16, 0));
     internalSchedule4.setEndTime(LocalDateTime.of(2025, 7, 25, 17, 0));
     internalSchedule4.setLocation("회의실 C");
-    internalSchedule4.setMeetingType(MEETING_TYPE.OFFLINE);
+    internalSchedule4.setMeetingType(MeetingType.OFFLINE);
 
     internalSchedules.addAll(
         Arrays.asList(internalSchedule1, internalSchedule2, internalSchedule3, internalSchedule4));
