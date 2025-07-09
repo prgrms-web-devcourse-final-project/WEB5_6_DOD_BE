@@ -1,6 +1,6 @@
 package com.grepp.spring.app.model.event.entity;
 
-import com.grepp.spring.app.model.group.domain.Group;
+import com.grepp.spring.app.model.group.entity.Group;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

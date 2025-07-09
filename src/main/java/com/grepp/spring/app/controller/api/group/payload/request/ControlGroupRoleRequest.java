@@ -1,6 +1,6 @@
-package com.grepp.spring.app.controller.api.group.payload;
+package com.grepp.spring.app.controller.api.group.payload.request;
 
-import com.grepp.spring.app.controller.api.group.groupDto.groupRole.GroupRole;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import lombok.Getter;
 
 @Getter
