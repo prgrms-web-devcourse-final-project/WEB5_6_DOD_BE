@@ -1,4 +1,4 @@
-package com.grepp.spring.app.controller.api.group.groupDto.groupDetail;
+package com.grepp.spring.app.model.group.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,6 +1,6 @@
-package com.grepp.spring.app.controller.api.group.groupDto.groupUser;
+package com.grepp.spring.app.model.group.dto;
 
-import com.grepp.spring.app.controller.api.group.groupDto.groupRole.GroupRole;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

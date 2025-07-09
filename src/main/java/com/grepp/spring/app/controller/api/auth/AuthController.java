@@ -9,7 +9,7 @@ import com.grepp.spring.app.controller.api.auth.payload.SocialAccountConnectionR
 import com.grepp.spring.app.controller.api.auth.payload.SocialAccountResponse;
 import com.grepp.spring.app.controller.api.auth.payload.TokenResponse;
 import com.grepp.spring.app.controller.api.auth.payload.UpdateAccessTokenResponse;
-import com.grepp.spring.app.controller.api.group.groupDto.groupRole.GroupRole;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
