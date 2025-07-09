@@ -12,9 +12,9 @@ public class ShowSuggestedLocationsResponse {
     private String locationName;
     private Double latitude;
     private	Double longitude;
-//    private	Long suggestedMemberId;
-//    private Long voteCount;
-//    private VoteStatus SCHEDULES_STATUS;
+    private	Long suggestedMemberId;
+    private Long voteCount;
+    private VoteStatus SCHEDULES_STATUS;
 
     private Map<String, String> metroLines;  // (호선, 호선 색)
 
