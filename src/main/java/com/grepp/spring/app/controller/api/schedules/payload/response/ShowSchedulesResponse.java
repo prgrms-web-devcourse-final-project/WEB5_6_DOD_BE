@@ -1,7 +1,7 @@
 package com.grepp.spring.app.controller.api.schedules.payload.response;
 
-import com.grepp.spring.app.model.schedule.code.MEETING_PLATFORM;
-import com.grepp.spring.app.model.schedule.code.SCHEDULES_STATUS;
+import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
+import com.grepp.spring.app.model.schedule.code.SchedulesStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Getter;
@@ -13,11 +13,11 @@ public class ShowSchedulesResponse {
     private Long eventId; // 추가
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private SCHEDULES_STATUS SCHEDULES_STATUS;
+    private SchedulesStatus SchedulesStatus;
     private String location;
     private String specificLocation;
     private String description;
-    private MEETING_PLATFORM meetingPlatform;
+    private MeetingPlatform meetingPlatform;
     private String platformUrl;
 
     private List<String> members; // 추가
