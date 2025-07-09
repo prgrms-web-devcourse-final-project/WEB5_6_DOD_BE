@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.member.entity;
 
 import com.grepp.spring.app.model.member.code.Role;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,7 +16,7 @@ import lombok.Setter;
 @Table(name = "Members")
 @Getter
 @Setter
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)

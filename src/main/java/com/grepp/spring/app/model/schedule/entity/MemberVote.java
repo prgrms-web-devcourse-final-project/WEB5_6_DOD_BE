@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.entity;
 
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +19,7 @@ import lombok.Setter;
 @Table(name = "MemberVotes")
 @Getter
 @Setter
-public class MemberVote {
+public class MemberVote extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)

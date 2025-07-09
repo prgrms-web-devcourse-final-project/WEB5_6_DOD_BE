@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.mainpage.entity;
 
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -20,7 +21,7 @@ import lombok.Setter;
 @Table(name = "Calendars")
 @Getter
 @Setter
-public class Calendar {
+public class Calendar extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)

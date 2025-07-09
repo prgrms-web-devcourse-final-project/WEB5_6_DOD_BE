@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.member.entity;
 
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,7 +20,7 @@ import lombok.Setter;
 @Table(name = "SocialAuthTokens")
 @Getter
 @Setter
-public class SocialAuthToken {
+public class SocialAuthToken extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)

@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.group.entity;
 
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +16,7 @@ import lombok.Setter;
 @Table(name = "Groups")
 @Getter
 @Setter
-public class Group {
+public class Group extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)

@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.event.entity;
 
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,7 +20,7 @@ import lombok.Setter;
 @Table(name = "EventMembers")
 @Getter
 @Setter
-public class EventMember {
+public class EventMember extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
