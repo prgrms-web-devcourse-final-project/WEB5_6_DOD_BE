@@ -15,22 +15,27 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWork
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowMiddleLocationResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSchedulesResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
-import com.grepp.spring.app.model.schedule.code.SchedulesStatus;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
+import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
+import com.grepp.spring.app.model.schedule.service.ScheduleService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,9 +47,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/schedules")
-public class SchedulesController {
+public class ScheduleController {
+
+    @Autowired
+    private ScheduleService scheduleService;
 
     // 일정 등록
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
@@ -106,34 +115,25 @@ public class SchedulesController {
     // 일정 정보 조회
     @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
     @GetMapping("/show/{scheduleId}")
-    public ResponseEntity<ApiResponse<ShowSchedulesResponse>> showSchedules(@PathVariable Long scheduleId, @RequestParam Long eventId) {
+    public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId, @RequestParam Long eventId) {
 
         try {
 
-            if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
+            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
+            Optional<Schedule> eId = scheduleService.findEventById(eventId);
+
+            if (sId.isEmpty()) {
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
 
-            if (eventId !=20000 && eventId !=20001 && eventId !=20002 && eventId !=20003 && eventId !=20004 && eventId !=22222 ) {
+            if (eId.isEmpty()) {
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId는 20000 ~ 20004 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
             }
 
-            ShowSchedulesResponse  response = new ShowSchedulesResponse();
-            response.setEventId(20000L);
-            response.setStartTime(LocalDateTime.of(2025, 7, 6, 3, 7));
-            response.setEndTime(LocalDateTime.of(2025, 7, 7, 3, 7));
-            response.setSchedulesStatus(SchedulesStatus.FIXED);
-            response.setLocation("강남역");
-            response.setSpecificLocation("강남역 스타벅스");
-            response.setDescription("DOD의 즐거운 미팅 날");
-            response.setMeetingPlatform(MeetingPlatform.ZOOM);
-            response.setPlatformUrl("https://zoom.us/test-meeting");
+            ShowScheduleResponse response = scheduleService.showSchedule(scheduleId);
 
-            response.setMembers(List.of("이서준","이강현","안준희","정서윤","최동준","박상윤","박은서","박준규","현혜주","황수지","아이유","박보검"));
-            response.setWorkspacesUrl(List.of("www.notion.com","www.github.com","www.slack.com"));
-            response.setWorkspacesName(List.of("프론트엔드 기획서","이때 어때 레포지토리","데브코스 슬렉"));
             return ResponseEntity.ok(ApiResponse.success(response));
         }
 

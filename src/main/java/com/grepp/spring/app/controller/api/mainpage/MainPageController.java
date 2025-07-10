@@ -7,7 +7,7 @@ import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPag
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse.WeeklySchedules;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.event.code.MeetingType;
-import com.grepp.spring.app.model.schedule.code.SchedulesStatus;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -142,7 +142,7 @@ public class MainPageController {
     schedule1.setMeetingType(MeetingType.OFFLINE);
     schedule1.setStartTime(LocalDateTime.of(2025, 7, 8, 14, 0));
     schedule1.setEndTime(LocalDateTime.of(2025, 7, 8, 16, 0));
-    schedule1.setSchedulesStatus(SchedulesStatus.FIXED);
+    schedule1.setScheduleStatus(ScheduleStatus.FIXED);
     schedule1.setDescription("주간 팀 회의 및 프로젝트 진행 상황 점검");
     schedule1.setLocation("회의실 A");
     schedule1.setIsGrouped(true);
@@ -156,7 +156,7 @@ public class MainPageController {
     schedule2.setMeetingPlatform(MeetingPlatform.ZOOM);
     schedule2.setStartTime(LocalDateTime.of(2025, 7, 13, 9, 0));
     schedule2.setEndTime(LocalDateTime.of(2025, 7, 13, 13, 0));
-    schedule2.setSchedulesStatus(SchedulesStatus.FIXED);
+    schedule2.setScheduleStatus(ScheduleStatus.FIXED);
     schedule2.setDescription("주말 백엔드 회의");
     schedule2.setIsGrouped(true);
     schedule2.setGroupName("BE_DOD");
