@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.group.entity;
 
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -37,7 +38,7 @@ public class GroupMember extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String role;
+    private GroupRole role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
