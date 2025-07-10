@@ -11,6 +11,7 @@ import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
+import com.grepp.spring.app.model.schedule.repository.EventRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceRepository;
