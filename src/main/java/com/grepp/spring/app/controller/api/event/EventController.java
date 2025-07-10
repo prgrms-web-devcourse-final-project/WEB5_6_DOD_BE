@@ -4,13 +4,19 @@ import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequ
 import com.grepp.spring.app.controller.api.event.payload.request.CreateScheduleResultRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.*;
+import com.grepp.spring.app.model.event.service.EventService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
+import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
@@ -22,22 +28,37 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/v1/events", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
+@Slf4j
 public class EventController {
 
-    // 이벤트 생성
+    private final EventService eventService;
+
     @PostMapping
-    @Operation(summary = "이벤트 생성")
-    public ResponseEntity<ApiResponse<CreateEventResponse>> createEvent(@RequestBody @Valid CreateEventRequest request) {
+    @Operation(summary = "이벤트 생성", description = "그룹 이벤트 또는 일회성 이벤트를 생성합니다.")
+    public ResponseEntity<ApiResponse<Void>> createEvent(@RequestBody @Valid CreateEventRequest request) {
         try {
+            String currentMemberId = extractCurrentMemberId();
+
+            eventService.createEvent(request, currentMemberId);
+
             return ResponseEntity.status(200)
                 .body(ApiResponse.success("이벤트가 성공적으로 생성되었습니다."));
+
+        } catch (AuthApiException e) {
+            log.warn("이벤트 생성 권한 오류: {}", e.getMessage());
+            return ResponseEntity.status(401)
+                .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, e.getMessage()));
+
+        } catch (NotFoundException e) {
+            log.warn("이벤트 생성 시 리소스 없음: {}", e.getMessage());
+            return ResponseEntity.status(404)
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
+
         } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+            log.error("이벤트 생성 중 예상치 못한 오류", e);
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
         }
     }
 
@@ -366,4 +387,17 @@ public class EventController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
         }
     }
+
+    private String extractCurrentMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null ||
+            !authentication.isAuthenticated() ||
+            "anonymousUser".equals(authentication.getPrincipal())) {
+            return null;
+        }
+
+        return authentication.getName();
+    }
+
 }
