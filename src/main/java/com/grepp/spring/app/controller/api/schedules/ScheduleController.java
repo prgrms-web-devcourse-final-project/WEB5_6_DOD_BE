@@ -21,9 +21,7 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleL
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
 import com.grepp.spring.app.model.schedule.service.ScheduleService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -55,20 +53,56 @@ public class ScheduleController {
     @Autowired
     private ScheduleService scheduleService;
 
+    // 일정 정보 조회
+    @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
+    @GetMapping("/show/{scheduleId}")
+    public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId, @RequestParam Long eventId) {
+
+        try {
+
+            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
+            Optional<Schedule> eId = scheduleService.findEventById(eventId);
+
+            if (sId.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
+            }
+
+            if (eId.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
+            }
+
+            ShowScheduleResponse response = scheduleService.showSchedule(scheduleId);
+
+            return ResponseEntity.ok(ApiResponse.success(response));
+        }
+
+        catch (Exception e) {
+            if (e instanceof AuthApiException) {
+                return ResponseEntity.status(401)
+                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+            }
+            return ResponseEntity.status(400)
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+        }
+    }
+
     // 일정 등록
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(@RequestBody CreateSchedulesRequest request) {
 
         try {
-            if(
-                request.getEventId()!= 20000L && request.getEventId()!=20001L && request.getEventId()!=20002L &&
-                    request.getEventId()!=20003L && request.getEventId()!=20004L && request.getEventId()!=22222L
-            ){
+
+            Optional<Schedule> eId = scheduleService.findEventById(request.getEventId());
+
+            if(eId.isEmpty()){
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId는 20000 ~ 20004 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
             }
 
+            scheduleService.createSchedule(request);
 
             return ResponseEntity.ok(ApiResponse.success("일정이 등록되었습니다."));
         }
@@ -100,41 +134,6 @@ public class ScheduleController {
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
             }
             return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
-        }
-
-         catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
-    }
-
-    // 일정 정보 조회
-    @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
-    @GetMapping("/show/{scheduleId}")
-    public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId, @RequestParam Long eventId) {
-
-        try {
-
-            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
-            Optional<Schedule> eId = scheduleService.findEventById(eventId);
-
-            if (sId.isEmpty()) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
-            }
-
-            if (eId.isEmpty()) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
-            }
-
-            ShowScheduleResponse response = scheduleService.showSchedule(scheduleId);
-
-            return ResponseEntity.ok(ApiResponse.success(response));
         }
 
          catch (Exception e) {
