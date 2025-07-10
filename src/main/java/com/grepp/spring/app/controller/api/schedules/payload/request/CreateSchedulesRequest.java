@@ -12,7 +12,9 @@ public class CreateSchedulesRequest {
     private Long eventId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private ScheduleStatus ScheduleStatus;
+    private ScheduleStatus scheduleStatus;
+    private String scheduleName;  // 추가
+    private String role;          // 추가
     private String description;
     private List<String> memberIds;
 }

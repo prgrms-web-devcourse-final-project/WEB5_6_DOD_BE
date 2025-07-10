@@ -1,10 +1,14 @@
 package com.grepp.spring.app.model.schedule.service;
 
+import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.model.event.entity.Event;
+import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
+import com.grepp.spring.app.model.schedule.repository.EventRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceRepository;
@@ -21,6 +25,9 @@ public class ScheduleService {
     @Autowired private ScheduleRepository scheduleRepository;
     @Autowired private ScheduleMemberRepository scheduleMemberRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
+
+    // TODO : 추후 Event 패키지의 EventRepo로 변경해야 함. 현재는 Schedule 패키지의 EventRepo임
+    @Autowired private EventRepository eventRepository;
 
     @Transactional
     public ShowScheduleResponse showSchedule(Long scheduleId) {
@@ -44,5 +51,23 @@ public class ScheduleService {
 
     public Optional<Schedule> findEventById(Long eventId) {
         return scheduleRepository.findByEventId(eventId);
+    }
+
+    public void createSchedule(CreateSchedulesRequest request) {
+        Event eid = eventRepository.findById(request.getEventId()).orElseThrow(() -> new NotFoundException("이벤트를 찾을 수 없습니다."));
+
+        CreateScheduleDto dto = CreateScheduleDto.toDto(request);
+        Schedule schedule = Schedule.builder()
+            .event(eid)
+            .startTime(dto.getStartTime())
+            .endTime(dto.getEndTime())
+            .status(dto.getScheduleStatus())
+            .description(dto.getDescription()).build();
+
+        scheduleRepository.save(schedule);
+        ScheduleMember scheduleMember = ScheduleMember.builder()
+            .role()
+            ;
+        scheduleMemberRepository.save();
     }
 }

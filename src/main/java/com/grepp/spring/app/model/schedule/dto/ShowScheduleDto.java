@@ -1,7 +1,5 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.model.event.entity.Event;
-import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -9,7 +7,6 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
