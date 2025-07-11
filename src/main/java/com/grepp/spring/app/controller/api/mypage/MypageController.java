@@ -109,6 +109,7 @@ public class MypageController {
       // API 응답 감싸서 반환
       return ResponseEntity.ok(ApiResponse.success(response));
 
+      
     } catch (Exception e) {
       if (e instanceof AuthApiException) {
         return ResponseEntity.status(401)
