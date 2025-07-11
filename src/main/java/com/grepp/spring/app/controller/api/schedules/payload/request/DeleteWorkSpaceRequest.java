@@ -5,4 +5,6 @@ import lombok.Data;
 @Data
 public class DeleteWorkSpaceRequest {
 
+    private Long workspaceId;
+
 }
