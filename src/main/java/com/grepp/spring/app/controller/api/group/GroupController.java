@@ -1,7 +1,6 @@
 package com.grepp.spring.app.controller.api.group;
 
 
-import com.grepp.spring.app.model.group.dto.GroupDetail;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.dto.GroupSchedule;
 import com.grepp.spring.app.model.group.dto.GroupUser;
@@ -22,13 +21,17 @@ import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupRespo
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupScheduleResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.WithdrawGroupResponse;
+import com.grepp.spring.app.model.group.service.GroupService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,8 +44,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping(value = "/api/v1/groups", produces = MediaType.APPLICATION_JSON_VALUE)
 public class GroupController {
+
+    private final GroupService groupService;
+
 
     // 현재 유저가 속한 그룹 조회
     @GetMapping
@@ -50,18 +58,20 @@ public class GroupController {
     public ResponseEntity<ApiResponse<ShowGroupResponse>> getGroup(
     ) {
         try {
+            groupService.displayGroup();
+
             // Mock Data
-            ShowGroupResponse response = ShowGroupResponse.builder()
-                .groupDetails(new ArrayList<>(List.of(
-                    new GroupDetail(10001L, "한가한 그룹", "매우 졸림, 너무 졸림", 3),
-                    new GroupDetail(10002L, "심심한 그룹", "피곤함 너무 피곤함", 5),
-                    new GroupDetail(10003L, "피곤한 그룹", "이따가 복습해야 함", 6),
-                    new GroupDetail(10004L, "신나는 그룹", "알고리즘 문제 풀어야 하는데", 2),
-                    new GroupDetail(10005L, "즐거운 그룹", "자기소개서 쓰기 귀찮다.", 5),
-                    new GroupDetail(10006L, "빛나는 그룹", "멋쟁이 토마토", 10)
-                )))
-                .build();
-            return ResponseEntity.ok(ApiResponse.success(response));
+            //ShowGroupResponse response = ShowGroupResponse.builder()
+            //    .groupDetails(new ArrayList<>(List.of(
+            //        new GroupDetailDto(10001L, "한가한 그룹", "매우 졸림, 너무 졸림", 3),
+            //        new GroupDetailDto(10002L, "심심한 그룹", "피곤함 너무 피곤함", 5),
+            //        new GroupDetailDto(10003L, "피곤한 그룹", "이따가 복습해야 함", 6),
+            //        new GroupDetailDto(10004L, "신나는 그룹", "알고리즘 문제 풀어야 하는데", 2),
+            //        new GroupDetailDto(10005L, "즐거운 그룹", "자기소개서 쓰기 귀찮다.", 5),
+            //        new GroupDetailDto(10006L, "빛나는 그룹", "멋쟁이 토마토", 10)
+            //    )))
+            //    .build();
+            return ResponseEntity.ok(ApiResponse.noContent());
         } catch (Exception e) {
             if (e instanceof AuthApiException) {
                 return ResponseEntity.status(401)
@@ -76,18 +86,20 @@ public class GroupController {
     @Operation(summary = "그룹 생성")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
-        @RequestBody CreateGroupRequest request
+        @Valid @RequestBody CreateGroupRequest request
     ) {
         try {
-            // Mock Data
-            CreateGroupResponse response = CreateGroupResponse.builder()
-                .build();
+            // 그룹 생성
+            groupService.registGroup(request);
+            // 그룹 생성 성공
             return ResponseEntity.ok(ApiResponse.success("그룹이 생성되었습니다."));
         } catch (Exception e) {
+            // 권한 없음: 401
             if (e instanceof AuthApiException) {
                 return ResponseEntity.status(401)
                     .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
             }
+            // 잘못된 요청: 400
             return ResponseEntity.status(400)
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
         }
