@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.schedule.dto;
 
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
+import com.grepp.spring.app.model.schedule.code.WorkspaceType;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
@@ -63,7 +64,7 @@ public class ShowScheduleDto {
             .collect(Collectors.toList());
 
 
-        List<String> workspacesType = workspace.stream().map(Workspace::getType)
+        List<WorkspaceType> workspacesType = workspace.stream().map(Workspace::getType)
             .collect(Collectors.toList());
 
         List<String> workspacesNames = workspace.stream().map(Workspace::getName)

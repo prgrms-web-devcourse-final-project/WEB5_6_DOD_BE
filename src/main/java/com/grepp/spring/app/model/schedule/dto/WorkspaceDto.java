@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.dto;
 
+import com.grepp.spring.app.model.schedule.code.WorkspaceType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class WorkspaceDto {
-    private String type;
+    private WorkspaceType type;
     private String name;
     private String url;
 }

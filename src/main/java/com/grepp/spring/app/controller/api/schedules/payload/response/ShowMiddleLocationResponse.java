@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.schedules.payload.response;
 
+import com.grepp.spring.app.model.schedule.dto.MetroLineDto;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
@@ -16,6 +17,6 @@ public class ShowMiddleLocationResponse {
 //    private List<String> metroLines; // 추가
 //    private List<String> stationColors; // 추가
 
-    private Map<String, String> metroLines;  // (호선, 호선 색)
+    private List<MetroLineDto> metroLines;  // (호선, 호선 색)
 
 }
