@@ -1,9 +1,12 @@
 package com.grepp.spring.app.model.schedule.entity;
 
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,7 +37,8 @@ public class ScheduleMember extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private ScheduleRole role;
 
     @Column
     private String departLocationName;
