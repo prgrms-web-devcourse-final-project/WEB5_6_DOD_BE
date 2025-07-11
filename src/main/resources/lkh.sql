@@ -17,6 +17,9 @@ values (1,'DOD 이벤트 생성', 10, 'OFFLINE', 'DOD 이벤트', 1, true);
 insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
 values (1, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '강남역 롯데시네마', 'FIXED',1,true, 'DOD 만나는 날입니당', '모여라! DOD!');
 
+insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
+values (2, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '강남역 롯데시네마', 'FIXED',1,true, 'DOD 만나는 날입니당', '모여라! DOD!');
+
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
 values (1, 'google', 'ddd', 'ROLE_USER', 'a@mail.com','이서준', 1, '010-1111-1111');
@@ -87,3 +90,12 @@ values (9,9,1, 'ROLE_MASER','역삼역', 37.500658, 127.03643, '현혜주');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
 values (10,10,1, 'ROLE_MASER','이수역', 37.487521, 126.982309, '황수지');
+
+insert into workspaces(id,schedule_id,name,url)
+values (1,1,'프론트엔드 기획서','www.notion.com');
+
+insert into workspaces(id,schedule_id,name,url)
+values (2,1,'이때 어때 레포지토리','"www.github.com');
+
+insert into workspaces(id,schedule_id,name,url)
+values (3,1,'데브코스 슬렉','www.slack.com');
