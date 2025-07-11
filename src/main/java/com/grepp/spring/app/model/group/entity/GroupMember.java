@@ -5,6 +5,8 @@ import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -38,6 +40,7 @@ public class GroupMember extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private GroupRole role;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,4 +51,5 @@ public class GroupMember extends BaseEntity {
     @JoinColumn(name = "group_id")
     private Group group;
 
+    private Boolean groupAdmin;
 }
