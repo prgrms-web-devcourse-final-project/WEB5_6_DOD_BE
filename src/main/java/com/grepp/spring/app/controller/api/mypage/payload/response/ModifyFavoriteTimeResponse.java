@@ -18,7 +18,6 @@ public class ModifyFavoriteTimeResponse {
     private Long favoriteTimeId;
     private LocalTime startTime;
     private LocalTime endTime;
-    private LocalDateTime dateTime;
     private DayOfWeek weekday;
     private LocalDateTime updatedAt;
   }
