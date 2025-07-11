@@ -1,21 +1,17 @@
 package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
-import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
-import com.grepp.spring.app.model.schedule.entity.Workspace;
-import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-public class ScheduleService {
+public class ScheduleCommandService {
 
-    @Autowired private ScheduleRepository scheduleRepository;
-    @Autowired private ScheduleMemberRepository scheduleMemberRepository;
-    @Autowired private WorkspaceRepository workspaceRepository;
+    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
+    @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+    @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
 
     @Autowired private EventRepository eventRepository;
 
@@ -53,7 +49,7 @@ public class ScheduleService {
     }
 
     public Optional<Schedule> findScheduleById(Long scheduleId) {
-        return scheduleRepository.findById(scheduleId);
+        return scheduleQueryRepository.findById(scheduleId);
     }
 
     public Optional<Event> findEventById(Long eventId) {
@@ -76,7 +72,7 @@ public class ScheduleService {
             .description(dto.getDescription()).build();
         log.info("schedule={}", schedule);
 
-        scheduleRepository.save(schedule);
+        scheduleQueryRepository.save(schedule);
 
         for (Map.Entry<String, String> entry : request.getMemberRoles().entrySet()) {
             String memberId = String.valueOf(entry.getKey());
@@ -92,7 +88,7 @@ public class ScheduleService {
                 .schedule(schedule)
                 .build();
 
-            scheduleMemberRepository.save(scheduleMember);
+            scheduleMemberQueryRepository.save(scheduleMember);
         }
     }
 
@@ -102,8 +98,8 @@ public class ScheduleService {
 
     public void deleteSchedule(Long scheduleId) {
 
-        scheduleMemberRepository.deleteById(scheduleId);
-        scheduleRepository.deleteById(scheduleId);
+        scheduleMemberQueryRepository.deleteById(scheduleId);
+        scheduleQueryRepository.deleteById(scheduleId);
     }
 
 }
