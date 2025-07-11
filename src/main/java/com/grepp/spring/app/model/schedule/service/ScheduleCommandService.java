@@ -5,11 +5,13 @@ import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.Map;
@@ -23,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class ScheduleCommandService {
 
-    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
+    @Autowired private ScheduleCommandRepository scheduleCommandRepository;
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
 
@@ -31,35 +33,20 @@ public class ScheduleCommandService {
 
     @Autowired private MemberRepository memberRepository;
 
-    public Optional<Schedule> findScheduleById(Long scheduleId) {
-        return scheduleQueryRepository.findById(scheduleId);
-    }
-
-    public Optional<Event> findEventById(Long eventId) {
-        return eventRepository.findById(eventId);
-    }
 
     @Transactional
     public void createSchedule(CreateSchedulesRequest request) {
-        Event eid = eventRepository.findById(request.getEventId()).orElseThrow(() -> new NotFoundException("이벤트를 찾을 수 없습니다."));
+        Optional<Event> eid = eventRepository.findById(request.getEventId());
 
-        log.info("eid={}", eid);
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
 
-        Schedule schedule = Schedule.builder()
-            .event(eid)
-            .startTime(dto.getStartTime())
-            .endTime(dto.getEndTime())
-            .status(dto.getScheduleStatus())
-            .scheduleName(dto.getScheduleName())
-            .description(dto.getDescription()).build();
-        log.info("schedule={}", schedule);
+        Schedule schedule = CreateScheduleDto.fromDto(dto, eid.orElse(null));
 
-        scheduleQueryRepository.save(schedule);
+        scheduleCommandRepository.save(schedule);
 
-        for (Map.Entry<String, String> entry : request.getMemberRoles().entrySet()) {
-            String memberId = String.valueOf(entry.getKey());
-            String role = entry.getValue();
+        for (ScheduleMemberRolesDto entry : request.getMemberRoles()) {
+            String memberId = String.valueOf(entry.getMemberId());
+            ScheduleRole role = entry.getRole();
 
             Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException("멤버를 찾을 수 없습니다."));
@@ -82,7 +69,7 @@ public class ScheduleCommandService {
     public void deleteSchedule(Long scheduleId) {
 
         scheduleMemberQueryRepository.deleteById(scheduleId);
-        scheduleQueryRepository.deleteById(scheduleId);
+        scheduleCommandRepository.deleteById(scheduleId);
     }
 
 }
