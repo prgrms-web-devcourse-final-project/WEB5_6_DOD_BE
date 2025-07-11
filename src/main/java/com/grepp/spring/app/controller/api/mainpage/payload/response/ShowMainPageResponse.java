@@ -1,9 +1,9 @@
 package com.grepp.spring.app.controller.api.mainpage.payload.response;
 
 
-import com.grepp.spring.app.model.schedule.code.MEETING_PLATFORM;
+import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.event.code.MeetingType;
-import com.grepp.spring.app.model.schedule.code.SCHEDULES_STATUS;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,10 +50,10 @@ public class ShowMainPageResponse {
     private Long groupId;
     private String name; // 일정 이름
     private MeetingType meetingType; // on,off
-    private MEETING_PLATFORM meetingPlatform;
+    private MeetingPlatform meetingPlatform;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private SCHEDULES_STATUS schedulesStatus; // recommend, fixed, complete
+    private ScheduleStatus scheduleStatus; // recommend, fixed, complete
     private String description; // 일정에 대한 상세 설명, 내용
     private String location;
     private Boolean isGrouped;

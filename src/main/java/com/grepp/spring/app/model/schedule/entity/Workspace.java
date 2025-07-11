@@ -22,18 +22,15 @@ import lombok.Setter;
 public class Workspace extends BaseEntity {
 
     @Id
-    @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
+    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
+    private String type;  // 워크스페이스 종류 ENUM
+
+    @Column(nullable = false)
+    private String name;
 
     @Column(nullable = false, columnDefinition = "text")
     private String url;
@@ -42,6 +39,4 @@ public class Workspace extends BaseEntity {
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
-    @Column(nullable = false)
-    private String name;
 }
