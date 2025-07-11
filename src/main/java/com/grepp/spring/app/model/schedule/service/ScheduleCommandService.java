@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
