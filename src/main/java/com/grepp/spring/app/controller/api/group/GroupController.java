@@ -26,6 +26,7 @@ import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public class GroupController {
     @Operation(summary = "그룹 생성")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
-        @RequestBody CreateGroupRequest request
+        @Valid @RequestBody CreateGroupRequest request
     ) {
         try {
             // 그룹 생성

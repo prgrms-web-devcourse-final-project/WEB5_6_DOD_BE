@@ -10,8 +10,6 @@ import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.group.repository.GroupRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
-import com.grepp.spring.infra.error.exceptions.CommonException;
-import com.grepp.spring.infra.response.ResponseCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +37,7 @@ public class GroupService {
         Member member = memberRepository.findById(user.getUsername()).orElseThrow();
         log.info("멤버 조회");
         List<GroupMember> groupMember = groupMemberRepository.findByMemberId(member.getId());
+        System.out.println(groupMember);
         for (GroupMember groupMember1: groupMember){
 
             System.out.println(groupMember1.getGroup().getId());
@@ -48,28 +47,23 @@ public class GroupService {
     // 그룹 생성
     @Transactional
     public void registGroup(CreateGroupRequest request){
-        try{
 
-            // 그룹 생성
-            GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
-            Group group = GroupCreateDto.toEntity(groupCreateDto);
-            groupRepository.save(group);
-            log.info("그룹생성");
+        // 그룹 생성
+        GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
+        Group group = GroupCreateDto.toEntity(groupCreateDto);
+        groupRepository.save(group);
+        log.info("그룹생성");
 
-            // http 요청 사용자 조회
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            Principal user = (Principal) authentication.getPrincipal();
-            Member member = memberRepository.findById(user.getUsername()).orElseThrow();
-            log.info("멤버 조회");
+        // http 요청 사용자 조회
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal user = (Principal) authentication.getPrincipal();
+        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+        log.info("멤버 조회");
 
-            // 그룹-멤버 생성 (중간 테이블)
-            GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
-            groupMemberRepository.save(groupMember);
-            log.info("그룹-멤버 생성");
-
-        } catch (Exception e){
-            throw new CommonException(ResponseCode.BAD_REQUEST, e);
+        // 그룹-멤버 생성 (중간 테이블)
+        GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
+        groupMemberRepository.save(groupMember);
+        log.info("그룹-멤버 생성");
         }
-    }
 
 }
