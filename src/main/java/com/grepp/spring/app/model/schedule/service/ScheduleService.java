@@ -36,7 +36,7 @@ public class ScheduleService {
     @Autowired private MemberRepository memberRepository;
 
 
-    @Transactional
+//    @Transactional
     public ShowScheduleResponse showSchedule(Long scheduleId) {
         Optional<Schedule> schedule = scheduleRepository.findById(scheduleId);
 
