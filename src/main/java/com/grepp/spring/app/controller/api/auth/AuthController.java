@@ -39,7 +39,8 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "로그인", description = "토큰을 발급합니다.")
+    // 백엔드의 편안한 테스트를 위해 로그인을 살려보겠습니다.
+    @Operation(summary = "로그인", description = "토큰을 발급합니다. 백엔드에서 소셜 로그인이 힘들 때 사용하세요!!")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<TokenResponse>> login(
         @Valid @RequestBody LoginRequest loginRequest,
@@ -47,7 +48,7 @@ public class AuthController {
     ) {
 
         try {
-            TokenDto tokenDto = authService.signin(loginRequest); // Mock AuthService 호출
+            TokenDto tokenDto = authService.signin(loginRequest);
 
             ResponseCookie accessTokenCookie = TokenCookieFactory.create(
                 AuthToken.ACCESS_TOKEN.name(), tokenDto.getAccessToken(), tokenDto.getExpiresIn());
