@@ -38,7 +38,7 @@ public class CreateScheduleDto {
             .eventId(request.getEventId())
             .startTime(request.getStartTime())
             .endTime(request.getEndTime())
-            .scheduleStatus(request.getScheduleStatus())
+            .scheduleStatus(request.getSchedulesStatus())
             .meetingType(request.getMeetingType())
             .scheduleName(request.getScheduleName())
             .description(request.getDescription())
@@ -47,4 +47,3 @@ public class CreateScheduleDto {
             .memberRoles(roles).build();
     }
 }
-

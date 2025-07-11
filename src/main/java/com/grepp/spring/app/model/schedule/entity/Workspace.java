@@ -26,6 +26,12 @@ public class Workspace extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String type;  // 워크스페이스 종류 ENUM
+
+    @Column(nullable = false)
+    private String name;
+
     @Column(nullable = false, columnDefinition = "text")
     private String url;
 
@@ -33,6 +39,4 @@ public class Workspace extends BaseEntity {
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
 
-    @Column(nullable = false)
-    private String name;
 }

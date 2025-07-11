@@ -68,6 +68,9 @@ public class Schedule extends BaseEntity {
     @Column
     private String scheduleName;
 
+    @Column
+    private String platformName; // 추가됨
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;

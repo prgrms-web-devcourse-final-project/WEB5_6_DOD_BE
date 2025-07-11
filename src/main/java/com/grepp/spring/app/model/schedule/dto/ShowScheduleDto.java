@@ -7,7 +7,6 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
@@ -33,10 +32,11 @@ public class ShowScheduleDto {
     private String description;
 
     private MeetingPlatform meetingPlatform; // ZOOM | GOOGLE_MEET | NONE
+    private String platformName;
     private String platformUrl;
 
     private List<String> members;
-    private Map<String, String> workspaces; // (workspacesName , workspacesUrl)
+    private List<WorkspaceDto> workspaces;
 
     public static ShowScheduleResponse fromDto(ShowScheduleDto dto) {
 
@@ -49,28 +49,36 @@ public class ShowScheduleDto {
             .scheduleName(dto.getScheduleName())
             .description(dto.getDescription())
             .meetingPlatform(dto.getMeetingPlatform())
+            .platformName(dto.getPlatformName())
+            .platformUrl(dto.getPlatformUrl())
             .members(dto.getMembers())
             .workspaces(dto.getWorkspaces())
             .build();
     }
 
-    public static ShowScheduleDto toDto(Long event, Schedule schedule,
+    public static ShowScheduleDto fromEntity(Long event, Schedule schedule,
         List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
 
         List<String> members = scheduleMembers.stream().map(ScheduleMember::getName)
             .collect(Collectors.toList());
 
+
+        List<String> workspacesType = workspace.stream().map(Workspace::getType)
+            .collect(Collectors.toList());
+
         List<String> workspacesNames = workspace.stream().map(Workspace::getName)
             .collect(Collectors.toList());
-        log.info("workspacesNames: {}", workspacesNames);
 
         List<String> workspacesUrls = workspace.stream().map(Workspace::getUrl)
             .collect(Collectors.toList());
-        log.info("workspacesUrls: {}", workspacesUrls);
 
-        Map<String, String> workspaces = IntStream.range(0, workspace.size()).boxed()
-            .collect(Collectors.toMap(workspacesNames::get, workspacesUrls::get));
-        log.info("workspaces: {}", workspaces);
+        List<WorkspaceDto> workspaces = IntStream.range(0, workspace.size())
+            .mapToObj(i-> new WorkspaceDto(
+                workspacesType.get(i),
+                workspacesNames.get(i),
+                workspacesUrls.get(i)
+            ))
+            .collect(Collectors.toList());
 
         return ShowScheduleDto.builder()
             .id(schedule.getId())
