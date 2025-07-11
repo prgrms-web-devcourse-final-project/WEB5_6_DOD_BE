@@ -38,15 +38,15 @@ public class ScheduleService {
 
     @Transactional
     public ShowScheduleResponse showSchedule(Long scheduleId) {
-        Schedule schedule = scheduleRepository.findById(scheduleId).orElseThrow(() -> new NotFoundException("일정을 찾을 수 없습니다."));
+        Optional<Schedule> schedule = scheduleRepository.findById(scheduleId);
 
         // Lazy init 해결하기 위해서 Transactional 내에서 처리
-        Long eventId = schedule.getEvent().getId();
+        Long eventId = schedule.get().getEvent().getId();
 
         List<ScheduleMember> scheduleMembers = scheduleMemberRepository.findByScheduleId(scheduleId);
         List<Workspace> workspaces = workspaceRepository.findAllByScheduleId(scheduleId);
 
-        ShowScheduleDto dto = ShowScheduleDto.toDto(eventId, schedule, scheduleMembers, workspaces);
+        ShowScheduleDto dto = ShowScheduleDto.fromEntity(eventId, schedule.orElse(null), scheduleMembers, workspaces);
 
 
         return ShowScheduleDto.fromDto(dto);
