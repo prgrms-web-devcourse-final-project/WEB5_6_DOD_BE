@@ -1,8 +1,6 @@
 package com.grepp.spring.app.controller.api.mypage.payload.response;
 
-import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,9 +11,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateFavoritePlaceResponse {
+public class ShowFavoritePlaceResponse {
 
-  private List<FavoriteLocationList> fav_locations;
+  private List<ShowFavoritePlaceResponse.FavoriteLocationList> fav_locations;
 
   @Getter
   @Setter
@@ -28,6 +26,6 @@ public class CreateFavoritePlaceResponse {
   }
 
 
+
+
 }
-
-

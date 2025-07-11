@@ -1,14 +1,10 @@
 package com.grepp.spring.app.controller.api.mypage.payload.response;
 
-import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse.FavoriteLocationList;
-import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
-import com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +14,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateFavoriteTimeResponse {
+public class ShowFavoriteTimeResponse {
 
-  private List<FavoriteTimeList> fav_times;
+  private List<ShowFavoriteTimeResponse.FavoriteTimeList> fav_times;
 
   @Getter @Setter
   public static class FavoriteTimeList{
@@ -30,7 +26,5 @@ public class CreateFavoriteTimeResponse {
     private DayOfWeek weekday;
     private LocalDateTime createdAt;
   }
-
-
 
 }

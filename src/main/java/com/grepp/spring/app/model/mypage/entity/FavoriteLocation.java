@@ -12,15 +12,22 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
 @Entity
 @Table(name = "FavoriteLocations")
-@Getter
-@Setter
-public class FavoriteLocation extends BaseEntity {
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class
+FavoriteLocation extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -48,5 +55,7 @@ public class FavoriteLocation extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", unique = true)
     private Member member;
+
+
 
 }
