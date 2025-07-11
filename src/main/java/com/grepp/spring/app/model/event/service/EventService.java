@@ -10,7 +10,10 @@ import com.grepp.spring.app.model.event.entity.EventMember;
 import com.grepp.spring.app.model.event.repository.*;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
+import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
+import com.grepp.spring.app.model.group.repository.GroupRepository;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +31,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final EventMemberRepository eventMemberRepository;
     private final CandidateDateRepository candidateDateRepository;
-    // TODO: Member 패키지의 MemberRepository에 findById 메서드가 추가될 시, 주석 해제
-//    private final MemberRepository memberRepository;
-    // TODO: 추후 Event 패키지의 GroupRepository로 변경해야 함. 현재는 Event 패키지의 GroupRepository임
+    private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
 
@@ -55,24 +56,22 @@ public class EventService {
         }
 
         event = eventRepository.save(event);
-        // TODO: Member 패키지의 MemberRepository에 findById 메서드가 추가될 시, 주석 해제
-//        createMasterMember(event, serviceRequest.getCurrentMemberId());
+        createMasterMember(event, serviceRequest.getCurrentMemberId());
         createCandidateDates(event, serviceRequest.getCandidateDates());
     }
 
-    // TODO: Member 패키지의 MemberRepository에 findById 메서드가 추가될 시, 주석 해제
-//    private void createMasterMember(Event event, String memberId) {
-//        Member member = memberRepository.findById(memberId)
-//            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + memberId));
-//
-//        EventMember eventMember = new EventMember();
-//        eventMember.setEvent(event);
-//        eventMember.setMember(member);
-//        eventMember.setRole(Role.ROLE_MASTER);
-//
-//        eventMemberRepository.save(eventMember);
-//        log.debug("마스터 멤버 생성 완료 - 회원ID: {}", memberId);
-//    }
+    private void createMasterMember(Event event, String memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + memberId));
+
+        EventMember eventMember = new EventMember();
+        eventMember.setEvent(event);
+        eventMember.setMember(member);
+        eventMember.setRole(Role.ROLE_MASTER);
+
+        eventMemberRepository.save(eventMember);
+        log.debug("마스터 멤버 생성 완료 - 회원ID: {}", memberId);
+    }
 
     private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
         List<CandidateDate> entities = CandidateDateDto.toEntityList(candidateDates, event);
