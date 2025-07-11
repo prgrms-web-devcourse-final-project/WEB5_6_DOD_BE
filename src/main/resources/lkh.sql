@@ -22,80 +22,82 @@ values (1, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '�
 
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('1a', 'google', 'ddd', 'ROLE_USER', 'a@mail.com','이서준', 1, '010-1111-1111');
+values ('1a', 'google', 'GOOGLE', 'ROLE_USER', 'a@mail.com','이서준', 1, '010-1111-1111');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('2a', 'google', 'ddd', 'ROLE_USER', 'x@mail.com','이강현', 1, '010-1111-1112');
+values ('2a', 'google', 'GOOGLE', 'ROLE_USER', 'x@mail.com','이강현', 1, '010-1111-1112');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('3a', 'google', 'ddd', 'ROLE_USER', 'b@mail.com','안준희', 1, '010-1111-1113');
+values ('3a', 'google', 'GOOGLE', 'ROLE_USER', 'b@mail.com','안준희', 1, '010-1111-1113');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('4a', 'google', 'ddd', 'ROLE_USER', 'c@mail.com','정서윤', 1, '010-1111-1114');
+values ('4a', 'google', 'GOOGLE', 'ROLE_USER', 'c@mail.com','정서윤', 1, '010-1111-1114');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('5a', 'google', 'ddd', 'ROLE_USER', 'd@mail.com','최동준', 1, '010-1111-1115');
+values ('5a', 'google', 'GOOGLE', 'ROLE_USER', 'd@mail.com','최동준', 1, '010-1111-1115');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('6a', 'google', 'ddd', 'ROLE_USER', 'e@mail.com','박상윤', 1, '010-1111-1116');
+values ('6a', 'google', 'GOOGLE', 'ROLE_USER', 'e@mail.com','박상윤', 1, '010-1111-1116');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('7a', 'google', 'ddd', 'ROLE_USER', 'f@mail.com','박은서', 1, '010-1111-1117');
+values ('7a', 'google', 'GOOGLE', 'ROLE_USER', 'f@mail.com','박은서', 1, '010-1111-1117');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('8a', 'google', 'ddd', 'ROLE_USER', 'g@mail.com','박준규', 1, '010-1111-1118');
+values ('8a', 'google', 'GOOGLE', 'ROLE_USER', 'g@mail.com','박준규', 1, '010-1111-1118');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('9a', 'google', 'ddd', 'ROLE_USER', 'h@mail.com','현혜주', 1, '010-1111-1119');
+values ('9a', 'google', 'GOOGLE', 'ROLE_USER', 'h@mail.com','현혜주', 1, '010-1111-1119');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('10a', 'google', 'ddd', 'ROLE_USER', 'i@mail.com','황수지', 1, '010-1111-1121');
+values ('10a', 'google', 'GOOGLE', 'ROLE_USER', 'i@mail.com','황수지', 1, '010-1111-1121');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('11a', 'google', 'ddd', 'ROLE_USER', 'j@mail.com','홍길동', 1, '010-1111-1131');
+values ('11a', 'google', 'GOOGLE', 'ROLE_USER', 'j@mail.com','홍길동', 1, '010-1111-1131');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('12a', 'google', 'ddd', 'ROLE_USER', 'k@mail.com','길동이', 1, '010-1111-1141');
+values ('12a', 'google', 'GOOGLE', 'ROLE_USER', 'k@mail.com','길동이', 1, '010-1111-1141');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('13a', 'google', 'ddd', 'ROLE_USER', 'z@mail.com','해리포터', 1, '010-1111-5111');
+values ('13a', 'google', 'GOOGLE', 'ROLE_USER', 'z@mail.com','해리포터', 1, '010-1111-5111');
 
 -- schedule_member 테이블 생성
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (1,1,1, 'ROLE_MASER','서울역', 321.1234, 126.972836, '이서준');
+values (1,'1a',1, 'ROLE_MASER','서울역', 321.1234, 126.972836, '이서준');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (2,2,1, 'ROLE_MASER','건대입구역', 37.540882, 127.071103, '이강현');
+values (2,'2a',1, 'ROLE_MASER','건대입구역', 37.540882, 127.071103, '이강현');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (3,3,1, 'ROLE_MASER','강남역', 37.497958, 127.027539, '안준희');
+values (3,'3a',1, 'ROLE_MASER','강남역', 37.497958, 127.027539, '안준희');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (4,4,1, 'ROLE_MASER','홍대입구역', 37.556748, 126.923643, '정서윤');
+values (4,'4a',1, 'ROLE_MASER','홍대입구역', 37.556748, 126.923643, '정서윤');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (5,5,1, 'ROLE_MASER','잠실역', 37.514649, 127.104267, '최동준');
+values (5,'5a',1, 'ROLE_MASER','잠실역', 37.514649, 127.104267, '최동준');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (6,6,1, 'ROLE_MASER','사당역', 37.476536, 126.981631, '박상윤');
+values (6,'6a',1, 'ROLE_MASER','사당역', 37.476536, 126.981631, '박상윤');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (7,7,1, 'ROLE_MASER','을지로입구역', 37.565998, 126.982569, '박은서');
+values (7,'7a',1, 'ROLE_MASER','을지로입구역', 37.565998, 126.982569, '박은서');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (8,8,1, 'ROLE_MASER','안국역', 37.576562, 126.98547, '박준규');
+values (8,'8a',1, 'ROLE_MASER','안국역', 37.576562, 126.98547, '박준규');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (9,9,1, 'ROLE_MASER','역삼역', 37.500658, 127.03643, '현혜주');
+values (9,'9a',1, 'ROLE_MASER','역삼역', 37.500658, 127.03643, '현혜주');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (10,10,1, 'ROLE_MASER','이수역', 37.487521, 126.982309, '황수지');
+values (10,'10a',1, 'ROLE_MASER','이수역', 37.487521, 126.982309, '황수지');
 
-insert into workspaces(id,schedule_id,name,url)
-values (1,1,'프론트엔드 기획서','www.notion.com');
 
-insert into workspaces(id,schedule_id,name,url)
-values (2,1,'이때 어때 레포지토리','"www.github.com');
+-- 워크스페이스 테이블 생성
+insert into workspaces(id,schedule_id,type,name,url)
+values (1,1,'notion','프론트엔드 기획서','www.notion.com');
 
-insert into workspaces(id,schedule_id,name,url)
-values (3,1,'데브코스 슬렉','www.slack.com');
+insert into workspaces(id,schedule_id,type,name,url)
+values (2,1,'slack','이때 어때 레포지토리','www.github.com');
+
+insert into workspaces(id,schedule_id,type,name,url)
+values (3,1,'github','데브코스 슬렉','www.slack.com');
