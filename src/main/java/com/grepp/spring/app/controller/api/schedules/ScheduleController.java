@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.schedules;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.request.DeleteWorkSpaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateDepartLocationResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateOfflineDetailLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOfflineDetailLocationsResponse;
@@ -19,8 +20,8 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSchedu
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
+import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.service.ScheduleService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
@@ -56,21 +57,14 @@ public class ScheduleController {
     // 일정 정보 조회
     @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
     @GetMapping("/show/{scheduleId}")
-    public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId, @RequestParam Long eventId) {
+    public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId) {
 
         try {
-
             Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
-            Optional<Schedule> eId = scheduleService.findEventById(eventId);
 
             if (sId.isEmpty()) {
                 return ResponseEntity.status(404)
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
-            }
-
-            if (eId.isEmpty()) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
             }
 
             ShowScheduleResponse response = scheduleService.showSchedule(scheduleId);
@@ -94,8 +88,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(@RequestBody CreateSchedulesRequest request) {
 
         try {
-
-            Optional<Schedule> eId = scheduleService.findEventById(request.getEventId());
+            Optional<Event> eId = scheduleService.findEventById(request.getEventId());
 
             if(eId.isEmpty()){
                 return ResponseEntity.status(404)
@@ -120,30 +113,38 @@ public class ScheduleController {
     //NOTE
     // 일정 수정
     @Operation(summary = "일정 수정", description = "일정 수정을 진행합니다.")
-    @PatchMapping("/modify/{scheduleId}") // 일정 수정 관련된 것들은 모두 수행. 그럼 patch가 맞는가?
+    @PatchMapping("/modify/{scheduleId}") // 일정 수정 관련된 것들은 모두 수행. Pathch는 리소스 일부 수정만 가능. 바꾸고 싶은 필드만 변경가능
+    // request 전체 내용 중 변경된 내용만 반영해야 한다. 그럼 request의 14개의 필드 null 체크를 다 해줘야 하나...?
     public ResponseEntity<ApiResponse<ModifySchedulesResponse>> modifyScedules(@PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
-        try {
+//        try {
 
-            if (request.getEventId() !=20000 && request.getEventId() !=20001 && request.getEventId() !=20002 && request.getEventId() !=20003 && request.getEventId() !=20004 && request.getEventId() !=22222 ) {
+            Optional<Event> eId = scheduleService.findEventById(request.getEventId());
+
+            if(eId.isEmpty()){
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId는 20000 ~ 20004 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
             }
 
-            if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
+            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
+
+            if (sId.isEmpty()) {
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
+
+            scheduleService.modifySchedule(scheduleId);
+
             return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
-        }
+//        }
 
-         catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+//         catch (Exception e) {
+//            if (e instanceof AuthApiException) {
+//                return ResponseEntity.status(401)
+//                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+//            }
+//            return ResponseEntity.status(400)
+//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+//        }
     }
 
     // 일정 삭제
@@ -152,10 +153,14 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(@PathVariable Long scheduleId) {
 
         try {
-            if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
+            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
+
+            if (sId.isEmpty()) {
                 return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
+            scheduleService.deleteSchedule(scheduleId);
+
             return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
         }
            catch (Exception e) {
@@ -170,14 +175,14 @@ public class ScheduleController {
 
     // 출발장소 등록
     @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
-    @PostMapping("create-depart-location")
-    public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(@RequestBody CreateDepartLocationRequest request) {
+    @PostMapping("create-depart-location/{scheduleId}")
+    public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(@RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
 
         try {
 
             if(
-                request.getScheduleId()!= 30000L && request.getScheduleId()!=30001L && request.getScheduleId()!=30002L &&
-                    request.getScheduleId()!=30003L && request.getScheduleId()!=30005L && request.getScheduleId()!=30303L && request.getScheduleId()!=33333L
+                scheduleId != 30000L && scheduleId !=30001L && scheduleId !=30002L &&
+                    scheduleId !=30003L && scheduleId !=30005L && scheduleId !=30303L && scheduleId !=33333L
             ){
                 return ResponseEntity.status(404)
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
@@ -211,33 +216,33 @@ public class ScheduleController {
             response1.setLocationName("동대문역사문화공원역");
             response1.setLatitude(37.4979);
             response1.setLongitude(127.0276);
-            response1.setSuggestedMemberId(1L);
-            response1.setVoteCount(5L);
-            response1.setSCHEDULES_STATUS(VoteStatus.ALMOST);
-            response1.setMetroLines(Arrays.asList("2", "4", "5"));
-            response1.setStationColors(Arrays.asList("G222","B342","P234"));
+//            response1.setSuggestedMemberId(1L);
+//            response1.setVoteCount(5L);
+//            response1.setSCHEDULES_STATUS(VoteStatus.ALMOST);
+//            response1.setMetroLines(Arrays.asList("2", "4", "5"));
+//            response1.setStationColors(Arrays.asList("G222","B342","P234"));
 
 
             ShowSuggestedLocationsResponse response2 = new ShowSuggestedLocationsResponse();
             response2.setLocationName("역삼역");
             response2.setLatitude(37.5008);
             response2.setLongitude(127.0365);
-            response2.setSuggestedMemberId(2L);
-            response2.setVoteCount(2L);
-            response2.setSCHEDULES_STATUS(VoteStatus.WINNER);
-            response2.setMetroLines(Arrays.asList("2","8"));
-            response2.setStationColors(Arrays.asList("G222","R342"));
+//            response2.setSuggestedMemberId(2L);
+//            response2.setVoteCount(2L);
+//            response2.setSCHEDULES_STATUS(VoteStatus.WINNER);
+//            response2.setMetroLines(Arrays.asList("2","8"));
+//            response2.setStationColors(Arrays.asList("G222","R342"));
 
 
             ShowSuggestedLocationsResponse response3 = new ShowSuggestedLocationsResponse();
             response3.setLocationName("홍대입구역");
             response3.setLatitude(37.5572);
             response3.setLongitude(126.9245);
-            response3.setSuggestedMemberId(3L);
-            response3.setVoteCount(8L);
-            response3.setSCHEDULES_STATUS(VoteStatus.DEFAULT);
-            response3.setMetroLines(Arrays.asList("2","5","경의중앙","수인분당"));
-            response3.setStationColors(Arrays.asList("G222","P234","b12314","y097234"));
+//            response3.setSuggestedMemberId(3L);
+//            response3.setVoteCount(8L);
+//            response3.setSCHEDULES_STATUS(VoteStatus.DEFAULT);
+//            response3.setMetroLines(Arrays.asList("2","5","경의중앙","수인분당"));
+//            response3.setStationColors(Arrays.asList("G222","P234","b12314","y097234"));
 
 
             List<ShowSuggestedLocationsResponse> list = Arrays.asList(response1, response2, response3);
@@ -304,9 +309,9 @@ public class ScheduleController {
             response.setLocationName("잠실역");
             response.setLatitude(37.5572);
             response.setLongitude(126.9245);
-            response.setVoteCount(8L);
-            response.setMetroLines(List.of("2","8"));
-            response.setStationColors(List.of("G222","R342"));
+//            response.setVoteCount(8L);
+//            response.setMetroLines(List.of("2","8"));
+//            response.setStationColors(List.of("G222","R342"));
             return ResponseEntity.ok(ApiResponse.success(response));
         }
 
@@ -400,7 +405,7 @@ public class ScheduleController {
     // 공통 워크스페이스 삭제
     @Operation(summary = "워크스페이스 삭제", description = "워크스페이스 삭제를 진행합니다.")
     @PostMapping("/delete-workspace/{scheduleId}")
-    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> CreateWorkspace(@PathVariable Long scheduleId) {
+    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> CreateWorkspace(@PathVariable Long scheduleId, @RequestBody DeleteWorkSpaceRequest request) {
         try {
             if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
                 return ResponseEntity.status(404)
@@ -418,5 +423,4 @@ public class ScheduleController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
         }
     }
-
-    }
+}

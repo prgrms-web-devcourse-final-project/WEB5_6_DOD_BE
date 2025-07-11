@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.entity;
 
+import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
@@ -17,8 +18,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -27,10 +30,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Schedule extends BaseEntity {
 
     @Id
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -66,5 +71,4 @@ public class Schedule extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;
-
 }
