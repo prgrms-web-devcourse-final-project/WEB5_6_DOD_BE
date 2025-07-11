@@ -64,6 +64,6 @@ public class GroupService {
         GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
         groupMemberRepository.save(groupMember);
         log.info("그룹-멤버 생성");
-        }
+    }
 
 }

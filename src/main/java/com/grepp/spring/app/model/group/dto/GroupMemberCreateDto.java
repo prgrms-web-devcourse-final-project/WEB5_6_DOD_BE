@@ -11,6 +11,7 @@ public class GroupMemberCreateDto {
         GroupMember groupMember = new GroupMember();
         groupMember.setGroup(group);
         groupMember.setMember(member);
+        groupMember.setGroupAdmin(true);
         groupMember.setRole(GroupRole.GROUP_LEADER);
 
         return groupMember;
