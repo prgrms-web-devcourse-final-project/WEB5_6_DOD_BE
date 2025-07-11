@@ -22,7 +22,7 @@ import lombok.Setter;
 public class Workspace extends BaseEntity {
 
     @Id
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
