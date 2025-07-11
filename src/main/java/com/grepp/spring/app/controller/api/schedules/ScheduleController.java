@@ -2,6 +2,7 @@ package com.grepp.spring.app.controller.api.schedules;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -131,21 +133,21 @@ public class ScheduleController {
 //////        }
 ////    }
 //
-//    // 일정 삭제
-//    @Operation(summary = "일정 삭제", description = "일정을 삭제합니다.")
-//    @DeleteMapping("/delete/{scheduleId}")
-//    public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(@PathVariable Long scheduleId) {
-//
+    // 일정 삭제
+    @Operation(summary = "일정 삭제", description = "일정을 삭제합니다.")
+    @DeleteMapping("/delete/{scheduleId}")
+    public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(@PathVariable Long scheduleId) {
+
 //        try {
-//            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
-//
-//            if (sId.isEmpty()) {
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
-//            }
-//            scheduleService.deleteSchedule(scheduleId);
-//
-//            return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
+            Optional<Schedule> sId = scheduleQueryService.findScheduleById(scheduleId);
+
+            if (sId.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
+            }
+            scheduleCommandService.deleteSchedule(scheduleId);
+
+            return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
 //        }
 //           catch (Exception e) {
 //            if (e instanceof AuthApiException) {
@@ -155,7 +157,7 @@ public class ScheduleController {
 //            return ResponseEntity.status(400)
 //                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
 //        }
-//    }
+    }
 //
 //    // 출발장소 등록
 //    @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
