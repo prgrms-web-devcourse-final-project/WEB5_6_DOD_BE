@@ -1,6 +1,9 @@
 package com.grepp.spring.app.model.mypage.service;
 
 
+import static com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto.toEntity;
+import static com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto.toEntity;
+
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
 import com.grepp.spring.app.model.member.entity.Member;
@@ -49,7 +52,7 @@ public class MypageService {
     }
 
     // Entity 로 변환
-    FavoriteLocation entity = dto.toEntity();
+    FavoriteLocation entity = toEntity(dto);
 
     // 저장하기
     FavoriteLocation saved = myLocationRepository.save(entity);
@@ -75,7 +78,7 @@ public class MypageService {
 
     FavoriteTimetableDto dto = FavoriteTimetableDto.toDto(request, member);
 
-    FavoriteTimetable entity = dto.toEntity();
+    FavoriteTimetable entity = toEntity(dto);
 
     FavoriteTimetable saved = myTimetableRepository.save(entity);
 

@@ -37,16 +37,16 @@ public class FavoriteLocationDto {
   }
 
   // DTO → Entity : 컨트롤러에서 받은 dto DB 에 저장하기 위해
-  public FavoriteLocation toEntity() {
+  public static FavoriteLocation toEntity(FavoriteLocationDto dto) {
     Member member = new Member();
-    member.setId(this.memberId);
+    member.setId(dto.getMemberId());
 
     return FavoriteLocation.builder()
-        .id(this.favoriteLocationId)
+        .id(dto.getFavoriteLocationId())
         .member(member)
-        .name(this.stationName)
-        .latitude(this.latitude)
-        .longitude(this.longitude)
+        .name(dto.getStationName())
+        .latitude(dto.getLatitude())
+        .longitude(dto.getLongitude())
         .build();
   }
 

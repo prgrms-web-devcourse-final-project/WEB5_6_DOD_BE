@@ -15,6 +15,7 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSy
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
 import com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto;
 import com.grepp.spring.app.model.mypage.service.MypageService;
+import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,17 +71,16 @@ public class MypageController {
       return ResponseEntity.ok(ApiResponse.success(response));
 
     } catch (IllegalStateException e) {
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "이미 즐겨찾기 장소를 등록했습니다."));
-
-    } catch (AuthenticationException e) {
-      return ResponseEntity.status(401)
-          .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
+      return ResponseEntity.status(409)
+          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "이미 즐겨찾기 장소를 등록했습니다."));
 
     } catch (Exception e) {
-      log.error("알 수 없는 예외 발생: {}", e.getMessage(), e);
-      return ResponseEntity.status(500)
-          .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."));
+      if (e instanceof AuthApiException) {
+        return ResponseEntity.status(401)
+            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
+      }
+      return ResponseEntity.status(400)
+          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
     }
   }
 
@@ -109,14 +109,13 @@ public class MypageController {
       // API 응답 감싸서 반환
       return ResponseEntity.ok(ApiResponse.success(response));
 
-    } catch (AuthenticationException e) {
-      return ResponseEntity.status(401)
-          .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-
     } catch (Exception e) {
-      log.error("알 수 없는 예외 발생: {}", e.getMessage(), e);
-      return ResponseEntity.status(500)
-          .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."));
+      if (e instanceof AuthApiException) {
+        return ResponseEntity.status(401)
+            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
+      }
+      return ResponseEntity.status(400)
+          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
     }
   }
 

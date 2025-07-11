@@ -5,6 +5,7 @@ import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavorite
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse.FavoriteTimeList;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.mypage.entity.FavoriteLocation;
 import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -39,16 +40,16 @@ public class FavoriteTimetableDto {
   }
 
   // DTO → Entity
-  public FavoriteTimetable toEntity() {
+  public static FavoriteTimetable toEntity(FavoriteTimetableDto dto) {
     Member member = new Member();
-    member.setId(this.memberId);
+    member.setId(dto.getMemberId());
 
     return FavoriteTimetable.builder()
-        .id(this.favoriteTimetableId)
+        .id(dto.getFavoriteTimetableId())
         .member(member)
-        .startTime(this.startTime)
-        .endTime(this.endTime)
-        .weekday(this.weekday)
+        .startTime(dto.getStartTime())
+        .endTime(dto.getEndTime())
+        .weekday(dto.getWeekday())
         .build();
   }
 
@@ -67,7 +68,7 @@ public class FavoriteTimetableDto {
     return FavoriteTimetableDto.builder()
         .memberId(member.getId())
         .startTime(request.getStartTime())
-        .endTime(request.getStartTime())
+        .endTime(request.getEndTime())
         .weekday(request.getWeekday())
         .build();
   }
