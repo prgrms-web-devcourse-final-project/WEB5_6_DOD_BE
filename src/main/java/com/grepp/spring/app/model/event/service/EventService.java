@@ -49,9 +49,9 @@ public class EventService {
             GroupMember groupMember = groupMemberRepository.findByGroupIdAndMemberId(serviceRequest.getGroupId(), currentMemberId)
                 .orElseThrow(() -> new NotFoundException("그룹에 속하지 않은 회원입니다. 그룹ID: " + serviceRequest.getGroupId()));
 
-            event = serviceRequest.toEntity(group);
+            event = CreateEventDto.toEntity(serviceRequest, group);
         } else {
-            event = serviceRequest.toEntity();
+            event = CreateEventDto.toEntity(serviceRequest);
         }
 
         event = eventRepository.save(event);
@@ -75,7 +75,7 @@ public class EventService {
 //    }
 
     private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
-        List<CandidateDate> entities = CandidateDateDto.toEntityList(event, candidateDates);
+        List<CandidateDate> entities = CandidateDateDto.toEntityList(candidateDates, event);
         candidateDateRepository.saveAll(entities);
         log.debug("후보 날짜 생성 완료 - 개수: {}", entities.size());
     }

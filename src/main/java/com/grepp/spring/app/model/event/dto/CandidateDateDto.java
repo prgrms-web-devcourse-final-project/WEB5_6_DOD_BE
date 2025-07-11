@@ -18,18 +18,18 @@ public class CandidateDateDto {
     private final LocalTime startTime;
     private final LocalTime endTime;
 
-    public CandidateDate toEntity(Event event) {
+    public static CandidateDate toEntity(CandidateDateDto dto, Event event) {
         CandidateDate candidateDate = new CandidateDate();
         candidateDate.setEvent(event);
-        candidateDate.setDate(this.date);
-        candidateDate.setStartTime(this.startTime);
-        candidateDate.setEndTime(this.endTime);
+        candidateDate.setDate(dto.getDate());
+        candidateDate.setStartTime(dto.getStartTime());
+        candidateDate.setEndTime(dto.getEndTime());
         return candidateDate;
     }
 
-    public static List<CandidateDate> toEntityList(Event event, List<CandidateDateDto> dtoList) {
-        return dtoList.stream()
-            .map(dto -> dto.toEntity(event))
+    public static List<CandidateDate> toEntityList(List<CandidateDateDto> dtos, Event event) {
+        return dtos.stream()
+            .map(dto -> toEntity(dto, event))
             .collect(Collectors.toList());
     }
 

@@ -52,18 +52,18 @@ public class CreateEventDto {
             .collect(Collectors.toList());
     }
 
-    public Event toEntity(Group group) {
+    public static Event toEntity(CreateEventDto dto, Group group) {
         return Event.createEvent(
             group,
-            this.title,
-            this.description,
-            this.meetingType,
-            this.maxMember
+            dto.getTitle(),
+            dto.getDescription(),
+            dto.getMeetingType(),
+            dto.getMaxMember()
         );
     }
 
-    public Event toEntity() {
-        return toEntity(null);
+    public static Event toEntity(CreateEventDto dto) {
+        return toEntity(dto, null);
     }
 
 }
