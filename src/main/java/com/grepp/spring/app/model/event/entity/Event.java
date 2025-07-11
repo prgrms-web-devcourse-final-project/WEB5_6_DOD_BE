@@ -3,17 +3,10 @@ package com.grepp.spring.app.model.event.entity;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.infra.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -21,20 +14,12 @@ import lombok.Setter;
 @Table(name = "Events")
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Event extends BaseEntity {
 
     @Id
     @Column(nullable = false, updatable = false)
-    @SequenceGenerator(
-            name = "primary_sequence",
-            sequenceName = "primary_sequence",
-            allocationSize = 1,
-            initialValue = 10000
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "primary_sequence"
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -44,6 +29,7 @@ public class Event extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private MeetingType meetingType;
 
     @Column(nullable = false)
@@ -52,5 +38,51 @@ public class Event extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    private Event(Group group, String title, String description,
+                  MeetingType meetingType, Integer maxMember) {
+        validateForCreation(title, meetingType, maxMember);
+
+        this.group = group;
+        this.title = title;
+        this.description = description;
+        this.meetingType = meetingType;
+        this.maxMember = maxMember;
+    }
+
+    public static Event createEvent(Group group, String title, String description,
+                                    MeetingType meetingType, Integer maxMember) {
+        return new Event(group, title, description, meetingType, maxMember);
+    }
+
+    private static void validateForCreation(String title, MeetingType meetingType, Integer maxMember) {
+        validateTitle(title);
+        validateMeetingType(meetingType);
+        validateMaxMember(maxMember);
+    }
+
+    private static void validateTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new IllegalArgumentException("이벤트 제목은 필수입니다.");
+        }
+        if (title.length() > 10) {
+            throw new IllegalArgumentException("이벤트 제목은 10자를 초과할 수 없습니다.");
+        }
+    }
+
+    private static void validateMeetingType(MeetingType meetingType) {
+        if (meetingType == null) {
+            throw new IllegalArgumentException("미팅 타입은 필수입니다.");
+        }
+    }
+
+    private static void validateMaxMember(Integer maxMember) {
+        if (maxMember == null || maxMember <= 0) {
+            throw new IllegalArgumentException("최대 인원은 1명 이상이어야 합니다.");
+        }
+        if (maxMember > 100) {
+            throw new IllegalArgumentException("최대 인원은 100명을 초과할 수 없습니다.");
+        }
+    }
 
 }
