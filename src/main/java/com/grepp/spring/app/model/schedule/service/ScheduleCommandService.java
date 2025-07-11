@@ -14,6 +14,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
@@ -37,6 +38,8 @@ public class ScheduleCommandService {
     @Autowired private EventRepository eventRepository;
 
     @Autowired private MemberRepository memberRepository;
+    @Autowired
+    private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
 
 
 //    @Transactional
@@ -91,9 +94,10 @@ public class ScheduleCommandService {
 
     }
 
+    @Transactional
     public void deleteSchedule(Long scheduleId) {
 
-        scheduleMemberQueryRepository.deleteById(scheduleId);
+        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId);
         scheduleCommandRepository.deleteById(scheduleId);
     }
 
