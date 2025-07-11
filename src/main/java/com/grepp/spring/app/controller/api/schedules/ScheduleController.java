@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -61,7 +63,7 @@ public class ScheduleController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(@RequestBody CreateSchedulesRequest request) {
 
-//        try {
+        try {
             Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
 
             if(eId.isEmpty()){
@@ -72,16 +74,16 @@ public class ScheduleController {
             scheduleCommandService.createSchedule(request);
 
             return ResponseEntity.ok(ApiResponse.success("일정이 등록되었습니다."));
-//        }
-//         catch (Exception e) {
-//             if (e instanceof AuthApiException) {
-//                 return ResponseEntity.status(401)
-//                     .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-//             }
-//
-//             return ResponseEntity.status(400)
-//                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//         }
+        }
+         catch (Exception e) {
+             if (e instanceof AuthApiException) {
+                 return ResponseEntity.status(401)
+                     .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+             }
+
+             return ResponseEntity.status(400)
+                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+         }
     }
 
 ////    //NOTE

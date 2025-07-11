@@ -14,7 +14,6 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.List;
