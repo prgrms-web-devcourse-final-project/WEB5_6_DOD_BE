@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.member.entity;
 
+import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.model.member.code.Role;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -25,8 +26,9 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String provider;
+    private Provider provider;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -41,7 +43,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private Long profileImageNumber;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = true) // 잠깐 나가있어
     private String tel;
 
 }

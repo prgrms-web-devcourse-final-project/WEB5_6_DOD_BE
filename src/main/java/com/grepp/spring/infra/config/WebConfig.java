@@ -9,13 +9,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    // 2025.7.11 기준 Front Server 테스트 주소인 https://localhost:3000 이 들어가야 합니다.
+    // 빌드 시 application.yml 를 확인해주세요.
     @Value("${front-server.domain}")
     private String frontServer;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins(frontServer)
+            .allowedOrigins(frontServer,
+                "http://localhost:8080")
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true)

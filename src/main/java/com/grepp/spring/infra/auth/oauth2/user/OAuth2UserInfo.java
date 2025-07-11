@@ -7,16 +7,16 @@ public interface OAuth2UserInfo {
     String getProviderId();
     String getProvider();
     String getName();
-    String getPicture();
-    
+    String getEmail();
+
     static OAuth2UserInfo create(String path, OAuth2User user) {
-        if(path.equals("/login/oauth2/code/grepp"))
-            return new GreppOAuth2UserInfo(user.getAttributes());
-        
         if(path.equals("/login/oauth2/code/google"))
             return new GoogleOAuth2UserInfo(user.getAttributes());
-    
-        return null;
+
+        if(path.equals("/login/oauth2/code/kakao"))
+            return new KakaoOAuth2UserInfo(user.getAttributes());
+
+        throw new IllegalArgumentException("지원하지 않는 소셜 서비스입니다: " + path);
     }
 
 }
