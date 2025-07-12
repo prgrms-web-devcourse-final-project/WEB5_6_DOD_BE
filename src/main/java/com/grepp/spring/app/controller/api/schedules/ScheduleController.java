@@ -1,8 +1,10 @@
 package com.grepp.spring.app.controller.api.schedules;
 
+import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.DeleteWorkSpaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateDepartLocationResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -151,23 +154,17 @@ public class ScheduleController {
         }
     }
 
-//
-//    // 출발장소 등록
-//    @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
-//    @PostMapping("create-depart-location/{scheduleId}")
-//    public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(@RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
-//
+
+    // 출발장소 등록
+    @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
+    @PostMapping("create-depart-location/{scheduleId}")
+    public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(@RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
+
 //        try {
-//
-//            if(
-//                scheduleId != 30000L && scheduleId !=30001L && scheduleId !=30002L &&
-//                    scheduleId !=30003L && scheduleId !=30005L && scheduleId !=30303L && scheduleId !=33333L
-//            ){
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
-//            }
-//
-//            return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
+
+            scheduleCommandService.createDepartLocation(scheduleId, request);
+
+            return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
 //        }
 //
 //           catch (Exception e) {
@@ -178,7 +175,7 @@ public class ScheduleController {
 //            return ResponseEntity.status(400)
 //                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
 //        }
-//    }
+    }
 //
 //    // 중간장소 후보 조회
 //    @Operation(summary = "중간장소 후보 조회", description = "중간장소 후보를 조회합니다.")
@@ -272,7 +269,7 @@ public class ScheduleController {
 //        }
 //    }
 //
-//    // 중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회
+//    // XXXXX 중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회 XXXX
 //    @Operation(summary = "중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회", description = "중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회")
 //    @GetMapping("/show-middle-location/{scheduleId}")
 //    public ResponseEntity<ApiResponse<ShowMiddleLocationResponse>> showMiddleLocation(@PathVariable Long scheduleId) {
@@ -334,7 +331,7 @@ public class ScheduleController {
 //        }
 //    }
 //
-//    // 오프라인 세부 장소 생성
+//    // XXXXX 오프라인 세부 장소 생성 XXXXX
 //    @Operation(summary = "오프라인 세부 장소 생성", description = "오프라인 세부 장소 생성을 진행합니다.")
 //    @PostMapping("/create-detail-locations/{scheduleId}")
 //    public ResponseEntity<ApiResponse<CreateOfflineDetailLocationsResponse>> CreateOfflineDetailLocation(@PathVariable Long scheduleId, @RequestBody CreateOfflineDetailLocationsRequest request) {
@@ -358,7 +355,7 @@ public class ScheduleController {
 //        }
 //    }
 //
-//    // 공통 워크스페이스 등록
+//    // XXXXX 공통 워크스페이스 등록 XXXXX
 //    @Operation(summary = "워크스페이스 등록", description = "워크스페이스 등록을 진행합니다.")
 //    @PostMapping("/add-workspace/{scheduleId}")
 //    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> CreateWorkspace(@PathVariable Long scheduleId, @RequestBody CreateWorkspaceRequest request) {

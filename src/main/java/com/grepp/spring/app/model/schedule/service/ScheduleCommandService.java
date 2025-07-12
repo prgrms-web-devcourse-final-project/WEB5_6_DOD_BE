@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.service;
 
+import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.model.event.entity.Event;
@@ -7,6 +8,7 @@ import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
+import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
@@ -31,16 +33,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class ScheduleCommandService {
 
-    @Autowired private ScheduleCommandRepository scheduleCommandRepository;
-    @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
-    @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
-    @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
-    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
+    @Autowired
+    private ScheduleCommandRepository scheduleCommandRepository;
+    @Autowired
+    private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+    @Autowired
+    private WorkspaceQueryRepository workspaceQueryRepository;
+    @Autowired
+    private WorkspaceCommandRepository workspaceCommandRepository;
+    @Autowired
+    private ScheduleQueryRepository scheduleQueryRepository;
 
-    @Autowired private EventRepository eventRepository;
+    @Autowired
+    private EventRepository eventRepository;
 
-    @Autowired private MemberRepository memberRepository;
-    @Autowired private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+    @Autowired
+    private MemberRepository memberRepository;
+    @Autowired
+    private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
 
 
     @Transactional
@@ -154,5 +164,24 @@ public class ScheduleCommandService {
 
     public void deleteWorkspace(Long workspaceId) {
         workspaceCommandRepository.deleteById(workspaceId);
+    }
+
+    @Transactional // Transactional 내에서 수정이 되어야 자동 변경 감지된다.
+    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request) {
+
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String memberId = authentication.getName();
+//        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findByMemberId(memberId, scheduleId);
+//
+        //임시
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
+            request.getMemberId(), scheduleId);
+
+        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
+
+        scheduleMember.setDepartLocationName(dto.getDepartLocationName());
+        scheduleMember.setLongitude(dto.getLongitude());
+        scheduleMember.setLatitude(dto.getLatitude());
+
     }
 }
