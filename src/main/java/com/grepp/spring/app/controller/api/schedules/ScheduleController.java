@@ -160,21 +160,21 @@ public class ScheduleController {
     @PostMapping("create-depart-location/{scheduleId}")
     public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(@RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
 
-//        try {
+        try {
 
             scheduleCommandService.createDepartLocation(scheduleId, request);
 
             return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
-//        }
-//
-//           catch (Exception e) {
-//            if (e instanceof AuthApiException) {
-//                return ResponseEntity.status(401)
-//                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-//            }
-//            return ResponseEntity.status(400)
-//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//        }
+        }
+
+           catch (Exception e) {
+            if (e instanceof AuthApiException) {
+                return ResponseEntity.status(401)
+                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+            }
+            return ResponseEntity.status(400)
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+        }
     }
 //
 //    // 중간장소 후보 조회
