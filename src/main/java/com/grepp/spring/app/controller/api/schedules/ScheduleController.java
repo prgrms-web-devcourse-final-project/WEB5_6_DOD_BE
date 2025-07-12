@@ -4,14 +4,20 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepar
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.DeleteWorkSpaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateDepartLocationResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
 import com.grepp.spring.app.model.event.entity.Event;
+import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
@@ -39,6 +45,9 @@ public class ScheduleController {
 
     @Autowired private ScheduleCommandService scheduleCommandService;
     @Autowired private ScheduleQueryService scheduleQueryService;
+
+    @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+    @Autowired private LocationQueryRepository locationQueryRepository;
 
     // 일정 정보 조회
     @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
@@ -239,35 +248,34 @@ public class ScheduleController {
 //        }
 //    }
 //
-//    // 출발 장소 지점 투표하기
-//    @Operation(summary = "출발 장소 지점 투표하기", description = "출발 장소를 투표합니다.")
-//    @PostMapping("/suggested-locations/vote/{scheduleId}")
-//    public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(@PathVariable Long scheduleId, @RequestBody VoteMiddleLocationsRequest request) {
-//
-//        try {
-//
-//            if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
-//            }
-//
-//            if (request.getLocationId() !=40000 && request.getLocationId() !=40001 && request.getLocationId() !=40002 && request.getLocationId() !=40003 && request.getLocationId() !=40004 && request.getLocationId() !=40404 && request.getLocationId() !=44444 ) {
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 투표리스트(장소)를 찾을 수 없습니다. locationId는 40000 ~ 40004 입니다."));
-//            }
-//
-//            return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
-//        }
-//
-//           catch (Exception e) {
-//            if (e instanceof AuthApiException) {
-//                return ResponseEntity.status(401)
-//                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-//            }
-//            return ResponseEntity.status(400)
-//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//        }
-//    }
+    // 출발 장소 투표하기
+    @Operation(summary = "출발 장소 투표하기", description = "출발 장소를 투표합니다.")
+    @PostMapping("/suggested-locations/vote/{scheduleMemberId}")
+    public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(@PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
+
+        try {
+            Optional<ScheduleMember> lmId = scheduleMemberQueryRepository.findById(scheduleMemberId);
+            Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
+
+            if (lId.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 투표리스트(장소)를 찾을 수 없습니다. locationId를 확인해주세요."));
+            }
+
+            scheduleCommandService.voteMiddleLocation(lmId, lId);
+
+            return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
+        }
+
+           catch (Exception e) {
+            if (e instanceof AuthApiException) {
+                return ResponseEntity.status(401)
+                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+            }
+            return ResponseEntity.status(400)
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+        }
+    }
 //
 //    // XXXXX 중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회 XXXX
 //    @Operation(summary = "중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회", description = "중간 장소(지하철 역) 지점 확인 && 중간 장소 지점 투표결과 조회")

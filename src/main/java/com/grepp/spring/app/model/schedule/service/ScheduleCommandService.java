@@ -12,14 +12,20 @@ import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
+import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
+import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
+import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
@@ -51,6 +57,12 @@ public class ScheduleCommandService {
     private MemberRepository memberRepository;
     @Autowired
     private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+
+    @Autowired
+    private LocationQueryRepository locationQueryRepository;
+    @Autowired private VoteCommandRepository voteCommandRepository;
+    @Autowired
+    private LocationCommandRepository locationCommandRepository;
 
 
     @Transactional
@@ -182,6 +194,28 @@ public class ScheduleCommandService {
         scheduleMember.setDepartLocationName(dto.getDepartLocationName());
         scheduleMember.setLongitude(dto.getLongitude());
         scheduleMember.setLatitude(dto.getLatitude());
+
+    }
+
+    @Transactional
+    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String memberId = authentication.getName();
+
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid);
+        Vote vote = VoteMiddleLocationDto.fromDto(dto);
+        voteCommandRepository.save(vote);
+
+        Location location = locationQueryRepository
+            .findById(lid.map(Location::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Location ID 없음")))
+            .orElseThrow(() -> new IllegalArgumentException("해당 Location 없음"));
+
+        if (location.getVoteCount() != null) {
+            location.setVoteCount(location.getVoteCount() + 1);
+        } else if (location.getVoteCount() == null) {
+            location.setVoteCount(1L);
+        }
 
     }
 }
