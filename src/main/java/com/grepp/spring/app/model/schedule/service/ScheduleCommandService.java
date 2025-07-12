@@ -18,6 +18,7 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.Optional;
@@ -33,13 +34,13 @@ public class ScheduleCommandService {
     @Autowired private ScheduleCommandRepository scheduleCommandRepository;
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
+    @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
     @Autowired private ScheduleQueryRepository scheduleQueryRepository;
 
     @Autowired private EventRepository eventRepository;
 
     @Autowired private MemberRepository memberRepository;
-    @Autowired
-    private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+    @Autowired private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
 
 
     @Transactional
@@ -151,4 +152,7 @@ public class ScheduleCommandService {
         scheduleCommandRepository.deleteById(scheduleId);
     }
 
+    public void deleteWorkspace(Long workspaceId) {
+        workspaceCommandRepository.deleteById(workspaceId);
+    }
 }
