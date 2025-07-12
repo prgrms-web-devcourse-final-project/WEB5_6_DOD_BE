@@ -4,6 +4,8 @@ import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequ
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.CandidateDateDto;
 import com.grepp.spring.app.model.event.dto.CreateEventDto;
+import com.grepp.spring.app.model.event.dto.EventMemberDto;
+import com.grepp.spring.app.model.event.dto.JoinEventDto;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
@@ -56,21 +58,9 @@ public class EventService {
         }
 
         event = eventRepository.save(event);
-        createMasterMember(event, serviceRequest.getCurrentMemberId());
+        EventMemberDto masterDto = EventMemberDto.toDto(event.getId(), currentMemberId, Role.ROLE_MASTER);
+        createEventMember(masterDto);
         createCandidateDates(event, serviceRequest.getCandidateDates());
-    }
-
-    private void createMasterMember(Event event, String memberId) {
-        Member member = memberRepository.findById(memberId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + memberId));
-
-        EventMember eventMember = new EventMember();
-        eventMember.setEvent(event);
-        eventMember.setMember(member);
-        eventMember.setRole(Role.ROLE_MASTER);
-
-        eventMemberRepository.save(eventMember);
-        log.debug("마스터 멤버 생성 완료 - 회원ID: {}", memberId);
     }
 
     private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
@@ -95,6 +85,58 @@ public class EventService {
             throw new IllegalArgumentException("후보 날짜는 최소 1개 이상 필요합니다.");
         }
         // TODO: 추가 검증 로직 구현
+    }
+
+    @Transactional
+    public void joinEvent(Long eventId, String currentMemberId) {
+
+        JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
+
+        Event event = eventRepository.findById(dto.getEventId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다."));
+
+        Member member = memberRepository.findById(dto.getMemberId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다."));
+
+        if (eventMemberRepository.existsByEventIdAndMemberId(dto.getEventId(), dto.getMemberId())) {
+            throw new IllegalStateException("이미 참여 중인 이벤트입니다.");
+        }
+
+        Long currentMemberCount = eventMemberRepository.countByEventId(dto.getEventId());
+        validateEventCapacity(event, currentMemberCount);
+
+        if (event.getGroup() != null) {
+            validateGroupMembership(event.getGroup().getId(), dto.getMemberId());
+        }
+
+        EventMemberDto memberDto = EventMemberDto.toDto(dto.getEventId(), dto.getMemberId(), Role.ROLE_MEMBER);
+        createEventMember(memberDto);
+
+    }
+
+    private void validateEventCapacity(Event event, Long currentMemberCount) {
+        if (event.getMaxMember() != null && currentMemberCount >= event.getMaxMember()) {
+            throw new IllegalStateException("이벤트 정원이 초과되었습니다.");
+        }
+    }
+
+    private void validateGroupMembership(Long groupId, String memberId) {
+        boolean isMember = groupMemberRepository.findByGroupIdAndMemberId(groupId, memberId).isPresent();
+        if (!isMember) {
+            throw new IllegalStateException("그룹 멤버만 참여할 수 있는 이벤트입니다.");
+        }
+    }
+
+    @Transactional
+    public void createEventMember(EventMemberDto dto) {
+        Event event = eventRepository.findById(dto.getEventId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+
+        Member member = memberRepository.findById(dto.getMemberId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + dto.getMemberId()));
+
+        EventMember eventMember = EventMemberDto.toEntity(dto, event, member);
+        eventMemberRepository.save(eventMember);
     }
 
 }
