@@ -134,8 +134,7 @@ public class EventController {
                     .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "로그인이 필요합니다."));
             }
 
-            AllTimeScheduleDto dto = eventService.getAllTimeSchedules(eventId, currentMemberId);
-            AllTimeScheduleResponse response = AllTimeScheduleDto.fromDto(dto);
+            AllTimeScheduleResponse response = eventService.getAllTimeSchedules(eventId, currentMemberId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
 

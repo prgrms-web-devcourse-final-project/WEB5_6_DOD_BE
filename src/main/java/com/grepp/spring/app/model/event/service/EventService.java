@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.event.service;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
+import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -181,7 +182,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public AllTimeScheduleDto getAllTimeSchedules(Long eventId, String currentMemberId) {
+    public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
 
@@ -207,7 +208,7 @@ public class EventService {
             .filter(EventMember::getConfirmed)
             .count();
 
-        return AllTimeScheduleDto.builder()
+        AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
             .eventId(event.getId())
             .eventTitle(event.getTitle())
             .timeTable(timeTable)
@@ -215,6 +216,8 @@ public class EventService {
             .totalMembers(eventMembers.size())
             .confirmedMembers(confirmedMembers)
             .build();
+
+        return AllTimeScheduleDto.fromDto(dto);
     }
 
     private Map<Long, List<TempSchedule>> getMemberScheduleMap(List<EventMember> eventMembers) {
