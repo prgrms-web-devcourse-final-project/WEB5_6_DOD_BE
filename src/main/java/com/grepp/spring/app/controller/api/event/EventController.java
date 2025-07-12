@@ -4,6 +4,7 @@ import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequ
 import com.grepp.spring.app.controller.api.event.payload.request.CreateScheduleResultRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.*;
+import com.grepp.spring.app.model.event.dto.AllTimeScheduleDto;
 import com.grepp.spring.app.model.event.dto.MyTimeScheduleDto;
 import com.grepp.spring.app.model.event.service.EventService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
@@ -21,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,119 +128,29 @@ public class EventController {
     public ResponseEntity<ApiResponse<AllTimeScheduleResponse>> getAllTimeSchedules(@PathVariable Long eventId) {
 
         try {
-            if (
-                eventId != 20000 && eventId != 20001 && eventId != 20002 &&
-                    eventId != 20003 && eventId != 20004 && eventId != 20005
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다."));
+            String currentMemberId = extractCurrentMemberId();
+
+            if (currentMemberId == null) {
+                return ResponseEntity.status(401)
+                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "로그인이 필요합니다."));
             }
 
-            AllTimeScheduleResponse response = new AllTimeScheduleResponse();
-            response.setEventId(eventId);
-            response.setEventTitle("시이바 카츠오모이");
-            response.setTotalMembers(3);
-            response.setConfirmedMembers(2);
-
-            AllTimeScheduleResponse.TimeTable timeTable = new AllTimeScheduleResponse.TimeTable();
-            List<String> dates = new ArrayList<>();
-            dates.add("2025-07-13");
-            dates.add("2025-07-14");
-            dates.add("2025-07-15");
-            dates.add("2025-07-16");
-            dates.add("2025-07-17");
-            dates.add("2025-07-18");
-            dates.add("2025-07-19");
-            timeTable.setDates(dates);
-            timeTable.setStartTime("09:30");
-            timeTable.setEndTime("12:30");
-            response.setTimeTable(timeTable);
-
-            // 멤버별 스케줄 정보
-            List<AllTimeScheduleResponse.MemberSchedule> memberSchedules = new ArrayList<>();
-
-            // 첫 번째 멤버 (나의 가능한 시간)
-            AllTimeScheduleResponse.MemberSchedule member1 = new AllTimeScheduleResponse.MemberSchedule();
-            member1.setEventMemberId("google_1234");
-            member1.setMemberName("나의 가능한 시간");
-            member1.setRole("HOST");
-            member1.setIsConfirmed(true);
-
-            List<AllTimeScheduleResponse.DailyTimeSlot> member1Slots = new ArrayList<>();
-            for (int i = 13; i <= 19; i++) {
-                AllTimeScheduleResponse.DailyTimeSlot slot = new AllTimeScheduleResponse.DailyTimeSlot();
-                LocalDate date = LocalDate.of(2025, 7, i);
-                slot.setDate(date);
-                slot.setDayOfWeek(date.getDayOfWeek().toString().substring(0, 3).toUpperCase());
-                slot.setDisplayDate(String.format("07/%02d", i));
-
-                // Mock 데이터: 10-12시 시간대에 가능 (비트 20~23: 10:00, 10:30, 11:00, 11:30)
-                slot.setTimeBit("0000"); // 20~23번째 비트
-                member1Slots.add(slot);
-            }
-            member1.setDailyTimeSlots(member1Slots);
-
-            // 두 번째 멤버 (모두 가능한 시간)
-            AllTimeScheduleResponse.MemberSchedule member2 = new AllTimeScheduleResponse.MemberSchedule();
-            member2.setEventMemberId("google_4567");
-            member2.setMemberName("모두 가능한 시간");
-            member2.setRole("MEMBER");
-            member2.setIsConfirmed(true);
-
-            List<AllTimeScheduleResponse.DailyTimeSlot> member2Slots = new ArrayList<>();
-            for (int i = 13; i <= 19; i++) {
-                AllTimeScheduleResponse.DailyTimeSlot slot = new AllTimeScheduleResponse.DailyTimeSlot();
-                LocalDate date = LocalDate.of(2025, 7, i);
-                slot.setDate(date);
-                slot.setDayOfWeek(date.getDayOfWeek().toString().substring(0, 3).toUpperCase());
-                slot.setDisplayDate(String.format("07/%02d", i));
-
-                // Mock 데이터: 다양한 시간대에 가능
-                if (i == 13) { // 월요일: 10-11시
-                    slot.setTimeBit("0000_0001_1111_0000");
-                } else if (i == 15) { // 수요일: 10-12시
-                    slot.setTimeBit("0000_0001_1111_0000");
-                } else if (i == 17) { // 금요일: 11-12시
-                    slot.setTimeBit("0000_0001_1111_0000");
-                } else {
-                    slot.setTimeBit("0000_0001_1111_0000"); // 불가능
-                }
-                member2Slots.add(slot);
-            }
-            member2.setDailyTimeSlots(member2Slots);
-
-            // 세 번째 멤버 (아직 확정 안함)
-            AllTimeScheduleResponse.MemberSchedule member3 = new AllTimeScheduleResponse.MemberSchedule();
-            member3.setEventMemberId("google_5678");
-            member3.setMemberName("박민수");
-            member3.setRole("MEMBER");
-            member3.setIsConfirmed(false);
-
-            List<AllTimeScheduleResponse.DailyTimeSlot> member3Slots = new ArrayList<>();
-            for (int i = 13; i <= 19; i++) {
-                AllTimeScheduleResponse.DailyTimeSlot slot = new AllTimeScheduleResponse.DailyTimeSlot();
-                LocalDate date = LocalDate.of(2025, 7, i);
-                slot.setDate(date);
-                slot.setDayOfWeek(date.getDayOfWeek().toString().substring(0, 3).toUpperCase());
-                slot.setDisplayDate(String.format("07/%02d", i));
-                slot.setTimeBit("0000_0000_0000_0000"); // 아직 시간 입력 안함
-                member3Slots.add(slot);
-            }
-            member3.setDailyTimeSlots(member3Slots);
-
-            memberSchedules.add(member1);
-            memberSchedules.add(member2);
-            memberSchedules.add(member3);
-            response.setMemberSchedules(memberSchedules);
+            AllTimeScheduleDto dto = eventService.getAllTimeSchedules(eventId, currentMemberId);
+            AllTimeScheduleResponse response = AllTimeScheduleDto.fromDto(dto);
 
             return ResponseEntity.ok(ApiResponse.success(response));
 
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404)
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403)
+                .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, e.getMessage()));
+
         } catch (Exception e) {
-            if (e instanceof AuthenticationException) {
-                return ResponseEntity.status(401).body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
         }
     }
 
