@@ -7,7 +7,6 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSche
 import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
-import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
@@ -15,7 +14,6 @@ import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,14 +99,6 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ModifySchedulesResponse>> modifyScedules(@PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
         try {
 
-            Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
-
-            if (eId.isEmpty()) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND,
-                        "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
-            }
-
             Optional<Schedule> sId = scheduleQueryService.findScheduleById(scheduleId);
 
             if (sId.isEmpty()) {
@@ -117,11 +107,10 @@ public class ScheduleController {
                         "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
 
-            scheduleCommandService.modifySchedule(scheduleId);
+            scheduleCommandService.modifySchedule(request, scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
         }
-
 
          catch (Exception e) {
             if (e instanceof AuthApiException) {
