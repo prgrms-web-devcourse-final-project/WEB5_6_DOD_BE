@@ -2,14 +2,15 @@ package com.grepp.spring.app.model.event.service;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.model.event.code.Role;
-import com.grepp.spring.app.model.event.dto.CandidateDateDto;
-import com.grepp.spring.app.model.event.dto.CreateEventDto;
-import com.grepp.spring.app.model.event.dto.EventMemberDto;
-import com.grepp.spring.app.model.event.dto.JoinEventDto;
+import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
-import com.grepp.spring.app.model.event.repository.*;
+import com.grepp.spring.app.model.event.entity.TempSchedule;
+import com.grepp.spring.app.model.event.repository.CandidateDateRepository;
+import com.grepp.spring.app.model.event.repository.EventMemberRepository;
+import com.grepp.spring.app.model.event.repository.EventRepository;
+import com.grepp.spring.app.model.event.repository.TempScheduleRepository;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
@@ -22,7 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class EventService {
     private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final TempScheduleRepository tempScheduleRepository;
 
     @Transactional
     public void createEvent(CreateEventRequest webRequest, String currentMemberId) {
@@ -137,6 +141,38 @@ public class EventService {
 
         EventMember eventMember = EventMemberDto.toEntity(dto, event, member);
         eventMemberRepository.save(eventMember);
+    }
+
+    @Transactional
+    public void createOrUpdateMyTime(MyTimeScheduleDto dto) {
+        Event event = eventRepository.findById(dto.getEventId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+
+        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
+            .orElseThrow(() -> new NotFoundException("이벤트에 참여하지 않은 회원입니다."));
+
+        for (MyTimeScheduleDto.DailyTimeSlotDto slot : dto.getDailyTimeSlots()) {
+            updateOrCreateTempSchedule(eventMember, slot);
+        }
+    }
+
+    private void updateOrCreateTempSchedule(EventMember eventMember, MyTimeScheduleDto.DailyTimeSlotDto slot) {
+        LocalDate date = slot.getDate();
+
+        Optional<TempSchedule> existingSchedule = tempScheduleRepository
+            .findByEventMemberIdAndDateAndActivatedTrue(eventMember.getId(), date);
+
+        if (existingSchedule.isPresent()) {
+            TempSchedule schedule = existingSchedule.get();
+            Long currentTimeBit = schedule.getTimeBit();
+            Long newTimeBit = currentTimeBit ^ slot.getTimeBitAsLong();
+
+            schedule.setTimeBit(newTimeBit);
+            tempScheduleRepository.save(schedule);
+        } else {
+            TempSchedule newSchedule = MyTimeScheduleDto.DailyTimeSlotDto.toEntity(slot, eventMember);
+            tempScheduleRepository.save(newSchedule);
+        }
     }
 
 }
