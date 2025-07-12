@@ -13,7 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -21,6 +24,9 @@ import lombok.Setter;
 @Table(name = "Workspaces")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Workspace extends BaseEntity {
 
     @Id
@@ -32,14 +38,13 @@ public class Workspace extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private WorkspaceType type;  // 워크스페이스 종류 ENUM
 
-    @Column(nullable = false)
+    @Column()
     private String name;
 
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(columnDefinition = "text")
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "schedule_id")
     private Schedule schedule;
-
 }

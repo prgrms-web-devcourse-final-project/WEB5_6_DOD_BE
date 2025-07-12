@@ -8,6 +8,7 @@ import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -34,6 +35,7 @@ public class ScheduleCommandService {
     @Autowired private ScheduleQueryRepository scheduleQueryRepository;
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
+    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
 
     @Autowired private EventRepository eventRepository;
 
@@ -90,9 +92,79 @@ public class ScheduleCommandService {
         }
     }
 
-    public void modifySchedule(Long scheduleId) {
+    @Transactional // JPA 영속성 컨텍스트 변경 감지. setter를 사용해서 값 바꾸면 자동으로 변경
+    public void modifySchedule(ModifySchedulesRequest request, Long scheduleId) {
 
+        ModifyScheduleDto dto = ModifyScheduleDto.toDto(request);
+
+        modifyScheduleEntity(scheduleId, dto);
+
+        modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
     }
+
+    private void modifyScheduleEntity(Long scheduleId, ModifyScheduleDto dto) {
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+        if (dto.getStartTime() != null) {
+            schedule.get().setStartTime(dto.getStartTime());
+        }
+
+        if (dto.getEndTime() != null) {
+            schedule.get().setEndTime(dto.getEndTime());
+        }
+
+        if (dto.getStatus() != null) {
+            schedule.get().setStatus(dto.getStatus());
+        }
+
+        if (dto.getScheduleName() != null) {
+            schedule.get().setScheduleName(dto.getScheduleName());
+        }
+
+        if (dto.getDescription() != null) {
+            schedule.get().setDescription(dto.getDescription());
+        }
+
+        if (dto.getLocation() != null) {
+            schedule.get().setLocation(dto.getLocation());
+        }
+
+        if (dto.getSpecificLocation() != null) {
+            schedule.get().setSpecificLocation(dto.getSpecificLocation());
+        }
+
+        if (dto.getMeetingPlatform() != null) {
+            schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
+        }
+
+        if (dto.getPlatformName() != null) {
+            schedule.get().setPlatformName(dto.getPlatformName());
+        }
+
+        if (dto.getPlatformURL() != null) {
+            schedule.get().setPlatformUrl(dto.getPlatformURL());
+        }
+    }
+
+    private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {
+        Workspace workspace = workspaceQueryRepository.findworkspace(scheduleId, workspaceId);
+
+        if (dto.getWorkspaces() != null && !dto.getWorkspaces().isEmpty()) {
+            WorkspaceDto workspaceDto = dto.getWorkspaces().get(0);
+
+            if (workspaceDto.getType() != null) {
+                workspace.setType(workspaceDto.getType());
+            }
+
+            if (workspaceDto.getName() != null) {
+                workspace.setName(workspaceDto.getName());
+            }
+
+            if (workspaceDto.getUrl() != null) {
+                workspace.setUrl(workspaceDto.getUrl());
+            }
+        }
+    }
+
 
     @Transactional
     public void deleteSchedule(Long scheduleId) {

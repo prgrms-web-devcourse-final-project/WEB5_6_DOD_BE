@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
+import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,13 +39,13 @@ public class Schedule extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column()
     private LocalDateTime startTime;
 
-    @Column(nullable = false)
+    @Column()
     private LocalDateTime endTime;
 
-    @Column(nullable = false)
+    @Column()
     @Enumerated(EnumType.STRING)
     private ScheduleStatus status;
 
