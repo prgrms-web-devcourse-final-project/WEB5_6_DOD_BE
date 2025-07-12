@@ -157,23 +157,26 @@ public class EventController {
     // 개인의 가능한 시간대 확정
     @Operation(summary = "개인의 가능한 시간대 확정")
     @PostMapping("/{eventId}/complete")
-    public ResponseEntity<ApiResponse<CompleteMyTimeResponse>> completeMyTime(@PathVariable Long eventId) {
+    public ResponseEntity<ApiResponse<Void>> completeMyTime(@PathVariable Long eventId) {
 
         try {
-            if (
-                eventId != 20000 && eventId != 20001 && eventId != 20002 &&
-                    eventId != 20003 && eventId != 20004 && eventId != 20005
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다."));
-            }
+            String currentMemberId = extractCurrentMemberId();
+
+            eventService.completeMyTime(eventId, currentMemberId);
+
             return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 확정되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthenticationException) {
-                return ResponseEntity.status(401).body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404)
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
+
+        } catch (IllegalStateException e) {
             return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
         }
     }
 

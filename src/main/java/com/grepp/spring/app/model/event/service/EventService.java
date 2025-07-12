@@ -278,4 +278,30 @@ public class EventService {
             .build();
     }
 
+    @Transactional
+    public void completeMyTime(Long eventId, String currentMemberId) {
+        JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
+
+        Event event = eventRepository.findById(dto.getEventId())
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+
+        EventMember eventMember = eventMemberRepository
+            .findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
+            .orElseThrow(() -> new NotFoundException("이벤트에 참여하지 않은 회원입니다."));
+
+        List<TempSchedule> schedules = tempScheduleRepository
+            .findAllByEventMemberIdAndActivatedTrue(eventMember.getId());
+
+        if (schedules.isEmpty()) {
+            throw new IllegalStateException("가능한 시간대를 먼저 입력해주세요.");
+        }
+
+        if (eventMember.getConfirmed()) {
+            throw new IllegalStateException("이미 확정된 일정입니다.");
+        }
+
+        eventMember.setConfirmed(true);
+        eventMemberRepository.save(eventMember);
+    }
+
 }
