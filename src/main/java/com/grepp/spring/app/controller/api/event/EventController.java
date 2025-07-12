@@ -99,8 +99,7 @@ public class EventController {
         try {
             String currentMemberId = extractCurrentMemberId();
 
-            MyTimeScheduleDto dto = MyTimeScheduleDto.toDto(request, eventId, currentMemberId);
-            eventService.createOrUpdateMyTime(dto);
+            eventService.createOrUpdateMyTime(request, eventId, currentMemberId);
 
             return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 생성/수정되었습니다."));
 

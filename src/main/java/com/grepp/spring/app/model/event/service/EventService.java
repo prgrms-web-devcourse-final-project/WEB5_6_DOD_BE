@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.event.service;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
+import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -144,7 +145,9 @@ public class EventService {
     }
 
     @Transactional
-    public void createOrUpdateMyTime(MyTimeScheduleDto dto) {
+    public void createOrUpdateMyTime(MyTimeScheduleRequest request, Long eventId, String currentMemberId) {
+        MyTimeScheduleDto dto = MyTimeScheduleDto.toDto(request, eventId, currentMemberId);
+
         Event event = eventRepository.findById(dto.getEventId())
             .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
 
