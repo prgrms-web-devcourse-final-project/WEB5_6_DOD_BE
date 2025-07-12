@@ -17,13 +17,16 @@ import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,7 +95,19 @@ public class AuthController {
 
     @Operation(summary = "로그아웃", description = "로그아웃을 진행합니다.")
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout() {
+    public ResponseEntity<ApiResponse<?>> logout(HttpServletResponse response) {
+
+        ResponseCookie deleteAccessTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
+
+        ResponseCookie deleteRefreshTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
+
+        ResponseCookie deleteSessionIdCookie = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteSessionIdCookie.toString());
+
+        SecurityContextHolder.clearContext();
+
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
