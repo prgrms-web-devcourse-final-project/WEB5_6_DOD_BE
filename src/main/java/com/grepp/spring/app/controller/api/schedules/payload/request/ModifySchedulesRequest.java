@@ -7,16 +7,18 @@ import lombok.Data;
 
 @Data
 public class ModifySchedulesRequest {
-    private Long eventId; // 추가
+//    private Long eventId; // 추가
 
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-//    private ScheduleStatus SchedulesStatus;
+    private String ScheduleName;
+    private String description;
     private String location;
     private String specificLocation;
     private MeetingPlatform meetingPlatform;
     private String platformName;
     private String platformURL;
+    private ScheduleStatus status;
 
     // 온라인/오프라인 공통 워크 스페이스
     private Long workspaceId; // 추가
