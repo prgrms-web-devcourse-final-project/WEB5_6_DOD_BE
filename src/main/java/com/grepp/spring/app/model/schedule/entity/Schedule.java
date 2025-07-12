@@ -15,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -52,6 +51,9 @@ public class Schedule extends BaseEntity {
     @Column
     private String location;
 
+    @Column
+    private String scheduleName;
+
     @Column(columnDefinition = "text")
     private String description;
 
@@ -64,9 +66,6 @@ public class Schedule extends BaseEntity {
 
     @Column
     private String specificLocation;
-
-    @Column
-    private String scheduleName;
 
     @Column
     private String platformName; // 추가됨
