@@ -52,7 +52,7 @@ public class GroupQueryService {
             .toList();
 
         // 추출한 groupId들을 가지고 있는 GroupMember들 추출
-        List<GroupMember> all = groupMemberQueryRepository.findByGroup_IdIn(groupIds);
+        List<GroupMember> all = groupMemberQueryRepository.findByGroupIdIn(groupIds);
 
         // 각 groupId가 나올 때마다 해당 groupId의 갯수 카운팅(+1)
         Map<Long, Long> countMap = all.stream()
