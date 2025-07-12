@@ -4,6 +4,7 @@ package com.grepp.spring.app.model.mypage.dto;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse.FavoriteLocationList;
+import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.mypage.entity.FavoriteLocation;
 import java.util.Collections;
@@ -69,6 +70,16 @@ public class FavoriteLocationDto {
         .latitude(request.getLatitude())
         .longitude(request.getLongitude())
         .build();
+  }
+
+  public static ModifyFavoritePlaceResponse toModifyResponse(FavoriteLocationDto dto) {
+    ModifyFavoritePlaceResponse.ModifyFavLocationList item = new ModifyFavoritePlaceResponse.ModifyFavLocationList();
+    item.setFavoritePlaceId(dto.getFavoriteLocationId());
+    item.setStationName(dto.getStationName());
+    item.setLatitude(dto.getLatitude());
+    item.setLongitude(dto.getLongitude());
+
+    return new ModifyFavoritePlaceResponse(Collections.singletonList(item));
   }
 
 

@@ -47,15 +47,27 @@ public class FavoriteTimetable extends BaseEntity {
     )
     private Long id;
 
-    @Column(nullable = false)
-    private LocalTime startTime; // LocalDateTime -> LocalTime 으로 변경
 
-    @Column(nullable = false)
-    private LocalTime endTime; // LocalDateTime -> LocalTime 으로 변경
+    @Column(name = "time_bit_mon")
+    private String timeBitMon;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING) // DB 에 문자로 저장되게 추가 (ex. "MONDAY")
-    private DayOfWeek weekday; // String -> DayOfWeek 타입으로 변경
+    @Column(name = "time_bit_tue")
+    private String timeBitTue;
+
+    @Column(name = "time_bit_wed")
+    private String timeBitWed;
+
+    @Column(name = "time_bit_thu")
+    private String timeBitThu;
+
+    @Column(name = "time_bit_fri")
+    private String timeBitFri;
+
+    @Column(name = "time_bit_sat")
+    private String timeBitSat;
+
+    @Column(name = "time_bit_sun")
+    private String timeBitSun;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")

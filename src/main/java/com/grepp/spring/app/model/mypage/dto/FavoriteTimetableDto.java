@@ -1,15 +1,8 @@
 package com.grepp.spring.app.model.mypage.dto;
 
 
-import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse.FavoriteTimeList;
 import com.grepp.spring.app.model.member.entity.Member;
-import com.grepp.spring.app.model.mypage.entity.FavoriteLocation;
 import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
-import java.time.DayOfWeek;
-import java.time.LocalTime;
-import java.util.Collections;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,59 +15,40 @@ import lombok.Setter;
 @Builder
 public class FavoriteTimetableDto {
   private Long favoriteTimetableId;
-  private String memberId;
-  private LocalTime startTime;
-  private LocalTime endTime;
-  private DayOfWeek weekday;
+  private String timeBitMon;
+  private String timeBitTue;
+  private String timeBitWed;
+  private String timeBitThu;
+  private String timeBitFri;
+  private String timeBitSat;
+  private String timeBitSun;
 
 
   // Entity → DTO
   public static FavoriteTimetableDto fromEntity(FavoriteTimetable entity) {
     return FavoriteTimetableDto.builder()
         .favoriteTimetableId(entity.getId())
-        .memberId(entity.getMember().getId())
-        .startTime(entity.getStartTime())
-        .endTime(entity.getEndTime())
-        .weekday(entity.getWeekday())
+        .timeBitMon(entity.getTimeBitMon())
+        .timeBitTue(entity.getTimeBitTue())
+        .timeBitWed(entity.getTimeBitWed())
+        .timeBitThu(entity.getTimeBitThu())
+        .timeBitFri(entity.getTimeBitFri())
+        .timeBitSat(entity.getTimeBitSat())
+        .timeBitSun(entity.getTimeBitSun())
         .build();
   }
 
   // DTO → Entity
-  public static FavoriteTimetable toEntity(FavoriteTimetableDto dto) {
-    Member member = new Member();
-    member.setId(dto.getMemberId());
-
+  public FavoriteTimetable toEntity(Member member) {
     return FavoriteTimetable.builder()
-        .id(dto.getFavoriteTimetableId())
         .member(member)
-        .startTime(dto.getStartTime())
-        .endTime(dto.getEndTime())
-        .weekday(dto.getWeekday())
+        .timeBitMon(this.timeBitMon)
+        .timeBitTue(this.timeBitTue)
+        .timeBitWed(this.timeBitWed)
+        .timeBitThu(this.timeBitThu)
+        .timeBitFri(this.timeBitFri)
+        .timeBitSat(this.timeBitSat)
+        .timeBitSun(this.timeBitSun)
         .build();
   }
-
-  // dto -> response
-  public static CreateFavoriteTimeResponse fromDto(FavoriteTimetableDto dto) {
-    FavoriteTimeList item = new FavoriteTimeList();
-    item.setFavoriteTimeId(dto.getFavoriteTimetableId());
-    item.setStartTime(dto.getStartTime());
-    item.setEndTime(dto.getEndTime());
-    item.setWeekday(dto.getWeekday());
-
-    return new CreateFavoriteTimeResponse(Collections.singletonList(item));
-  }
-
-  public static FavoriteTimetableDto toDto(CreateFavoriteTimeRequest request, Member member){
-    return FavoriteTimetableDto.builder()
-        .memberId(member.getId())
-        .startTime(request.getStartTime())
-        .endTime(request.getEndTime())
-        .weekday(request.getWeekday())
-        .build();
-  }
-
-
-
-
-
 }
