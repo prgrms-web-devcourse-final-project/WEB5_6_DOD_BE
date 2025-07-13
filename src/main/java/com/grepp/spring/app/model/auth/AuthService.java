@@ -3,7 +3,6 @@ package com.grepp.spring.app.model.auth;
 import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
-import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
 import com.grepp.spring.app.model.member.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
@@ -31,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenService refreshTokenService;
     private final MemberRepository memberRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
@@ -77,7 +75,7 @@ public class AuthService {
         }
 
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
-        RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessToken.getJti());
+        RefreshToken refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
 
         return TokenDto.builder()
             .accessToken(accessToken.getToken())
@@ -86,12 +84,13 @@ public class AuthService {
             .userId(userId)
             .userName(userInfo.getName())
             .build();
+
     }
 
     public TokenDto processTokenSigninTest(String userId, String roles) {
 
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(userId, roles);
-        RefreshToken refreshToken = refreshTokenService.saveWithAtId(accessToken.getJti());
+        RefreshToken refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
 
         Member member = memberRepository.findById(userId)
             .orElseThrow(() -> new BadCredentialsException("인증된 사용자를 찾을 수 없습니다."));
