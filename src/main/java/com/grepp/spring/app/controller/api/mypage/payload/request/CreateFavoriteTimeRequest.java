@@ -1,11 +1,7 @@
 package com.grepp.spring.app.controller.api.mypage.payload.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,9 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateFavoriteTimeRequest {
-
-//    @Schema(description = "즐겨찾기 시간표 ID (수정시에만 사용)")
-//    private Long favoriteTimetableId;
 
     @Pattern(regexp = "^[0-9A-Fa-f]{12}$", message = "타임비트는 12자리 16진수여야 합니다")
     @Schema(description = "월요일 타임비트 (12자리 16진수)")
