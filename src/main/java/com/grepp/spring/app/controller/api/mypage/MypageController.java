@@ -9,7 +9,6 @@ import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyn
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyProfileResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
@@ -20,11 +19,10 @@ import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -85,45 +83,50 @@ public class MypageController {
     }
   }
 
-//  // 즐겨찾기 시간대 등록
-//  @PostMapping("/favorite-timetable")
-//  @Operation(summary = "즐겨찾기 시간대 등록", description = "회원 즐겨찾기 시간대 등록")
-//  public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> createFavoriteTime(
-//      @RequestBody @Valid CreateFavoriteTimeRequest request) {
-//
-//    try {
-//
-//      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//
-//      if (authentication == null) {
-//        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-//      }
-//
-//      String memberId = authentication.getName();
-//
-//      // 서비스에서 DTO 받아옴 (dto 걍 서비스에서 처리)
-//      FavoriteTimetableDto dto = mypageService.createFavoriteTimetable(memberId, request);
-//
-//      // 응답용 DTO로 변환
-//      CreateFavoriteTimeResponse response = FavoriteTimetableDto.fromDto(dto);
-//
-//      // API 응답 감싸서 반환
-//      return ResponseEntity.ok(ApiResponse.success(response));
-//
-//
-//    } catch (IllegalStateException e) {
-//      return ResponseEntity.status(409)
-//          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
-//
-//    } catch (Exception e) {
-//      if (e instanceof AuthApiException) {
-//        return ResponseEntity.status(401)
-//            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-//      }
-//      return ResponseEntity.status(400)
-//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//    }
-//  }
+  // 즐겨찾기 시간대 등록 및 수정
+  @PostMapping("/favorite-timetable")
+  @Operation(summary = "즐겨찾기 시간대 등록 및 수정", description = "회원 즐겨찾기 시간대 등록 및 수정")
+  public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> createOrUpdateFavoriteTime(
+      @RequestBody @Valid CreateFavoriteTimeRequest request) {
+
+    try {
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+      if (authentication == null) {
+        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
+      }
+
+      String memberId = authentication.getName();
+
+      List<FavoriteTimetableDto> dtos = mypageService.createOrUpdateFavoriteTimetable(memberId, request);
+
+      // 요일 → 비트값 맵 생성
+      Map<String, String> dayToBitMap = dtos.stream()
+          .collect(Collectors.toMap(
+              FavoriteTimetableDto::getDay,
+              dto -> String.format("%012X", dto.getTimeBit())
+          ));
+
+      CreateFavoriteTimeResponse response = FavoriteTimetableDto.fromDto(dayToBitMap);
+
+      // API 응답 감싸서 반환
+      return ResponseEntity.ok(ApiResponse.success(response));
+
+
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(409)
+          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
+
+    } catch (Exception e) {
+      if (e instanceof AuthApiException) {
+        return ResponseEntity.status(401)
+            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
+      }
+      return ResponseEntity.status(400)
+          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+    }
+  }
 
   @GetMapping("/favorite-locations")
   @Operation(summary = "즐겨찾기 장소 조회", description = "회원 즐겨찾기 장소 조회")
@@ -155,7 +158,7 @@ public class MypageController {
 
   @GetMapping("/favorite-timetable")
   @Operation(summary = "즐겨찾기 시간대 조회", description = "회원 즐겨찾기 시간대 조회")
-  public ResponseEntity<ApiResponse<List<FavoriteTimetableDto>>> getFavoriteTimetables() {
+  public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> getFavoriteTimetables() {
     try {
 
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -165,11 +168,9 @@ public class MypageController {
       }
 
       String memberId = authentication.getName();
-      List<FavoriteTimetableDto> result = mypageService.getFavoriteTimetables(memberId);
+      CreateFavoriteTimeResponse response = mypageService.getFavoriteTimetableResponse(memberId);
 
-      // API 응답 감싸서 반환
-      return ResponseEntity.ok(ApiResponse.success(result));
-
+      return ResponseEntity.ok(ApiResponse.success(response));
 
     } catch (Exception e) {
       if (e instanceof AuthApiException) {
@@ -213,56 +214,56 @@ public class MypageController {
   }
 
 
-  // 즐겨찾기 시간대 수정
-  @Operation(summary = "즐겨찾기 시간대 수정", description = "회원 즐겨찾기 시간대 수정")
-  @PatchMapping("/favorite-timetable/{memberId}")
-  public ResponseEntity<ApiResponse<ModifyFavoriteTimeResponse>> modifyFavoriteTime(
-      @RequestBody @Valid ModifyFavoriteTimeRequest request) {
-
-    try {
-      ModifyFavoriteTimeResponse response = new ModifyFavoriteTimeResponse();
-      List<ModifyFavoriteTimeResponse.ModifyFavTimeList> times = new ArrayList<>();
-
-      ModifyFavoriteTimeResponse.ModifyFavTimeList time1 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
-      time1.setFavoriteTimeId(200L);
-      time1.setStartTime(LocalTime.of(14, 0));
-      time1.setEndTime(LocalTime.of(15, 0));
-
-      LocalDateTime dateTime = LocalDateTime.of(2025, 7, 10, 0, 0); // 예: 목요일
-      DayOfWeek weekday = dateTime.getDayOfWeek(); // THURSDAY
-      time1.setWeekday(weekday);  //
-
-      ModifyFavoriteTimeResponse.ModifyFavTimeList time2 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
-      time2.setFavoriteTimeId(201L);
-      time2.setStartTime(LocalTime.of(17, 0));
-      time2.setEndTime(LocalTime.of(21, 0));
-
-
-      LocalDateTime dateTime2 = LocalDateTime.of(2025, 7, 6, 0, 0); // 예: 목요일
-      DayOfWeek weekday2 = dateTime2.getDayOfWeek(); // SUNDAY
-      time2.setWeekday(weekday2);  //
-
-
-      time1.setUpdatedAt(LocalDateTime.now());
-      time2.setUpdatedAt(LocalDateTime.now());
-
-
-      times.add(time1);
-      times.add(time2);
-
-
-      response.setModifyFavTime(times);
-
-      return ResponseEntity.ok(ApiResponse.success(response));
-    } catch (Exception e) {
-      if (e instanceof AuthenticationException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
-    }
-  }
+//  // 즐겨찾기 시간대 수정
+//  @Operation(summary = "즐겨찾기 시간대 수정", description = "회원 즐겨찾기 시간대 수정")
+//  @PatchMapping("/favorite-timetable/{memberId}")
+//  public ResponseEntity<ApiResponse<ModifyFavoriteTimeResponse>> modifyFavoriteTime(
+//      @RequestBody @Valid ModifyFavoriteTimeRequest request) {
+//
+//    try {
+//      ModifyFavoriteTimeResponse response = new ModifyFavoriteTimeResponse();
+//      List<ModifyFavoriteTimeResponse.ModifyFavTimeList> times = new ArrayList<>();
+//
+//      ModifyFavoriteTimeResponse.ModifyFavTimeList time1 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
+//      time1.setFavoriteTimeId(200L);
+//      time1.setStartTime(LocalTime.of(14, 0));
+//      time1.setEndTime(LocalTime.of(15, 0));
+//
+//      LocalDateTime dateTime = LocalDateTime.of(2025, 7, 10, 0, 0); // 예: 목요일
+//      DayOfWeek weekday = dateTime.getDayOfWeek(); // THURSDAY
+//      time1.setWeekday(weekday);  //
+//
+//      ModifyFavoriteTimeResponse.ModifyFavTimeList time2 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
+//      time2.setFavoriteTimeId(201L);
+//      time2.setStartTime(LocalTime.of(17, 0));
+//      time2.setEndTime(LocalTime.of(21, 0));
+//
+//
+//      LocalDateTime dateTime2 = LocalDateTime.of(2025, 7, 6, 0, 0); // 예: 목요일
+//      DayOfWeek weekday2 = dateTime2.getDayOfWeek(); // SUNDAY
+//      time2.setWeekday(weekday2);  //
+//
+//
+//      time1.setUpdatedAt(LocalDateTime.now());
+//      time2.setUpdatedAt(LocalDateTime.now());
+//
+//
+//      times.add(time1);
+//      times.add(time2);
+//
+//
+//      response.setModifyFavTime(times);
+//
+//      return ResponseEntity.ok(ApiResponse.success(response));
+//    } catch (Exception e) {
+//      if (e instanceof AuthenticationException) {
+//        return ResponseEntity.status(401)
+//            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
+//      }
+//      return ResponseEntity.status(400)
+//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
+//    }
+//  }
 
 
   // 프로필 수정 (사진 + 이름 수정)

@@ -1,8 +1,12 @@
 package com.grepp.spring.app.model.mypage.dto;
 
 
+import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
+import java.util.Collections;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,40 +19,41 @@ import lombok.Setter;
 @Builder
 public class FavoriteTimetableDto {
   private Long favoriteTimetableId;
-  private String timeBitMon;
-  private String timeBitTue;
-  private String timeBitWed;
-  private String timeBitThu;
-  private String timeBitFri;
-  private String timeBitSat;
-  private String timeBitSun;
-
+  private String memberId;
+  private String day;
+  private Long timeBit;
 
   // Entity → DTO
   public static FavoriteTimetableDto fromEntity(FavoriteTimetable entity) {
     return FavoriteTimetableDto.builder()
         .favoriteTimetableId(entity.getId())
-        .timeBitMon(entity.getTimeBitMon())
-        .timeBitTue(entity.getTimeBitTue())
-        .timeBitWed(entity.getTimeBitWed())
-        .timeBitThu(entity.getTimeBitThu())
-        .timeBitFri(entity.getTimeBitFri())
-        .timeBitSat(entity.getTimeBitSat())
-        .timeBitSun(entity.getTimeBitSun())
+        .memberId(entity.getMember().getId())
+        .day(entity.getDay())
+        .timeBit(entity.getTimeBit())
         .build();
   }
 
   // DTO → Entity
-  public FavoriteTimetable toEntity(Member member) {
+  public static FavoriteTimetable toEntity(FavoriteTimetableDto dto, Member member) {
     return FavoriteTimetable.builder()
+        .id(dto.getFavoriteTimetableId())
         .member(member)
-        .timeBitMon(this.timeBitMon)
-        .timeBitTue(this.timeBitTue)
-        .timeBitWed(this.timeBitWed)
-        .timeBitThu(this.timeBitThu)
-        .timeBitFri(this.timeBitFri)
-        .timeBitSat(this.timeBitSat)
-        .timeBitSun(this.timeBitSun)
+        .day(dto.getDay())
+        .timeBit(dto.getTimeBit())
         .build();
   }
+
+  // Response 변환 (요일별 맵으로)
+  public static CreateFavoriteTimeResponse fromDto(Map<String, String> dayToBitMap) {
+    return new CreateFavoriteTimeResponse(
+        dayToBitMap.get("mon"),
+        dayToBitMap.get("tue"),
+        dayToBitMap.get("wed"),
+        dayToBitMap.get("thu"),
+        dayToBitMap.get("fri"),
+        dayToBitMap.get("sat"),
+        dayToBitMap.get("sun")
+    );
+  }
+
 }
