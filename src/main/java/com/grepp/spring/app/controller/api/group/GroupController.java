@@ -182,8 +182,6 @@ public class GroupController {
         // 그룹 멤버 조회
         ShowGroupMemberResponse response = groupQueryService.displayGroupMember(id);
         return ResponseEntity.ok(ApiResponse.success(response));
-        // TODO : 예외처리
-        // 현재 유저가 해당 그룹의 그룹원이 아니면 403_NOT_GROUP_MEMBER
     }
 
 
