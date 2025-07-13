@@ -179,41 +179,9 @@ public class GroupController {
     public ResponseEntity<ApiResponse<ShowGroupMemberResponse>> getGroupMembers(
         @RequestParam Long id
     ) {
-        try {
-            // 예외 발생
-            // id가 db에 없다면 404_GROUP_NOT_FOUND
-            if(
-                id!=10001L && id!=10002L && id!=10003L &&
-                    id!=10004L && id!=10005L && id!=10006L
-            ){
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 그룹을 찾을 수 없습니다."));
-            }
-
-            // MockData
-            ShowGroupMemberResponse response = ShowGroupMemberResponse.builder()
-                .groupUser(new ArrayList<>(List.of(
-                    new GroupUser("KAKAO_1001", "김우주", GroupRole.GROUP_LEADER),
-                    new GroupUser("KAKAO_1002", "백연우", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1003", "하예나", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1004", "박민지", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1005", "성서아", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1006", "허서영", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1007", "최승현", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1008", "박이안", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1009", "전태오", GroupRole.GROUP_MEMBER),
-                    new GroupUser("KAKAO_1010", "신지우", GroupRole.GROUP_MEMBER)
-                )))
-                .build();
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 멤버 조회
+        ShowGroupMemberResponse response = groupQueryService.displayGroupMember(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
         // TODO : 예외처리
         // 현재 유저가 해당 그룹의 그룹원이 아니면 403_NOT_GROUP_MEMBER
     }

@@ -1,15 +1,24 @@
 package com.grepp.spring.app.model.group.service;
 
+import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupMemberResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.dto.GroupDetailDto;
+import com.grepp.spring.app.model.group.dto.GroupUser;
+import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberQueryRepository;
 import com.grepp.spring.app.model.group.repository.GroupQueryRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.infra.error.exceptions.GroupNotFoundException;
+import com.grepp.spring.infra.error.exceptions.NotGroupUserException;
+import com.grepp.spring.infra.response.GroupErrorCode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +78,46 @@ public class GroupQueryService {
         );
 
         return new ShowGroupResponse(groups);
+    }
+
+
+    // 그룹 멤버 조회
+    public ShowGroupMemberResponse displayGroupMember(Long groupId){
+        Optional<Group> group = groupQueryRepository.findById(groupId);
+        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
+        if(group.isEmpty()){
+            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
+        }
+
+        // http 요청 사용자 조회
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal user = (Principal) authentication.getPrincipal();
+        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+        // TODO: member가 없다면 throw 예외(회원이 아닙니다.)
+
+        // checking이 false 그대로면, group에 속하지 않은 멤버가 group에 있는 멤버를 조회하는 메서드 요청(예외처리 함)
+        boolean checking = false;
+        ShowGroupMemberResponse response = new ShowGroupMemberResponse();
+        List<GroupMember> groupMembers = groupMemberQueryRepository.findByGroup(group.get());
+
+        ArrayList<GroupUser> groupUsers = response.getGroupUser();
+        for(GroupMember groupMember: groupMembers){
+
+            String memberId = groupMember.getMember().getId();
+            String memberName = memberRepository.findById(memberId).get().getName();
+            GroupRole groupRole = groupMember.getRole();
+            groupUsers.add(new GroupUser(memberId, memberName, groupRole));
+            if(memberId.equals(member.getId())) {
+                checking=true;
+            }
+        }
+
+        // 예외 발생: http요청을 한 member가 속하지 않은 groupId를 탐색하려 하는 경우 - NOT GROUP MEMBER
+        if(!checking){
+            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
+        }
+
+        return response;
     }
 
 }

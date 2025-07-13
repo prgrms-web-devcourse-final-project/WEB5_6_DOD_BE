@@ -46,4 +46,8 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> activateSuccess(T data) {
         return new ApiResponse<>(ResponseCode.ACTIVATED.code(), ResponseCode.ACTIVATED.message(), data);
     }
+
+    public static <T> ApiResponse<T> error(GroupErrorCode code) {
+        return new ApiResponse<>(code.code(), code.message(), null);
+    }
 }
