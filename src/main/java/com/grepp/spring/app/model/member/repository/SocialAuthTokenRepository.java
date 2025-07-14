@@ -1,0 +1,12 @@
+package com.grepp.spring.app.model.member.repository;
+
+import com.grepp.spring.app.controller.api.auth.Provider;
+import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.entity.SocialAuthToken;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SocialAuthTokenRepository extends JpaRepository<SocialAuthToken, Long> {
+
+  void deleteByMemberAndProvider(Member member, Provider provider);
+
+}

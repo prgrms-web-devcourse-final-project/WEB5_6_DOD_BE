@@ -10,15 +10,12 @@ import lombok.Setter;
 @Setter
 
 public class CreateFavoritePlaceRequest {
-    @Schema(example = "강남역 2번 출구")
     @NotNull
     @Schema(example = ".강남역 8번 출구")
     private String stationName; // 역이름으로 수정
-    @Schema(example = "37.4979")
     @NotNull
     @Schema(example = "37.4979")
     private double latitude;
-    @Schema(example = "127.0276")
     @NotNull
     @Schema(example = "127.0276")
     private double longitude;
