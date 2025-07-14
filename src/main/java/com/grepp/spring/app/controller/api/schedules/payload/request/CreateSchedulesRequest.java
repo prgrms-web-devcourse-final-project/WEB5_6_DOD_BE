@@ -18,7 +18,7 @@ public class CreateSchedulesRequest {
     private String scheduleName;
     private String description;
 
-    private ScheduleStatus SchedulesStatus;
+    private ScheduleStatus schedulesStatus;
     private MeetingType meetingType;
 
     private int maxNumber; // 추가
