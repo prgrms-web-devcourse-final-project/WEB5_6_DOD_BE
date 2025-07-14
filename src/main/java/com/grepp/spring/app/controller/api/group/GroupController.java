@@ -227,21 +227,10 @@ public class GroupController {
         @RequestParam Long id,
         @RequestBody ControlGroupRoleRequest request
     ) {
-        try {
-            // 그룹 멤버 권한 관리
-            groupCommandModifyGroupRoleService.modifyGroup(id, request);
-            // 그룹 멤버 권한 관리 성공
-            return ResponseEntity.ok(ApiResponse.success("해당 유저의 권한이 재설정 되었습니다."));
-        } catch (Exception e) {
-            // 권한 없음: 403
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 멤버 권한 관리
+        groupCommandModifyGroupRoleService.modifyGroupRole(id, request);
+        // 그룹 멤버 권한 관리 성공
+        return ResponseEntity.ok(ApiResponse.success("해당 유저의 권한이 재설정 되었습니다."));
     }
 
 

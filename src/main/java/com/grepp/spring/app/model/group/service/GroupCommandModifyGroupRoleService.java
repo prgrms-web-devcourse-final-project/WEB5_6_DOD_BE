@@ -37,7 +37,7 @@ public class GroupCommandModifyGroupRoleService {
 
     // 그룹 멤버 권한 수정
     @Transactional
-    public void modifyGroup(Long groupId, ControlGroupRoleRequest request){
+    public void modifyGroupRole(Long groupId, ControlGroupRoleRequest request){
         // http 요청 사용자 조회
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Principal user = (Principal) authentication.getPrincipal();
