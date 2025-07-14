@@ -4,12 +4,15 @@ import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
+import com.grepp.spring.app.model.mainpage.entity.Calendar;
 import com.grepp.spring.app.model.member.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
 import com.grepp.spring.infra.auth.oauth2.user.OAuth2UserInfo;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final CalendarRepository calendarRepository;
 
     public TokenDto signin(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -72,6 +76,19 @@ public class AuthService {
             // 프로필 사진은 모르겠다 일단 아무 숫자나 넣자
             memberRepository.save(member);
             log.info("새로운 유저 DB에 저장 완료: {}", userId);
+
+
+            member = memberRepository.save(member); // 저장된 것에서 member 객체 다시 받기
+
+            // 캘린더 생성
+            Calendar calendar = new Calendar();
+            calendar.setMember(member);
+            calendar.setName("ittaeok");
+            calendar.setSynced(false);
+            calendar.setSyncedAt(LocalDateTime.now());
+            calendarRepository.save(calendar);
+
+            log.info("새로운 유저 및 캘린더 저장 완료: {}", userId);
         }
 
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
