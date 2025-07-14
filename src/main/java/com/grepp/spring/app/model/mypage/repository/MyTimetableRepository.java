@@ -20,19 +20,4 @@ public interface MyTimetableRepository extends JpaRepository<FavoriteTimetable, 
   void deleteByMemberIdAndDay(String memberId, String day);
 
 
-//  @Query("""
-//    SELECT ft
-//    FROM FavoriteTimetable ft
-//    WHERE ft.member.id = :memberId
-//      AND ft.weekday = :weekday
-//      AND ft.startTime < :endTime
-//      AND ft.endTime > :startTime
-//""")
-//  List<FavoriteTimetable> findOverlappingTimetables(
-//      @Param("memberId") String memberId,
-//      @Param("weekday") DayOfWeek weekday,
-//      @Param("startTime") LocalTime startTime,
-//      @Param("endTime") LocalTime endTime
-//  );
-
 }

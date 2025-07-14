@@ -46,13 +46,13 @@ public class FavoriteTimetableDto {
   // Response 변환 (요일별 맵으로)
   public static CreateFavoriteTimeResponse fromDto(Map<String, String> dayToBitMap) {
     return new CreateFavoriteTimeResponse(
-        dayToBitMap.get("mon"),
-        dayToBitMap.get("tue"),
-        dayToBitMap.get("wed"),
-        dayToBitMap.get("thu"),
-        dayToBitMap.get("fri"),
-        dayToBitMap.get("sat"),
-        dayToBitMap.get("sun")
+        dayToBitMap.get("MON"),
+        dayToBitMap.get("TUE"),
+        dayToBitMap.get("WED"),
+        dayToBitMap.get("THU"),
+        dayToBitMap.get("FRI"),
+        dayToBitMap.get("SAT"),
+        dayToBitMap.get("SUN")
     );
   }
 
