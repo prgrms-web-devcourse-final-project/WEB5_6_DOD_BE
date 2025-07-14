@@ -44,6 +44,7 @@ public class EventService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final TempScheduleRepository tempScheduleRepository;
+    private final EventScheduleResultService eventScheduleResultService;
 
     @Transactional
     public void createEvent(CreateEventRequest webRequest, String currentMemberId) {
@@ -308,6 +309,18 @@ public class EventService {
 
         eventMember.setConfirmed(true);
         eventMemberRepository.save(eventMember);
+    }
+
+    @Transactional
+    public void createScheduleResult(Long eventId, String currentMemberId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+
+        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
+            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
+        }
+
+        eventScheduleResultService.createScheduleRecommendations(eventId);
     }
 
 }

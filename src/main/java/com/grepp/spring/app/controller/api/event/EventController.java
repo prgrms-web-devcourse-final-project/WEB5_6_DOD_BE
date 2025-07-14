@@ -1,11 +1,11 @@
 package com.grepp.spring.app.controller.api.event;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
-import com.grepp.spring.app.controller.api.event.payload.request.CreateScheduleResultRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
-import com.grepp.spring.app.controller.api.event.payload.response.*;
-import com.grepp.spring.app.model.event.dto.AllTimeScheduleDto;
-import com.grepp.spring.app.model.event.dto.MyTimeScheduleDto;
+import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.CreateScheduleResultResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.DeleteEventResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
 import com.grepp.spring.app.model.event.service.EventService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
@@ -171,26 +171,28 @@ public class EventController {
 
     // 이벤트 조율 결과 생성
     @Operation(summary = "이벤트 조율 결과 생성")
-    @PostMapping("/events/{eventId}/all-time")
-    public ResponseEntity<ApiResponse<CreateScheduleResultResponse>> createScheduleResult(
-        @PathVariable Long eventId,
-        @RequestBody @Valid CreateScheduleResultRequest request) {
+    @PostMapping("/{eventId}/schedule-result")
+    public ResponseEntity<ApiResponse<Void>> createScheduleResult(
+        @PathVariable Long eventId) {
 
         try {
-            if (
-                eventId != 20000 && eventId != 20001 && eventId != 20002 &&
-                    eventId != 20003 && eventId != 20004 && eventId != 20005
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다."));
-            }
+            String currentMemberId = extractCurrentMemberId();
+
+            eventService.createScheduleResult(eventId, currentMemberId);
+
             return ResponseEntity.ok(ApiResponse.success("일정 조율 결과가 성공적으로 생성되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthenticationException) {
-                return ResponseEntity.status(401).body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404)
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
+
+        } catch (IllegalStateException e) {
             return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
         }
     }
 
