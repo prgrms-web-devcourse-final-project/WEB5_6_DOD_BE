@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.schedules;
 
+import com.google.api.services.storage.Storage.Projects.HmacKeys.Create;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateOnlineMeetingRoomRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
@@ -299,30 +300,25 @@ public class ScheduleController {
     // 온라인 회의장 링크 개설(줌, 구글미트)
     @Operation(summary = "온라인 회의장 링크 개설(줌, 구글미트)", description = "온라인 회의장을 개설합니다.")
     @PostMapping("/create-online-meeting/{scheduleId}")
-    public ResponseEntity<ApiResponse<CreateOnlineMeetingRoomResponse>> CreateOnlineMeetingRoom(
-        @PathVariable Long scheduleId, @RequestBody CreateOnlineMeetingRoomRequest request) {
+    public ResponseEntity<ApiResponse<CreateOnlineMeetingRoomResponse>> CreateOnlineMeetingRoom(@PathVariable Long scheduleId) {
 
         try {
 
-            if (
-                scheduleId != 30000L && scheduleId != 30001L && scheduleId != 30002L
-                    && scheduleId != 30003L
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND,
-                        "scheduleId는 30000 ~ 30003 입니다."));
+            Optional<Schedule> sId = scheduleQueryService.findScheduleById(scheduleId);
+
+            if (sId.isEmpty()) {
+                return ResponseEntity.status(404).body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
 
-            CreateOnlineMeetingRoomResponse response = new CreateOnlineMeetingRoomResponse();
-            response.setMeetingPlatformCreate(MeetingPlatform.GOOGLE_MEET);
+            CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(sId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
-                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
+//            if (e instanceof AuthApiException) {
+//                return ResponseEntity.status(401)
+//                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
+//                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+//            }
             return ResponseEntity.status(400)
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
         }

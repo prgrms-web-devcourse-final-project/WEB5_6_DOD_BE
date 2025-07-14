@@ -7,7 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateOnlineMeetingRoomResponse {
-    private MeetingPlatform meetingPlatformCreate;
-//    private WorkspaceType workspaceType;
+    private MeetingPlatform meetingPlatform;
     private String workspaceUrl;
 }

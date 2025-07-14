@@ -4,6 +4,7 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepar
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
@@ -243,5 +244,9 @@ public class ScheduleCommandService {
             location.setVoteCount(1L);
         }
 
+    }
+
+    public CreateOnlineMeetingRoomResponse createOnlineMeeting(Optional<Schedule> sId) {
+        return null;
     }
 }
