@@ -3,11 +3,13 @@ package com.grepp.spring.app.controller.api.schedules;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateOnlineMeetingRoomRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateDepartLocationResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateWorkspaceResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
@@ -351,28 +353,33 @@ public class ScheduleController {
 //        }
 //    }
 //
-//    // XXXXX 공통 워크스페이스 등록 XXXXX
-//    @Operation(summary = "워크스페이스 등록", description = "워크스페이스 등록을 진행합니다.")
-//    @PostMapping("/add-workspace/{scheduleId}")
-//    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> CreateWorkspace(@PathVariable Long scheduleId, @RequestBody CreateWorkspaceRequest request) {
-//
-//        try {
-//            if (scheduleId !=30000 && scheduleId !=30001 && scheduleId !=30002 && scheduleId !=30003 && scheduleId !=30005 && scheduleId !=30303 && scheduleId != 33333) {
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId는 30000 ~ 30003 입니다."));
-//            }
-//
-//            return ResponseEntity.ok(ApiResponse.success("워크스페이스를 등록했습니다."));
-//        }
-//           catch (Exception e) {
+    // 공통 워크스페이스 등록
+    @Operation(summary = "워크스페이스 등록", description = "워크스페이스 등록을 진행합니다.")
+    @PostMapping("/add-workspace/{scheduleId}")
+    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> CreateWorkspace(@PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
+
+        try {
+
+            Optional<Schedule> sId = scheduleQueryService.findScheduleById(scheduleId);
+
+            if (sId.isEmpty()) {
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
+            }
+
+            scheduleCommandService.AddWorkspace(sId, request);
+
+            return ResponseEntity.ok(ApiResponse.success("워크스페이스를 등록했습니다."));
+        }
+           catch (Exception e) {
 //            if (e instanceof AuthApiException) {
 //                return ResponseEntity.status(401)
 //                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
 //            }
-//            return ResponseEntity.status(400)
-//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//        }
-//    }
+            return ResponseEntity.status(400)
+                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+        }
+    }
 //
     // 공통 워크스페이스 삭제
     @Operation(summary = "워크스페이스 삭제", description = "워크스페이스 삭제를 진행합니다.")
