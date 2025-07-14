@@ -62,13 +62,13 @@ values ('13a', 'google', 'GOOGLE', 'ROLE_USER', 'z@mail.com','해리포터', 1, 
 
 -- schedule_member 테이블 생성
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (1,'1a',1, 'ROLE_MASER','서울역', 321.1234, 126.972836, '이서준');
+values (1,'1a',3, 'ROLE_MASER','서울역', 321.1234, 126.972836, '이서준');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (2,'2a',1, 'ROLE_MASER','건대입구역', 37.540882, 127.071103, '이강현');
+values (2,'2a',3, 'ROLE_MEMBER','건대입구역', 37.540882, 127.071103, '이강현');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (3,'3a',1, 'ROLE_MASER','강남역', 37.497958, 127.027539, '안준희');
+values (3,'3a',3, 'ROLE_MEMBER','강남역', 37.497958, 127.027539, '안준희');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
 values (4,'4a',1, 'ROLE_MASER','홍대입구역', 37.556748, 126.923643, '정서윤');
