@@ -14,7 +14,7 @@ import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class EventScheduleResultService {
     private final EventMemberRepository eventMemberRepository;
     private final CandidateDateRepository candidateDateRepository;
     private final TempScheduleRepository tempScheduleRepository;
-    private final ScheduleRepository scheduleRepository;
+    private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     @Transactional
@@ -59,7 +59,7 @@ public class EventScheduleResultService {
     }
 
     private void deleteExistingRecommendations(Long eventId) {
-        List<Schedule> existingRecommendations = scheduleRepository
+        List<Schedule> existingRecommendations = scheduleQueryRepository
             .findByEventIdAndStatusInAndActivatedTrue(
                 eventId,
                 Arrays.asList(ScheduleStatus.L_RECOMMEND, ScheduleStatus.E_RECOMMEND)
@@ -73,7 +73,7 @@ public class EventScheduleResultService {
                 }
             }
 
-            scheduleRepository.deleteAll(existingRecommendations);
+            scheduleQueryRepository.deleteAll(existingRecommendations);
         }
     }
 
@@ -304,7 +304,7 @@ public class EventScheduleResultService {
                 .description(event.getDescription())
                 .build();
 
-            Schedule savedSchedule = scheduleRepository.save(schedule);
+            Schedule savedSchedule = scheduleQueryRepository.save(schedule);
 
             for (EventMember eventMember : recommendation.getAvailableEventMembers()) {
                 ScheduleMember scheduleMember = ScheduleMember.builder()
