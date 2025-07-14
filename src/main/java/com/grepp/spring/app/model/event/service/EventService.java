@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.event.service;
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -19,6 +20,11 @@ import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.group.repository.GroupRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +49,8 @@ public class EventService {
     private final GroupMemberRepository groupMemberRepository;
     private final TempScheduleRepository tempScheduleRepository;
     private final EventScheduleResultService eventScheduleResultService;
+    private final ScheduleQueryRepository scheduleQueryRepository;
+    private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     @Transactional
     public void createEvent(CreateEventRequest webRequest, String currentMemberId) {
@@ -208,7 +214,7 @@ public class EventService {
         Integer confirmedMembers = (int) eventMembers.stream()
             .filter(EventMember::getConfirmed)
             .count();
-      
+
         AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
             .eventId(event.getId())
             .eventTitle(event.getTitle())
@@ -321,6 +327,88 @@ public class EventService {
         }
 
         eventScheduleResultService.createScheduleRecommendations(eventId);
+    }
+
+    @Transactional(readOnly = true)
+    public ScheduleResultResponse getScheduleResult(Long eventId, String currentMemberId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+
+        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
+            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
+        }
+
+        Integer totalParticipants = Math.toIntExact(eventMemberRepository.countByEventId(eventId));
+
+        List<Schedule> recommendSchedules = scheduleQueryRepository.findByEventIdAndStatusInAndActivatedTrue(
+            eventId,
+            Arrays.asList(ScheduleStatus.L_RECOMMEND, ScheduleStatus.E_RECOMMEND)
+        );
+
+        if (recommendSchedules.isEmpty()) {
+            throw new IllegalStateException("아직 조율 결과가 생성되지 않았습니다.");
+        }
+
+        List<ScheduleResultDto.TimeSlotDetailDto> longestMeetingTimes = findAllRecommendationsByType(
+            recommendSchedules, ScheduleStatus.L_RECOMMEND
+        );
+
+        List<ScheduleResultDto.TimeSlotDetailDto> earliestMeetingTimes = findAllRecommendationsByType(
+            recommendSchedules, ScheduleStatus.E_RECOMMEND
+        );
+
+        ScheduleResultDto.RecommendationSummaryDto recommendation = ScheduleResultDto.RecommendationSummaryDto.builder()
+            .longestMeetingTimes(longestMeetingTimes)
+            .earliestMeetingTimes(earliestMeetingTimes)
+            .build();
+
+        ScheduleResultDto dto = ScheduleResultDto.builder()
+            .eventTitle(event.getTitle())
+            .totalParticipants(totalParticipants)
+            .recommendation(recommendation)
+            .build();
+
+        return ScheduleResultDto.fromDto(dto);
+    }
+
+    private List<ScheduleResultDto.TimeSlotDetailDto> findAllRecommendationsByType(
+        List<Schedule> schedules, ScheduleStatus targetStatus) {
+
+        List<Schedule> filteredSchedules = schedules.stream()
+            .filter(schedule -> schedule.getStatus() == targetStatus)
+            .sorted(Comparator.comparing(Schedule::getId))
+            .toList();
+
+        List<ScheduleResultDto.TimeSlotDetailDto> result = new ArrayList<>();
+        for (int i = 0; i < filteredSchedules.size(); i++) {
+            Schedule schedule = filteredSchedules.get(i);
+            result.add(convertScheduleToTimeSlotDetail(schedule, i + 1));
+        }
+
+        return result;
+    }
+
+    private ScheduleResultDto.TimeSlotDetailDto convertScheduleToTimeSlotDetail(Schedule schedule, int index) {
+        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(schedule.getId());
+
+        List<ScheduleResultDto.ParticipantDto> participants = scheduleMembers.stream()
+            .map(member -> ScheduleResultDto.ParticipantDto.builder()
+                .memberId(member.getMember().getId())
+                .memberName(member.getMember().getName())
+                .build())
+            .collect(Collectors.toList());
+
+        boolean isSelectedStatus = schedule.getStatus() == ScheduleStatus.FIXED ||
+            schedule.getStatus() == ScheduleStatus.COMPLETE;
+
+        return ScheduleResultDto.TimeSlotDetailDto.builder()
+            .startTime(schedule.getStartTime())
+            .endTime(schedule.getEndTime())
+            .participantCount(participants.size())
+            .participants(participants)
+            .isSelected(isSelectedStatus)
+            .timeSlotId("slot_" + index)
+            .build();
     }
 
 }

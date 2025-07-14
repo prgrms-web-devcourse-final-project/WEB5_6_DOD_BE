@@ -33,7 +33,8 @@ public class ScheduleResultResponse {
     @Getter
     @Setter
     public static class Recommendation {
-        private TimeSlotDetail longestMeetingTime; // 가장 오래 만날 수 있는 시간
-        private TimeSlotDetail earliestMeetingTime; // 가장 빨리 만날 수 있는 시간
+        private List<TimeSlotDetail> longestMeetingTimes; // 가장 오래 만날 수 있는 시간들
+        private List<TimeSlotDetail> earliestMeetingTimes; // 가장 빨리 만날 수 있는 시간들
     }
+
 }
