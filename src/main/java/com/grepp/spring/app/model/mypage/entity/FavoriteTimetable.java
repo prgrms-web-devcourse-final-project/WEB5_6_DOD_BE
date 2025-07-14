@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.mypage.entity;
 
+import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -17,6 +18,7 @@ import jakarta.persistence.Table;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,7 +31,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 public class FavoriteTimetable extends BaseEntity {
 
@@ -47,18 +49,22 @@ public class FavoriteTimetable extends BaseEntity {
     )
     private Long id;
 
-    @Column(nullable = false)
-    private LocalTime startTime; // LocalDateTime -> LocalTime 으로 변경
-
-    @Column(nullable = false)
-    private LocalTime endTime; // LocalDateTime -> LocalTime 으로 변경
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING) // DB 에 문자로 저장되게 추가 (ex. "MONDAY")
-    private DayOfWeek weekday; // String -> DayOfWeek 타입으로 변경
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @Column(name = "day", nullable = false)
+    private String day; // "mon", "tue", "wed", "thu", "fri", "sat", "sun"
+
+    @Column(name = "time_bit", nullable = false)
+    private Long timeBit; // 12자리 16진수 문자열
+
+    public static FavoriteTimetable of(Member member, String day, Long timeBit) {
+        return FavoriteTimetable.builder()
+            .member(member)
+            .day(day)
+            .timeBit(timeBit != null ? timeBit : 0L) // null 방지 처리
+            .build();
+    }
 
 }

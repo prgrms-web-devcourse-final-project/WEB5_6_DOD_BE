@@ -14,21 +14,4 @@ public interface MyTimetableRepository extends JpaRepository<FavoriteTimetable, 
 
   List<FavoriteTimetable> findAllByMemberId(String memberId);
 
-
-
-  @Query("""
-      SELECT CASE WHEN COUNT(ft) > 0 THEN true ELSE false END
-      FROM FavoriteTimetable ft
-      WHERE ft.member.id = :memberId
-        AND ft.weekday = :weekday
-        AND ft.startTime < :endTime
-        AND ft.endTime > :startTime
-  """)
-  boolean existsOverlappingTime(
-      @Param("memberId") String memberId,
-      @Param("weekday") DayOfWeek weekday,
-      @Param("startTime") LocalTime startTime,
-      @Param("endTime") LocalTime endTime
-  );
-
 }

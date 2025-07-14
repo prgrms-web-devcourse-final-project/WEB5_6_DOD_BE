@@ -20,17 +20,15 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CreateFavoriteTimeResponse {
 
-  private List<FavoriteTimeList> fav_times;
-
-  @Getter @Setter
-  public static class FavoriteTimeList{
-    private Long favoriteTimeId;
-    private LocalTime startTime;
-    private LocalTime endTime;
-    private DayOfWeek weekday;
-    private LocalDateTime createdAt;
-  }
-
-
-
+  private String timeBitMon;
+  private String timeBitTue;
+  private String timeBitWed;
+  private String timeBitThu;
+  private String timeBitFri;
+  private String timeBitSat;
+  private String timeBitSun;
 }
+
+
+
+
