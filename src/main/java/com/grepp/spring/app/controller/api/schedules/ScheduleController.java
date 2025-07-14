@@ -101,7 +101,7 @@ public class ScheduleController {
     @PatchMapping("/modify/{scheduleId}")
     // 일정 수정 관련된 것들은 모두 수행. Pathch는 리소스 일부 수정만 가능. 바꾸고 싶은 필드만 변경가능
     // request 전체 내용 중 변경된 내용만 반영해야 한다. 그럼 request의 14개의 필드 null 체크를 다 해줘야 하나...?
-    public ResponseEntity<ApiResponse<ModifySchedulesResponse>> modifyScedules(
+    public ResponseEntity<ApiResponse<Void>> modifySchedule(
         @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
 
             scheduleQueryService.findScheduleById(scheduleId);
