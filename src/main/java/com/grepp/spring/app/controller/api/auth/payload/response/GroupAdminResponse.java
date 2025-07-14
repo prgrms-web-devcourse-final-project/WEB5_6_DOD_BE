@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class GroupAdminResponse {
 
-    private String groupId;
+    private Long groupId;
     private String groupName;
 
 }

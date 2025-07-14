@@ -85,22 +85,6 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "회원 탈퇴", description = "서비스 탈퇴를 진행합니다.")
-    @PatchMapping("/deactivate")
-    public ResponseEntity<ApiResponse<?>> deactivate(@Valid @RequestBody AccountDeactivateRequest request) {
-        if (request.getGroupRole().equals(GroupRole.GROUP_LEADER)){
-            return ResponseEntity.status(403)
-                .body(ApiResponse.error(ResponseCode.ADMIN_WITHDRAWAL_NOT_ALLOWED,
-                    Map.of("groups", List.of(new GroupAdminResponse("10001", "대나무행주"),
-                        new GroupAdminResponse("10003", "긔수씨팬클럽")))));
-        } else {
-            return ResponseEntity.ok(ApiResponse.success(
-                new AccountDeactivateResponse("GOOGLE_1234", "ROLE_USER", "하명도")
-            ));
-        }
-    }
-
-
     @Operation(summary = "로그아웃", description = "로그아웃을 진행합니다.")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<?>> logout(HttpServletResponse response) {
