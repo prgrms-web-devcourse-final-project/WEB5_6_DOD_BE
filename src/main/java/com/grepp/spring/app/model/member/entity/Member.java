@@ -18,7 +18,6 @@ import lombok.ToString;
 @Table(name = "Members")
 @Getter
 @Setter
-@ToString
 public class Member extends BaseEntity {
 
     @Id
