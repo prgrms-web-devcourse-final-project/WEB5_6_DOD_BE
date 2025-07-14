@@ -192,7 +192,7 @@ public class ScheduleCommandService {
         scheduleCommandRepository.deleteById(scheduleId);
     }
 
-    public void AddWorkspace(Optional<Schedule> scheduleId, AddWorkspaceRequest request) {
+    public void AddWorkspace(Schedule scheduleId, AddWorkspaceRequest request) {
         AddWorkspaceDto dto = AddWorkspaceDto.toDto(scheduleId, request);
         Workspace workspace = AddWorkspaceDto.fromDto(dto);
         workspaceCommandRepository.save(workspace);

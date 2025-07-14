@@ -18,6 +18,8 @@ import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
+import com.grepp.spring.infra.response.GroupErrorCode;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +62,9 @@ public class ScheduleQueryService {
         return ShowScheduleDto.fromDto(dto);
     }
 
-    public Optional<Schedule> findScheduleById(Long scheduleId) {
-        return scheduleQueryRepository.findById(scheduleId);
+    public Schedule findScheduleById(Long scheduleId) {
+        return scheduleQueryRepository.findById(scheduleId).orElseThrow(() -> new ScheduleNotFoundException(
+            GroupErrorCode.SCHEDULE_NOT_FOUND));
     }
 
     public Optional<Event> findEventById(Long eventId) {
