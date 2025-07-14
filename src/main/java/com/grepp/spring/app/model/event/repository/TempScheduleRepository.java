@@ -14,4 +14,6 @@ public interface TempScheduleRepository extends JpaRepository<TempSchedule, Long
 
     List<TempSchedule> findAllByEventMemberInAndActivatedTrueOrderByEventMemberIdAscDateAsc(List<EventMember> eventMembers);
 
+    List<TempSchedule> findAllByEventMemberIdAndActivatedTrue(Long eventMemberId);
+
 }
