@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateWorkspaceRequest {
+public class AddWorkspaceRequest {
     private WorkspaceType workspaceType;
     private String workspaceName;
     private String url;

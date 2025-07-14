@@ -25,8 +25,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class Workspace extends BaseEntity {
 
     @Id
