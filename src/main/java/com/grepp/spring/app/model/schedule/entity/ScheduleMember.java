@@ -36,7 +36,7 @@ public class ScheduleMember extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column
     @Enumerated(EnumType.STRING)
     private ScheduleRole role;
 

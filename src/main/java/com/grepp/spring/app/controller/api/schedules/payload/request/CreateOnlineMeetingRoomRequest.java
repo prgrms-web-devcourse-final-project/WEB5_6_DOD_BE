@@ -6,6 +6,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CreateOnlineMeetingRequest {
+public class CreateOnlineMeetingRoomRequest {
     private MeetingPlatform meetingPlatform;
 }
