@@ -18,4 +18,6 @@ public interface GroupMemberQueryRepository extends JpaRepository<GroupMember, L
     Long countByGroup(Group group);
 
     List<GroupMember> findByGroupIdIn(List<Long> groupIds);
+
+    List<GroupMember> findByGroup(Group group);
 }
