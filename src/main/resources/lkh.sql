@@ -62,42 +62,71 @@ values ('13a', 'google', 'GOOGLE', 'ROLE_USER', 'z@mail.com','해리포터', 1, 
 
 -- schedule_member 테이블 생성
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (1,'1a',3, 'ROLE_MASER','서울역', 321.1234, 126.972836, '이서준');
+values (1,'1a',1, 'ROLE_MASTER','서울역', 321.1234, 126.972836, '이서준');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (2,'2a',3, 'ROLE_MEMBER','건대입구역', 37.540882, 127.071103, '이강현');
+values (2,'2a',1, 'ROLE_MEMBER','건대입구역', 37.540882, 127.071103, '이강현');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (3,'3a',3, 'ROLE_MEMBER','강남역', 37.497958, 127.027539, '안준희');
+values (3,'3a',1, 'ROLE_MEMBER','강남역', 37.497958, 127.027539, '안준희');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (4,'4a',1, 'ROLE_MASER','홍대입구역', 37.556748, 126.923643, '정서윤');
+values (4,'4a',1, 'ROLE_MEMBER','홍대입구역', 37.556748, 126.923643, '정서윤');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (5,'5a',1, 'ROLE_MASER','잠실역', 37.514649, 127.104267, '최동준');
+values (5,'5a',1, 'ROLE_MEMBER','잠실역', 37.514649, 127.104267, '최동준');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (6,'6a',1, 'ROLE_MASER','사당역', 37.476536, 126.981631, '박상윤');
+values (6,'6a',1, 'ROLE_MEMBER','사당역', 37.476536, 126.981631, '박상윤');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (7,'7a',1, 'ROLE_MASER','을지로입구역', 37.565998, 126.982569, '박은서');
+values (7,'7a',1, 'ROLE_MEMBER','을지로입구역', 37.565998, 126.982569, '박은서');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (8,'8a',1, 'ROLE_MASER','안국역', 37.576562, 126.98547, '박준규');
+values (8,'8a',1, 'ROLE_MEMBER','안국역', 37.576562, 126.98547, '박준규');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (9,'9a',1, 'ROLE_MASER','역삼역', 37.500658, 127.03643, '현혜주');
+values (9,'9a',1, 'ROLE_MEMBER','역삼역', 37.500658, 127.03643, '현혜주');
 
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
-values (10,'10a',1, 'ROLE_MASER','이수역', 37.487521, 126.982309, '황수지');
+values (10,'10a',1, 'ROLE_MEMBER','이수역', 37.487521, 126.982309, '황수지');
 
 
 -- 워크스페이스 테이블 생성
 insert into workspaces(id,schedule_id,type,name,url)
-values (1,1,'notion','프론트엔드 기획서','www.notion.com');
+values (1,1,'DISCORD','DOD discord','www.discord.com');
 
 insert into workspaces(id,schedule_id,type,name,url)
-values (2,1,'slack','이때 어때 레포지토리','www.github.com');
+values (2,1,'FIGMA','이때 어때 figma','www.figma.com');
 
 insert into workspaces(id,schedule_id,type,name,url)
-values (3,1,'github','데브코스 슬렉','www.slack.com');
+values (3,1,'ZEP','데브코스 zep','www.zep.com');
+
+-- 장소 테이블 생성
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (1,1,'동대문역사문화공원역',123.123,456.456, 'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (2,1,'역삼역',321.321,312.312,'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (3,1,'홍대입구역',678.678,867.876, 'DEFAULT');
+
+-- 환승 정보 테이블 생성
+insert into metro_transfer(location_id, line_name, color)
+values (1, '2','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (1, '4','#00A2D1');
+
+insert into metro_transfer(location_id, line_name, color)
+values (1, '5','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '2','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '4','#00A2D1');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '5','#00A84D');
