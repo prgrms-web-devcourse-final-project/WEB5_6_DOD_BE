@@ -112,12 +112,10 @@ public class MypageController {
 
       // API 응답 감싸서 반환
       return ResponseEntity.ok(ApiResponse.success(response));
-
-
+      
     } catch (IllegalStateException e) {
       return ResponseEntity.status(409)
           .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
-
     } catch (Exception e) {
       if (e instanceof AuthApiException) {
         return ResponseEntity.status(401)

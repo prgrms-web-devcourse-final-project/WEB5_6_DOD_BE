@@ -56,7 +56,6 @@ public class SecurityConfig {
                                   .requestMatchers("/api/**").authenticated()
                                   .anyRequest().permitAll()
             )
-            // jwtAuthenticationEntryPoint 는 oauth 인증을 사용할 경우 제거
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);

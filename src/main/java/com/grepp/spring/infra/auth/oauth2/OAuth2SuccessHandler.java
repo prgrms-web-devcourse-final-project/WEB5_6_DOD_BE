@@ -38,6 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());
+        log.info("로그인 완료.");
 
         // 추후 Front Server 주소에 따라 값을 바꾸거나, 유동적으로 처리할 방법을 반영하겠습니다.
         // 현재는 로컬 테스트를 기준으로 작성하였습니다.

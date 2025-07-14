@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-public interface ScheduleMemberRepository extends JpaRepository<ScheduleMember, Long> {
+public interface ScheduleMemberQueryRepository extends JpaRepository<ScheduleMember, Long> {
 
     List<ScheduleMember> findByScheduleId(Long scheduleId);
 }

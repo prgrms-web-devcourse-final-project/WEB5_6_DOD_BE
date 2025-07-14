@@ -2,6 +2,7 @@ package com.grepp.spring.infra.auth.jwt;
 
 import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
 import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
@@ -76,6 +77,25 @@ public class JwtTokenProvider {
                    .expires(accessTokenExpiresIn.getTime())
                    .build();
     }
+
+    // Refresh Token 생성
+    public RefreshToken generateRefreshToken(String accessTokenJti) {
+        long now = (new Date()).getTime();
+        Date refreshTokenExpiresIn = new Date(now + refreshTokenExpiration);
+
+        String token = Jwts.builder()
+            .claim("atId", accessTokenJti)
+            .expiration(refreshTokenExpiresIn)
+            .signWith(getSecretKey())
+            .compact();
+
+        return RefreshToken.builder()
+            .token(token)
+            .expires(refreshTokenExpiresIn.getTime())
+            .ttl(refreshTokenExpiration)
+            .atId(accessTokenJti)
+            .build();
+    }
     
     // JWT 토큰을 복호화하여 인증 정보 조회
     public Authentication getAuthentication(String accessToken) {
@@ -94,7 +114,7 @@ public class JwtTokenProvider {
     }
     
     // 토큰 유효성 검증
-    public boolean validateToken(String token, HttpServletRequest request) {
+    public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(getSecretKey()).build().parse(token);
             return true;

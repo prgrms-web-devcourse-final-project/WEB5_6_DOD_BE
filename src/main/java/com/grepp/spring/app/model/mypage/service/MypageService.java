@@ -18,9 +18,6 @@ import com.grepp.spring.app.model.mypage.repository.MyTimetableRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -163,14 +160,32 @@ public class MypageService {
     FavoriteLocation location = myLocationRepository.findById(locationId)
         .orElseThrow(() -> new NotFoundException("즐겨찾기 장소를 찾을 수 없습니다."));
 
-    location.setName(request.getStationName());
-    location.setLatitude(request.getLatitude());
-    location.setLongitude(request.getLongitude());
-
     FavoriteLocation updated = myLocationRepository.save(location);
 
     return FavoriteLocationDto.fromEntity(updated);
-
   }
 
+  public List<FavoriteLocationDto> getFavoriteLocations(String memberId) {
+    List<FavoriteLocation> locations = myLocationRepository.findAllByMemberId(memberId);
+    List<FavoriteLocationDto> result = new ArrayList<>();
+
+    for (FavoriteLocation location : locations) {
+      // 각 FavoriteLocation을 FavoriteLocationDto로 변환하여 result 리스트에 추가
+      FavoriteLocationDto dto = FavoriteLocationDto.fromEntity(location);
+      result.add(dto);
+    }
+    return result;
+  }
+
+  public List<FavoriteTimetableDto> getFavoriteTimetables(String memberId) {
+    List<FavoriteTimetable> timetables = myTimetableRepository.findAllByMemberId(memberId);
+    List<FavoriteTimetableDto> result = new ArrayList<>();
+
+    for (FavoriteTimetable timetable : timetables) {
+      FavoriteTimetableDto dto = FavoriteTimetableDto.fromEntity(timetable);
+      result.add(dto);
+    }
+    return result;
+
+  }
 }
