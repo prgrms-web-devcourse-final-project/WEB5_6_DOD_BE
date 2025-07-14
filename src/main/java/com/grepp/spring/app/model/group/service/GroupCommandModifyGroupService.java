@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -34,6 +35,7 @@ public class GroupCommandModifyGroupService {
     private final MemberRepository memberRepository;
 
     // 그룹 정보 수정
+    @Transactional
     public void modifyGroup(Long groupId, ModifyGroupInfoRequest request){
         // http 요청 사용자 조회
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
