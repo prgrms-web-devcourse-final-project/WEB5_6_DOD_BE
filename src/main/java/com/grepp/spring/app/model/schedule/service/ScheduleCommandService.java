@@ -13,6 +13,7 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
+import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
@@ -32,7 +33,6 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryReposit
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.List;
@@ -159,10 +159,6 @@ public class ScheduleCommandService {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
 
-        if (dto.getPlatformName() != null) {
-            schedule.get().setPlatformName(dto.getPlatformName());
-        }
-
         if (dto.getPlatformURL() != null) {
             schedule.get().setPlatformUrl(dto.getPlatformURL());
         }
@@ -246,7 +242,14 @@ public class ScheduleCommandService {
 
     }
 
-    public CreateOnlineMeetingRoomResponse createOnlineMeeting(Optional<Schedule> sId) {
-        return null;
+    public CreateOnlineMeetingRoomResponse createOnlineMeeting(Long scheduleId) {
+
+        // TODO : 온라인 플렛폼 생성 로직 + DB에 플렛폼 url 저장
+
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+
+        CreateOnlineMeetingRoomDto dto = CreateOnlineMeetingRoomDto.toDto(schedule.get().getPlatformUrl());
+
+        return CreateOnlineMeetingRoomDto.fromDto(dto);
     }
 }

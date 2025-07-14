@@ -12,13 +12,24 @@ VALUES ('GOOGLE_1234', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'test@gmail.com
 insert into groups(id, name, description, is_grouped, activated)
 values (1,'DOD 그룹','DOD 그룹입니당',true, true);
 
+insert into groups(id, name, description, is_grouped, activated)
+values (2,'데스코스 그룹','데브코스 그룹입니당',true, true);
+
 -- 이벤트 테이블 생성
 insert into events(id, description, max_member, meeting_type, title, group_id, activated)
 values (1,'DOD 이벤트 생성', 10, 'OFFLINE', 'DOD 이벤트', 1, true);
 
+insert into events(id, description, max_member, meeting_type, title, group_id, activated)
+values (2,'데브코스 이벤트 생성', 10, 'ONLINE', '데브코스 이벤트', 2, true);
+
+
 -- 일정 테이블 생성
 insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
 values (1, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '강남역 롯데시네마', 'FIXED',1,true, 'DOD 만나는 날입니당', '모여라! DOD!');
+
+insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
+values (2, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOOGLE_MEET', '홍익대학교 ', 'FIXED',2,true, '데브코스 만나는 날입니당', '모여라! 데브코스!');
+
 
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)

@@ -310,7 +310,7 @@ public class ScheduleController {
                 return ResponseEntity.status(404).body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
 
-            CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(sId);
+            CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (Exception e) {
