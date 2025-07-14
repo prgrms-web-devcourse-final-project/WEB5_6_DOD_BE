@@ -1,51 +1,25 @@
 package com.grepp.spring.app.controller.api.schedules;
 
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.DeleteWorkSpaceRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateDepartLocationResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateOfflineDetailLocationsRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOfflineDetailLocationsResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateOnlineMeetingRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateWorkspaceRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateWorkspaceResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowMiddleLocationResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.VoteMiddleLocationsRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
 import com.grepp.spring.app.model.event.entity.Event;
-import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.service.ScheduleService;
+import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
+import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -53,8 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/schedules")
 public class ScheduleController {
 
-    @Autowired
-    private ScheduleService scheduleService;
+    @Autowired private ScheduleCommandService scheduleCommandService;
+    @Autowired private ScheduleQueryService scheduleQueryService;
 
     // 일정 정보 조회
     @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
@@ -62,14 +36,14 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(@PathVariable Long scheduleId) {
 
         try {
-            Optional<Schedule> sId = scheduleService.findScheduleById(scheduleId);
+            Optional<Schedule> sId = scheduleQueryService.findScheduleById(scheduleId);
 
             if (sId.isEmpty()) {
                 return ResponseEntity.status(404)
                     .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 일정을 찾을 수 없습니다. scheduleId를 확인해주세요."));
             }
 
-            ShowScheduleResponse response = scheduleService.showSchedule(scheduleId);
+            ShowScheduleResponse response = scheduleQueryService.showSchedule(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
         }
@@ -83,35 +57,35 @@ public class ScheduleController {
                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
         }
     }
-//
-//    // 일정 등록
-//    @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
-//    @PostMapping("/create")
-//    public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(@RequestBody CreateSchedulesRequest request) {
-//
-//        try {
-//            Optional<Event> eId = scheduleService.findEventById(request.getEventId());
-//
-//            if(eId.isEmpty()){
-//                return ResponseEntity.status(404)
-//                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
-//            }
-//
-//            scheduleService.createSchedule(request);
-//
-//            return ResponseEntity.ok(ApiResponse.success("일정이 등록되었습니다."));
-//        }
-//         catch (Exception e) {
+
+    // 일정 등록
+    @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(@RequestBody CreateSchedulesRequest request) {
+
+        try {
+            Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
+
+            if(eId.isEmpty()){
+                return ResponseEntity.status(404)
+                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
+            }
+
+            scheduleCommandService.createSchedule(request);
+
+            return ResponseEntity.ok(ApiResponse.success("일정이 등록되었습니다."));
+        }
+         catch (Exception e) {
 //             if (e instanceof AuthApiException) {
 //                 return ResponseEntity.status(401)
 //                     .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
 //             }
-//
-//             return ResponseEntity.status(400)
-//                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-//         }
-//    }
-//
+
+             return ResponseEntity.status(400)
+                 .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+         }
+    }
+
 ////    //NOTE
 ////    // 일정 수정
 ////    @Operation(summary = "일정 수정", description = "일정 수정을 진행합니다.")
