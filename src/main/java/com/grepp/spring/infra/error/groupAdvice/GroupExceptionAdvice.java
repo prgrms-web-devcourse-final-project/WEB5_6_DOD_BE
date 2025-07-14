@@ -1,8 +1,8 @@
-package com.grepp.spring.infra.error;
+package com.grepp.spring.infra.error.groupAdvice;
 
 
-import com.grepp.spring.infra.error.exceptions.GroupNotFoundException;
-import com.grepp.spring.infra.error.exceptions.NotGroupUserException;
+import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
+import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ResponseCode;

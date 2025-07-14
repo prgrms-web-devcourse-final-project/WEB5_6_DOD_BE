@@ -1,18 +1,18 @@
-package com.grepp.spring.infra.error.exceptions;
+package com.grepp.spring.infra.error.exceptions.group;
 
 import com.grepp.spring.infra.response.GroupErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GroupNotFoundException extends RuntimeException {
+public class NotGroupUserException extends RuntimeException {
 
     private final GroupErrorCode code;
 
-    public GroupNotFoundException(GroupErrorCode code) {
+    public NotGroupUserException(GroupErrorCode code) {
         this.code = code;
     }
 
-    public GroupNotFoundException(GroupErrorCode code, Exception e) {
+    public NotGroupUserException(GroupErrorCode code, Exception e) {
         this.code = code;
         log.error(e.getMessage(), e);
     }
@@ -20,5 +20,4 @@ public class GroupNotFoundException extends RuntimeException {
     public GroupErrorCode code() {
         return code;
     }
-
 }
