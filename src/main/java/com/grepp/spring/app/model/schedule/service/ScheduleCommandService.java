@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
@@ -13,6 +14,9 @@ import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
+import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
+import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Vote;
@@ -43,7 +47,6 @@ public class ScheduleCommandService {
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
     @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
-    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
 
     @Autowired
     private EventRepository eventRepository;
