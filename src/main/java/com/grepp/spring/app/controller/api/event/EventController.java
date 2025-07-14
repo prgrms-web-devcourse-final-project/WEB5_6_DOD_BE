@@ -99,14 +99,9 @@ public class EventController {
         try {
             String currentMemberId = extractCurrentMemberId();
 
-            MyTimeScheduleDto dto = MyTimeScheduleDto.toDto(request, eventId, currentMemberId);
-            eventService.createOrUpdateMyTime(dto);
+            eventService.createOrUpdateMyTime(request, eventId, currentMemberId);
 
             return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 생성/수정되었습니다."));
-
-        } catch (AuthApiException e) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, e.getMessage()));
 
         } catch (NotFoundException e) {
             return ResponseEntity.status(404)
@@ -130,13 +125,7 @@ public class EventController {
         try {
             String currentMemberId = extractCurrentMemberId();
 
-            if (currentMemberId == null) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "로그인이 필요합니다."));
-            }
-
-            AllTimeScheduleDto dto = eventService.getAllTimeSchedules(eventId, currentMemberId);
-            AllTimeScheduleResponse response = AllTimeScheduleDto.fromDto(dto);
+            AllTimeScheduleResponse response = eventService.getAllTimeSchedules(eventId, currentMemberId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
 

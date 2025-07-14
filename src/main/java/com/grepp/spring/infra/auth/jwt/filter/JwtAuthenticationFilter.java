@@ -1,10 +1,7 @@
 package com.grepp.spring.infra.auth.jwt.filter;
 
 import com.grepp.spring.app.model.auth.code.AuthToken;
-import com.grepp.spring.app.model.auth.token.RefreshTokenService;
-import com.grepp.spring.app.model.auth.token.UserBlackListRepository;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
-import com.grepp.spring.app.model.auth.token.entity.UserBlackList;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
@@ -30,8 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final RefreshTokenService refreshTokenService;
-    private final UserBlackListRepository userBlackListRepository;
+//    private final UserBlackListRepository userBlackListRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
@@ -53,12 +49,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            if (jwtTokenProvider.validateToken(accessToken, request)) {
+            if (jwtTokenProvider.validateToken(accessToken)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-                if (userBlackListRepository.existsById(authentication.getName())) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (ExpiredJwtException e) {
@@ -72,40 +64,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         HttpServletRequest request,
         HttpServletResponse response) throws IOException {
 
+        // 엑세스 토큰에서 정보(claim) 추출
         Claims claims  = jwtTokenProvider.getClaims(accessToken);
-        if (userBlackListRepository.existsById(claims.getSubject())) {
-            return;
-        }
+        String userId = claims.getSubject();
+        String accessTokenId = claims.getId();
 
         String refreshToken = jwtTokenProvider.resolveToken(request, AuthToken.REFRESH_TOKEN);
-        RefreshToken rt = refreshTokenService.findByAccessTokenId(claims.getId());
 
-        if(rt == null) return;
+        if (refreshToken == null){
+            throw new CommonException(ResponseCode.INVALID_TOKEN);
+        }
 
-        if (!rt.getToken().equals(refreshToken)) {
-            userBlackListRepository.save(new UserBlackList(claims.getSubject()));
+        // 리프레시 토큰에서 claim 추출
+        Claims refreshTokenClaims = jwtTokenProvider.getClaims(refreshToken);
+        // 그로부터 Access Token ID 추출
+        String atId = (String) refreshTokenClaims.get("atId");
+
+        if (!accessTokenId.equals(atId)) {
+            // 추후 블랙리스트 처리 고려 -> Redis
             throw new CommonException(ResponseCode.SECURITY_INCIDENT);
         }
 
-        addToken(response, claims, rt);
+        addToken(response, userId, (String) claims.get("roles"));
     }
 
-    private void addToken(HttpServletResponse response, Claims claims, RefreshToken refreshToken) {
-        String username = claims.getSubject();
-        AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(username, (String) claims.get("roles"));
-        Authentication authentication = jwtTokenProvider.getAuthentication(newAccessToken.getToken());
+    private void addToken(HttpServletResponse response, String userId, String roles) {
 
+        // 새로운 엑세스 토큰 생성
+        AccessTokenDto newAccessToken = jwtTokenProvider.generateAccessToken(userId, roles);
+
+        // 새로운 엑세스 토큰의 JTI를 사용하여 새로운 리프레시 토큰 생성
+        RefreshToken newRefreshToken = jwtTokenProvider.generateRefreshToken(newAccessToken.getJti());
+
+        // SecurityContextHolder에 인증 정보를 업데이트 해야함.
+        // 새로운 엑세스 토큰으로 인증 객체를 생성하고 Context에 지정해줍시다.
+        Authentication authentication = jwtTokenProvider.getAuthentication(newAccessToken.getToken());
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        RefreshToken newRefreshToken = refreshTokenService.renewingToken(refreshToken.getAtId(), newAccessToken.getJti());
-
+        // client 요청에 자동으로 포함되도록 쿠키에 넣어주기
         ResponseCookie accessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-            newAccessToken.getToken(), jwtTokenProvider.getAccessTokenExpiration());
-
-        ResponseCookie refreshTokenCookie = TokenCookieFactory.create(
-            AuthToken.REFRESH_TOKEN.name(),
-            newRefreshToken.getToken(),
-            newRefreshToken.getTtl());
+            newAccessToken.getToken(), newAccessToken.getExpires());
+        ResponseCookie refreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
+            newRefreshToken.getToken(), newRefreshToken.getTtl());
 
         response.addHeader("Set-Cookie", accessTokenCookie.toString());
         response.addHeader("Set-Cookie", refreshTokenCookie.toString());

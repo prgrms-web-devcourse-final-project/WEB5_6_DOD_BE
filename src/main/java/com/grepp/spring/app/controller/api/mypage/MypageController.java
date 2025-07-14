@@ -31,6 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,7 +76,7 @@ public class MypageController {
           .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "이미 즐겨찾기 장소를 등록했습니다."));
 
     } catch (Exception e) {
-      if (e instanceof AuthApiException) {
+      if (e instanceof AuthenticationException) {
         return ResponseEntity.status(401)
             .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
       }
@@ -110,6 +111,66 @@ public class MypageController {
       return ResponseEntity.ok(ApiResponse.success(response));
 
       
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(409)
+          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
+
+    } catch (Exception e) {
+      if (e instanceof AuthApiException) {
+        return ResponseEntity.status(401)
+            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
+      }
+      return ResponseEntity.status(400)
+          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+    }
+  }
+
+  @GetMapping("/favorite-locations")
+  @Operation(summary = "즐겨찾기 장소 조회", description = "회원 즐겨찾기 장소 조회")
+  public ResponseEntity<ApiResponse<List<FavoriteLocationDto>>> getFavoriteLocations() {
+    try {
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+      if (authentication == null) {
+        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
+      }
+
+      String memberId = authentication.getName();
+      List<FavoriteLocationDto> result = mypageService.getFavoriteLocations(memberId);
+
+      // API 응답 감싸서 반환
+      return ResponseEntity.ok(ApiResponse.success(result));
+
+
+    } catch (Exception e) {
+      if (e instanceof AuthApiException) {
+        return ResponseEntity.status(401)
+            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
+      }
+      return ResponseEntity.status(400)
+          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+    }
+  }
+
+  @GetMapping("/favorite-timetable")
+  @Operation(summary = "즐겨찾기 시간대 조회", description = "회원 즐겨찾기 시간대 조회")
+  public ResponseEntity<ApiResponse<List<FavoriteTimetableDto>>> getFavoriteTimetables() {
+    try {
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+      if (authentication == null) {
+        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
+      }
+
+      String memberId = authentication.getName();
+      List<FavoriteTimetableDto> result = mypageService.getFavoriteTimetables(memberId);
+
+      // API 응답 감싸서 반환
+      return ResponseEntity.ok(ApiResponse.success(result));
+
+
     } catch (Exception e) {
       if (e instanceof AuthApiException) {
         return ResponseEntity.status(401)
