@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.event.service;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
+import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -26,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -176,6 +179,109 @@ public class EventService {
             TempSchedule newSchedule = MyTimeScheduleDto.DailyTimeSlotDto.toEntity(slot, eventMember);
             tempScheduleRepository.save(newSchedule);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+
+        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
+            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
+        }
+
+        List<CandidateDate> candidateDates = candidateDateRepository
+            .findAllByEventIdAndActivatedTrueOrderByDate(eventId);
+
+        List<EventMember> eventMembers = eventMemberRepository
+            .findAllByEventIdAndActivatedTrue(eventId);
+
+        Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
+
+        AllTimeScheduleDto.TimeTableDto timeTable = buildTimeTable(candidateDates);
+
+        List<AllTimeScheduleDto.MemberScheduleDto> memberSchedules = eventMembers.stream()
+            .map(member -> buildSingleMemberSchedule(member, candidateDates, memberScheduleMap))
+            .collect(Collectors.toList());
+
+        Integer confirmedMembers = (int) eventMembers.stream()
+            .filter(EventMember::getConfirmed)
+            .count();
+
+        AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
+            .eventId(event.getId())
+            .eventTitle(event.getTitle())
+            .timeTable(timeTable)
+            .memberSchedules(memberSchedules)
+            .totalMembers(eventMembers.size())
+            .confirmedMembers(confirmedMembers)
+            .build();
+
+        return AllTimeScheduleDto.fromDto(dto);
+    }
+
+    private Map<Long, List<TempSchedule>> getMemberScheduleMap(List<EventMember> eventMembers) {
+        List<TempSchedule> allSchedules = tempScheduleRepository
+            .findAllByEventMemberInAndActivatedTrueOrderByEventMemberIdAscDateAsc(eventMembers);
+
+        return allSchedules.stream()
+            .collect(Collectors.groupingBy(schedule -> schedule.getEventMember().getId()));
+    }
+
+    private AllTimeScheduleDto.TimeTableDto buildTimeTable(List<CandidateDate> candidateDates) {
+        List<AllTimeScheduleDto.DateInfoDto> dateInfos = candidateDates.stream()
+            .map(candidateDate -> {
+                LocalDate date = candidateDate.getDate();
+                return AllTimeScheduleDto.DateInfoDto.builder()
+                    .date(date.toString())
+                    .dayOfWeek(AllTimeScheduleDto.formatDayOfWeek(date))
+                    .displayDate(AllTimeScheduleDto.formatDisplayDate(date))
+                    .build();
+            })
+            .collect(Collectors.toList());
+
+        CandidateDate firstCandidate = candidateDates.getFirst();
+        String startTime = firstCandidate.getStartTime().toString();
+        String endTime = firstCandidate.getEndTime().toString();
+
+        return AllTimeScheduleDto.TimeTableDto.builder()
+            .dates(dateInfos)
+            .startTime(startTime)
+            .endTime(endTime)
+            .build();
+    }
+
+    private AllTimeScheduleDto.MemberScheduleDto buildSingleMemberSchedule(
+        EventMember eventMember,
+        List<CandidateDate> candidateDates,
+        Map<Long, List<TempSchedule>> memberScheduleMap) {
+
+        List<TempSchedule> memberSchedules = memberScheduleMap.getOrDefault(eventMember.getId(), List.of());
+
+        Map<LocalDate, TempSchedule> scheduleByDate = memberSchedules.stream()
+            .collect(Collectors.toMap(TempSchedule::getDate, schedule -> schedule));
+
+        List<AllTimeScheduleDto.DailyTimeSlotDto> dailyTimeSlots = candidateDates.stream()
+            .map(candidateDate -> {
+                LocalDate date = candidateDate.getDate();
+                TempSchedule schedule = scheduleByDate.get(date);
+
+                String timeBit = schedule != null ?
+                    AllTimeScheduleDto.formatTimeBit(schedule.getTimeBit()) : "000000000000";
+
+                return AllTimeScheduleDto.DailyTimeSlotDto.builder()
+                    .date(date.toString())
+                    .timeBit(timeBit)
+                    .build();
+            })
+            .collect(Collectors.toList());
+
+        return AllTimeScheduleDto.MemberScheduleDto.builder()
+            .eventMemberId(eventMember.getMember().getId())
+            .memberName(eventMember.getMember().getName())
+            .dailyTimeSlots(dailyTimeSlots)
+            .isConfirmed(eventMember.getConfirmed())
+            .build();
     }
 
 }
