@@ -40,4 +40,8 @@ public class Vote extends BaseEntity {
     @JoinColumn(name = "schedule_member_id")
     private ScheduleMember scheduleMember;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id", updatable = false)
+    private Schedule schedule;
+
 }

@@ -165,6 +165,7 @@ public class ScheduleController {
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
         try {
+            Optional<Schedule> sId = scheduleQueryService.findScheduleById(request.getScheduleId());
             Optional<ScheduleMember> lmId = scheduleMemberQueryRepository.findById(scheduleMemberId);
             Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
 
@@ -174,7 +175,7 @@ public class ScheduleController {
                         "해당 투표리스트(장소)를 찾을 수 없습니다. locationId를 확인해주세요."));
             }
 
-            scheduleCommandService.voteMiddleLocation(lmId, lId);
+            scheduleCommandService.voteMiddleLocation(lmId, lId, sId);
 
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
         } catch (Exception e) {

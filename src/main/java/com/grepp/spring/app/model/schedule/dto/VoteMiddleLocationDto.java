@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.schedule.dto;
 
 import com.grepp.spring.app.model.schedule.entity.Location;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Vote;
 import java.util.Optional;
@@ -14,12 +15,14 @@ import lombok.Setter;
 public class VoteMiddleLocationDto {
     private ScheduleMember scheduleMemberId;
     private Location locationId;
+    private Schedule scheduleId;
 
     public static VoteMiddleLocationDto toDto(
-        Optional<ScheduleMember> scheduleMemberId, Optional<Location> lId) {
+        Optional<ScheduleMember> scheduleMemberId, Optional<Location> lId, Optional<Schedule> sId) {
         return VoteMiddleLocationDto.builder()
             .scheduleMemberId(scheduleMemberId.orElse(null))
             .locationId(lId.orElse(null))
+            .scheduleId(sId.orElse(null))
             .build();
     }
 
@@ -27,6 +30,7 @@ public class VoteMiddleLocationDto {
         return Vote.builder()
             .scheduleMember(dto.getScheduleMemberId())
             .location(dto.getLocationId())
+            .schedule(dto.getScheduleId())
             .build();
     }
 }

@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class VoteMiddleLocationsRequest {
     private Long locationId;
+    private Long scheduleId;
 }
