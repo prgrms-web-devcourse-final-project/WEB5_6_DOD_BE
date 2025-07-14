@@ -98,20 +98,24 @@ public class GroupQueryService {
         // checking이 false 그대로면, group에 속하지 않은 멤버가 group에 있는 멤버를 조회하는 메서드 요청(예외처리 함)
         boolean checking = false;
         ShowGroupMemberResponse response = new ShowGroupMemberResponse();
+
+        // http요청으로 요청된 group의 group-member들 조회
         List<GroupMember> groupMembers = groupMemberQueryRepository.findByGroup(group.get());
-
+        // response의 필드인 groupUser 리스트 초기화
         ArrayList<GroupUser> groupUsers = response.getGroupUser();
-        for(GroupMember groupMember: groupMembers){
 
+        // groupMember들을 순회하면서 그룹별 멤버Id/이름/권한을 저장
+        for(GroupMember groupMember: groupMembers){
             String memberId = groupMember.getMember().getId();
             String memberName = memberRepository.findById(memberId).get().getName();
             GroupRole groupRole = groupMember.getRole();
+            // 멤버Id, 이름, 권한으로 GroupUser 리스트에 추가
             groupUsers.add(new GroupUser(memberId, memberName, groupRole));
+            // http요청을 날린 멤버의 Id가 현재 탐색중인 member의 Id가 같다면, group에 해당 member 포함됨.
             if(memberId.equals(member.getId())) {
                 checking=true;
             }
         }
-
         // 예외 발생: http요청을 한 member가 속하지 않은 groupId를 탐색하려 하는 경우 - NOT GROUP MEMBER
         if(!checking){
             throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
