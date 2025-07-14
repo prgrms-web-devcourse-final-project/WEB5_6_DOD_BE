@@ -4,6 +4,7 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepar
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
@@ -12,6 +13,7 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
+import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
@@ -31,7 +33,6 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryReposit
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.List;
@@ -158,10 +159,6 @@ public class ScheduleCommandService {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
 
-        if (dto.getPlatformName() != null) {
-            schedule.get().setPlatformName(dto.getPlatformName());
-        }
-
         if (dto.getPlatformURL() != null) {
             schedule.get().setPlatformUrl(dto.getPlatformURL());
         }
@@ -195,7 +192,7 @@ public class ScheduleCommandService {
         scheduleCommandRepository.deleteById(scheduleId);
     }
 
-    public void AddWorkspace(Optional<Schedule> scheduleId, AddWorkspaceRequest request) {
+    public void AddWorkspace(Schedule scheduleId, AddWorkspaceRequest request) {
         AddWorkspaceDto dto = AddWorkspaceDto.toDto(scheduleId, request);
         Workspace workspace = AddWorkspaceDto.fromDto(dto);
         workspaceCommandRepository.save(workspace);
@@ -243,5 +240,16 @@ public class ScheduleCommandService {
             location.setVoteCount(1L);
         }
 
+    }
+
+    public CreateOnlineMeetingRoomResponse createOnlineMeeting(Long scheduleId) {
+
+        // TODO : 온라인 플렛폼 생성 로직 + DB에 플렛폼 url 저장
+
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+
+        CreateOnlineMeetingRoomDto dto = CreateOnlineMeetingRoomDto.toDto(schedule.get().getPlatformUrl());
+
+        return CreateOnlineMeetingRoomDto.fromDto(dto);
     }
 }
