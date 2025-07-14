@@ -18,9 +18,9 @@ public class AddWorkspaceDto {
     private String workspaceName;
     private String url;
 
-    public static AddWorkspaceDto toDto(Optional<Schedule> ScheduleId, AddWorkspaceRequest request) {
+    public static AddWorkspaceDto toDto(Optional<Schedule> scheduleId, AddWorkspaceRequest request) {
         return AddWorkspaceDto.builder()
-            .scheduleId(ScheduleId.orElse(null))
+            .scheduleId(scheduleId.orElse(null))
             .workspaceType(request.getWorkspaceType())
             .workspaceName(request.getWorkspaceName())
             .url(request.getUrl())

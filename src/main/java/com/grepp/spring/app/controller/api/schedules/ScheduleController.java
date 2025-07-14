@@ -356,7 +356,7 @@ public class ScheduleController {
     // 공통 워크스페이스 등록
     @Operation(summary = "워크스페이스 등록", description = "워크스페이스 등록을 진행합니다.")
     @PostMapping("/add-workspace/{scheduleId}")
-    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> CreateWorkspace(@PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
+    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> createWorkspace(@PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
 
         try {
 
@@ -384,7 +384,7 @@ public class ScheduleController {
     // 공통 워크스페이스 삭제
     @Operation(summary = "워크스페이스 삭제", description = "워크스페이스 삭제를 진행합니다.")
     @PostMapping("/delete-workspace/{workspaceId}")
-    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> CreateWorkspace(
+    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> createWorkspace(
         @PathVariable Long workspaceId) {
         try {
 
