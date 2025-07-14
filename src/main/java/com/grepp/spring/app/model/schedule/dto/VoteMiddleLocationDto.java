@@ -18,11 +18,11 @@ public class VoteMiddleLocationDto {
     private Schedule scheduleId;
 
     public static VoteMiddleLocationDto toDto(
-        Optional<ScheduleMember> scheduleMemberId, Optional<Location> lId, Optional<Schedule> sId) {
+        Optional<ScheduleMember> scheduleMemberId, Optional<Location> lId, Schedule sId) {
         return VoteMiddleLocationDto.builder()
             .scheduleMemberId(scheduleMemberId.orElse(null))
             .locationId(lId.orElse(null))
-            .scheduleId(sId.orElse(null))
+            .scheduleId(sId)
             .build();
     }
 

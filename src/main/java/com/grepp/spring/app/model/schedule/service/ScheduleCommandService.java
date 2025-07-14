@@ -229,7 +229,7 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid, Optional<Schedule> sId) {
+    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid, Schedule sId) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
 

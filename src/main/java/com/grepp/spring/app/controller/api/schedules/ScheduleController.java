@@ -165,7 +165,7 @@ public class ScheduleController {
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
         try {
-            Optional<Schedule> sId = scheduleQueryService.findScheduleById(request.getScheduleId());
+            Schedule sId = scheduleQueryService.findScheduleById(request.getScheduleId());
             Optional<ScheduleMember> lmId = scheduleMemberQueryRepository.findById(scheduleMemberId);
             Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
 
