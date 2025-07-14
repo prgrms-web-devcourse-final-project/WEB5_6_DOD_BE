@@ -58,8 +58,8 @@ public class ScheduleController {
     @Autowired
     private LocationQueryRepository locationQueryRepository;
 
-    // 일정 정보 조회
-    @Operation(summary = "일정 정보 조회", description = "일정 정보를 조회합니다.")
+    // 일정 조회
+    @Operation(summary = "일정 조회", description = "일정을 조회합니다.")
     @GetMapping("/show/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(
         @PathVariable Long scheduleId) {
