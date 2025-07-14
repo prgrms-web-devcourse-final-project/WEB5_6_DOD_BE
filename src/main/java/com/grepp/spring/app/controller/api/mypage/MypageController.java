@@ -4,7 +4,6 @@ package com.grepp.spring.app.controller.api.mypage;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoritePlaceRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoriteTimeRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyncRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
@@ -264,31 +263,30 @@ public class MypageController {
 //  }
 
 
-  // 프로필 수정 (사진 + 이름 수정)
-  @Operation(summary = "프로필", description = "회원 프로필 내 이름 및 프로필 캐릭터 수정")
-  @PatchMapping("/member-profile/{memberId}")
-  public ResponseEntity<ApiResponse<ModifyProfileResponse>> modifyProfile(
-      @PathVariable String memberId,
-      @RequestBody @Valid ModifyFavoriteTimeRequest request) {
-
-    try {
-
-      ModifyProfileResponse response = new ModifyProfileResponse();
-      response.setMemberId("KAKAO_1234");
-      response.setProfileImageNumber("7");
-      response.setName("ABC");
-
-
-      return ResponseEntity.ok(ApiResponse.success(response));
-    } catch (Exception e) {
-      if (e instanceof AuthenticationException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
-    }
-  }
+//  // 프로필 수정 (사진 + 이름 수정)
+//  @Operation(summary = "프로필", description = "회원 프로필 내 이름 및 프로필 캐릭터 수정")
+//  @PatchMapping("/member-profile/{memberId}")
+//  public ResponseEntity<ApiResponse<ModifyProfileResponse>> modifyProfile(
+//      @PathVariable String memberId) {
+//
+//    try {
+//
+//      ModifyProfileResponse response = new ModifyProfileResponse();
+//      response.setMemberId("KAKAO_1234");
+//      response.setProfileImageNumber("7");
+//      response.setName("ABC");
+//
+//
+//      return ResponseEntity.ok(ApiResponse.success(response));
+//    } catch (Exception e) {
+//      if (e instanceof AuthenticationException) {
+//        return ResponseEntity.status(401)
+//            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
+//      }
+//      return ResponseEntity.status(400)
+//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
+//    }
+//  }
 
   // 캘린더 연동 변경
   @Operation(summary = "캘린더 연동 설정 변경", description = "회원 프로필 내 캘린더 연동 설정 변경 (ON/OFF)")
