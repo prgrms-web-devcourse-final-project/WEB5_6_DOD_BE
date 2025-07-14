@@ -124,20 +124,30 @@ insert into locations(id,schedule_id, name, latitude, longitude,status)
 values (3,1,'홍대입구역',678.678,867.876, 'DEFAULT');
 
 -- 환승 정보 테이블 생성
-insert into metro_transfer(location_id, line_name, color)
-values (1, '2','#00A84D');
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (1,1, '2',1,'#00A84D');
 
-insert into metro_transfer(location_id, line_name, color)
-values (1, '4','#00A2D1');
+insert into metro_transfer(id, location_id, line_name,schedule_id, color)
+values (2,1, '4',1,'#00A2D1');
 
-insert into metro_transfer(location_id, line_name, color)
-values (1, '5','#00A84D');
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (3,1, '5',1,'#00A84D');
 
-insert into metro_transfer(location_id, line_name, color)
-values (2, '2','#00A84D');
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (4,2, '2',1,'#00A84D');
 
-insert into metro_transfer(location_id, line_name, color)
-values (2, '4','#00A2D1');
+insert into metro_transfer(id, location_id, line_name, schedule_id,  color)
+values (5,2, '4',1,'#00A2D1');
 
-insert into metro_transfer(location_id, line_name, color)
-values (2, '5','#00A84D');
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (6,2, '5',1,'#00A84D');
+
+-- 투표 테이블 생성
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (1, 1,1,1);
+
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (2, 2,1,1);
+
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (3, 3,1,1);

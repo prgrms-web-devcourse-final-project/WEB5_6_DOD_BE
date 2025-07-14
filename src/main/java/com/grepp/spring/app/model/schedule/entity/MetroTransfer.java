@@ -32,4 +32,8 @@ public class MetroTransfer {
     @JoinColumn(name = "location_id")
     private Location location;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id", updatable = false)
+    private Schedule schedule;
+
 }

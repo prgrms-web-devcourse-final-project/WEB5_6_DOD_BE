@@ -27,6 +27,7 @@ import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
@@ -48,18 +49,19 @@ public class ScheduleCommandService {
 
     @Autowired private ScheduleCommandRepository scheduleCommandRepository;
     @Autowired private ScheduleQueryRepository scheduleQueryRepository;
+
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+    @Autowired private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
 
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
     @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
 
-    @Autowired
-    private EventRepository eventRepository;
+    @Autowired private MetroTransferCommandRepository metroTransferCommandRepository;
 
-    @Autowired
-    private MemberRepository memberRepository;
-    @Autowired
-    private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+    @Autowired private EventRepository eventRepository;
+
+    @Autowired private MemberRepository memberRepository;
+
 
     @Autowired
     private LocationQueryRepository locationQueryRepository;
@@ -188,8 +190,14 @@ public class ScheduleCommandService {
     @Transactional
     public void deleteSchedule(Long scheduleId) {
 
-        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId);
-        scheduleCommandRepository.deleteById(scheduleId);
+        // workspace, metroTransfer, vote, location, scheduleMember, schedule 순서로 삭제
+
+        workspaceCommandRepository.deleteByScheduleId(scheduleId); // 워크스페이스 삭제
+        metroTransferCommandRepository.deleteByScheduleId(scheduleId); // 환승정보 삭제
+        voteCommandRepository.deleteByScheduleId(scheduleId); // 투표정보 삭제
+        locationCommandRepository.deleteByScheduleId(scheduleId); // 장소정보 삭제
+        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId); // 스케줄멤버 삭제
+        scheduleCommandRepository.deleteById(scheduleId); // 스케줄 삭제
     }
 
     public void AddWorkspace(Schedule scheduleId, AddWorkspaceRequest request) {
@@ -221,11 +229,11 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid) {
+    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid, Optional<Schedule> sId) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
 
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid, sId);
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
