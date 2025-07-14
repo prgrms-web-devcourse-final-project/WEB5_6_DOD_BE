@@ -1,12 +1,14 @@
 package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
+import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
@@ -17,6 +19,7 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import java.util.List;
@@ -33,7 +36,9 @@ public class ScheduleCommandService {
     @Autowired private ScheduleCommandRepository scheduleCommandRepository;
     @Autowired private ScheduleQueryRepository scheduleQueryRepository;
     @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+
     @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
+    @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
 
     @Autowired private EventRepository eventRepository;
 
@@ -101,4 +106,9 @@ public class ScheduleCommandService {
         scheduleCommandRepository.deleteById(scheduleId);
     }
 
+    public void AddWorkspace(Optional<Schedule> scheduleId, AddWorkspaceRequest request) {
+        AddWorkspaceDto dto = AddWorkspaceDto.toDto(scheduleId, request);
+        Workspace workspace = AddWorkspaceDto.fromDto(dto);
+        workspaceCommandRepository.save(workspace);
+    }
 }
