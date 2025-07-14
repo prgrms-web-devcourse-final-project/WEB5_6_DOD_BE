@@ -129,12 +129,7 @@ public class JwtTokenProvider {
     }
     
     public String resolveToken(HttpServletRequest request, AuthToken token) {
-        
-        String headerToken = request.getHeader("Authorization");
-        if (headerToken != null && headerToken.startsWith("Bearer")) {
-            return headerToken.substring(7);
-        }
-        
+
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return null;
