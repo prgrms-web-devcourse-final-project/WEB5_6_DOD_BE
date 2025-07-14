@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,5 +54,16 @@ public class MemberController {
                 .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, ResponseCode.INTERNAL_SERVER_ERROR.message()));
         }
         // 위 예외들은 추후 GlobalAdvice로 처리하는 방법을 생각중입니다.
+    }
+
+    @Operation(summary = "회원 탈퇴", description = "서비스 탈퇴를 진행합니다.")
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<ApiResponse<?>> withdraw() {
+
+        // SecurityContextHolder 에서 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+        memberService.withdraw(userId);
+        return ResponseEntity.ok(ApiResponse.noContent());
     }
 }
