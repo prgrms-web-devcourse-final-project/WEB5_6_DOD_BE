@@ -87,12 +87,4 @@ public class Schedule extends BaseEntity {
     // 일정이 삭제되면 일정에 포함된 workspace 도 같이 삭제
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Workspace> workspaces = new ArrayList<>();
-
-    // 일정이 삭제되면 일정에 포함된 환승정보 도 같이 삭제
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MetroTransfer> metroTransfers = new ArrayList<>();
-
-    // 일정이 삭제되면 일정에 포함된 투표정보 도 같이 삭제
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Vote> votes = new ArrayList<>();
 }
