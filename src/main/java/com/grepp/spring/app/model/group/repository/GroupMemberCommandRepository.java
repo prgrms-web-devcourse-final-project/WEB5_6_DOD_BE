@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface GroupMemberCommandRepository extends JpaRepository<GroupMember, Long> {
 
+    void deleteByGroupId(Long groupId);
 }
