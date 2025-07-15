@@ -85,7 +85,7 @@ public class AuthService {
             calendar.setMember(member);
             calendar.setName("ittaeok");
             calendar.setSynced(false);
-            calendar.setSyncedAt(LocalDateTime.now());
+            calendar.setSyncUpdatedAt(LocalDateTime.now());
             calendarRepository.save(calendar);
 
             log.info("새로운 유저 및 캘린더 저장 완료: {}", userId);

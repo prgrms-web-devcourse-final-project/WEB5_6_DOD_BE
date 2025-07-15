@@ -15,23 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/calendar")
+@RequestMapping()
 public class CalendarController {
-
-  private final CalendarService calendarService;
-  private final CalendarSyncService calendarSyncService;
-
-  @GetMapping("/sync-status")
-  public ResponseEntity<CalendarSyncStatusResponse> getCalendar(
-      @AuthenticationPrincipal Principal principal
-  ) {
-
-    if (principal == null) {
-      throw new AuthenticationCredentialsNotFoundException("로그인 필요");
-    }
-
-    CalendarSyncStatusResponse response = calendarSyncService.getCalendarSyncStatus(principal.getUsername());
-    return ResponseEntity.ok(response);
-  }
 
 }

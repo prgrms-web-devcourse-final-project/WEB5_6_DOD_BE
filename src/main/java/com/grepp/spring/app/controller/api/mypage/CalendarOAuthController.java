@@ -1,99 +1,58 @@
 package com.grepp.spring.app.controller.api.mypage;
 
-import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyncRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
-import com.grepp.spring.app.model.auth.domain.Principal;
-import com.grepp.spring.app.model.mainpage.service.CalendarService;
-import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
+import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.mypage.service.GoogleOAuthService;
 import com.grepp.spring.app.model.mypage.service.SocialAuthTokenService;
 import com.grepp.spring.infra.response.ApiResponse;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
-@RestController("/api/v1/calendar")
+
+@RestController
+@Slf4j
+@RequestMapping("/oauth2/callback")
 @RequiredArgsConstructor
 public class CalendarOAuthController {
 
+  private final MemberRepository memberRepository;
   private final SocialAuthTokenService socialAuthTokenService;
+  private final GoogleOAuthService googleOAuthService;
 
-  @Value("${google.calendar.client-id}")
-  private String clientId;
+  // 구글 캘린더 OAuth 콜백 (최초 인증)
+  @GetMapping("/google-calendar")
+  public ApiResponse<Void> handleGoogleCalendarCallback(@RequestParam("code") String code) {
 
-  @Value("${google.calendar.client-secret}")
-  private String clientSecret;
-
-  @Value("${google.calendar.redirect-uri}")
-  private String redirectUri;
-
-  @Autowired
-  private CalendarService calendarService;
-  @Autowired
-  private CalendarSyncService calendarSyncService;
-
-  @GetMapping("/oauth2/callback/google-calendar")
-  public ApiResponse<SetCalendarSyncResponse> handleGoogleCalendarCallback(
-      @RequestParam("code") String code,
-      @AuthenticationPrincipal Principal principal
-  ) {
-
-    if (principal == null) {
+    // 로그인 사용자 정보 가져오기
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null || !authentication.isAuthenticated()) {
       throw new AuthenticationCredentialsNotFoundException("로그인 필요");
     }
 
-    GoogleTokenResponse token = exchangeCodeForToken(code);
-    String memberId = principal.getUsername();
+    String memberId = authentication.getName();
 
-    // 소셜 토큰 저장
-    socialAuthTokenService.saveGoogleToken(token, memberId);
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 
-    SetCalendarSyncRequest request = new SetCalendarSyncRequest();
-    request.setSynced(true);
-    request.setAccessToken(token.getAccessToken());
-    request.setRefreshToken(token.getRefreshToken());
+    log.info("✅ [CALLBACK] 구글 캘린더 OAuth 콜백: code={}", code);
 
-    calendarSyncService.updateSyncSetting(memberId, request);  // 실제로는 로그인된 사용자로 대체
+    // code → access_token + refresh_token 교환
+    GoogleTokenResponse token = googleOAuthService.exchangeCodeForToken(code);
 
-    SetCalendarSyncResponse response = new SetCalendarSyncResponse(true, LocalDateTime.now());
+    // DB 저장 (있으면 업데이트)
+    socialAuthTokenService.saveGoogleToken(member, token);
 
-    return ApiResponse.success(response); //
-  }
+    log.info("[CALLBACK] 구글 캘린더 토큰 저장 완료 for member={}", memberId);
 
-  private GoogleTokenResponse exchangeCodeForToken(String code) {
-    RestTemplate restTemplate = new RestTemplate();
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-    params.add("code", code);
-    params.add("client_id", clientId);
-    params.add("client_secret", clientSecret);
-    params.add("redirect_uri", redirectUri);
-    params.add("grant_type", "authorization_code");
-
-    HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-
-    ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(
-        "https://oauth2.googleapis.com/token",
-        request,
-        GoogleTokenResponse.class
-    );
-
-    return response.getBody();
+    return ApiResponse.success(null); // 새로고침 API가 따로 있으므로 단순 성공만 반환
   }
 }
+

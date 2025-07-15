@@ -1,8 +1,8 @@
 package com.grepp.spring.app.controller.api.mypage.payload.response;
 
 import java.time.LocalDateTime;
+import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SetCalendarSyncResponse {
   private boolean isSynced; // 동기화 on/off 여부
-  private LocalDateTime lastSyncAt; // 마지막 동기화 시점
+  private LocalDateTime syncUpdatedAt; // lastSyncedAt 에서 변경. 연동 끊었을 때 시간 반영 고려
+  private String reauthUrl; // 재연동 할 때만 필요한 구글 OAuth 인증 URL. Nullable
 
 }
