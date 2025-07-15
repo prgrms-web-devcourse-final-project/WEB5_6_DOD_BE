@@ -2,8 +2,11 @@ package com.grepp.spring.app.model.event.entity;
 
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.group.entity.Group;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,6 +41,18 @@ public class Event extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    // 이벤트가 삭제되면 그 후보 시간대도 삭제
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CandidateDate> candidateDates = new ArrayList<>();
+
+    // 이벤트가 삭제되면 이벤트로부터 생성된 일정도 삭제
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Schedule> schedules = new ArrayList<>();
+
+    // 이벤트가 삭제되면 eventMember 도 삭제
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EventMember> eventMembers = new ArrayList<>();
 
     private Event(Group group, String title, String description,
                   MeetingType meetingType, Integer maxMember) {

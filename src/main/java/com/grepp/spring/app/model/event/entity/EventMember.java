@@ -2,8 +2,11 @@ package com.grepp.spring.app.model.event.entity;
 
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,5 +36,9 @@ public class EventMember extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;
+
+    // 이벤트멤버가 삭제되면 tempSchedule 도 삭제
+    @OneToMany(mappedBy = "eventMember", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TempSchedule> tempSchedules = new ArrayList<>();
 
 }
