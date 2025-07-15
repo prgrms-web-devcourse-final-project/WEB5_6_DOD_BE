@@ -229,11 +229,11 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void voteMiddleLocation( Optional<ScheduleMember> scheduleMemberId , Optional<Location> lid, Schedule sId) {
+    public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule sId) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
 
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid, sId);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(smId, lid, sId);
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
