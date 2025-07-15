@@ -15,11 +15,14 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroTransferQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.response.GroupErrorCode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +46,10 @@ public class ScheduleQueryService {
     @Autowired private MemberRepository memberRepository;
 
     @Autowired private LocationQueryRepository locationQueryRepository;
+    @Autowired
+    private VoteQueryRepository voteQueryRepository;
+    @Autowired
+    private MetroTransferQueryRepository metroTransferQueryRepository;
 
 
     @Transactional
@@ -71,14 +78,22 @@ public class ScheduleQueryService {
         return eventRepository.findById(eventId);
     }
 
-    public ShowSuggestedLocationsResponse findSuggestedLocation(Long scheduleId) {
+    public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
 
-        Location location = locationQueryRepository.findByScheduleId(scheduleId);
-        List<MetroTransfer> transfer = scheduleQueryRepository.findByLocationId(location.getId());
-        List<MetroTransferDto> transDto = MetroTransferDto.toDto(transfer);
-        List<MetroInfoDto> infoDto = MetroInfoDto.toDto(location, transDto);
-        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.from(infoDto);
+        List<Location> location = locationQueryRepository.findByScheduleId(scheduleId);
+
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
+        int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
+
+        List<MetroInfoDto> infoDto = new ArrayList<>();
+            for (Location l : location) {
+                List<MetroTransfer> transferForLocation = metroTransferQueryRepository.findByLocationId(l.getId());
+                infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
+            }
+
+        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto, scheduleMemberNumber,voteCount);
         
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }
+
 }

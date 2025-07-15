@@ -26,7 +26,7 @@ public class MetroTransferDto {
             result.add(MetroTransferDto.builder()
                     .line(mt.getLineName())
                     .color(mt.getColor())
-                .build());
+                    .build());
         }
 
         return result;

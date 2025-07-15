@@ -11,7 +11,6 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSche
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateWorkspaceResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
@@ -101,7 +100,7 @@ public class ScheduleController {
     @PatchMapping("/modify/{scheduleId}")
     // 일정 수정 관련된 것들은 모두 수행. Pathch는 리소스 일부 수정만 가능. 바꾸고 싶은 필드만 변경가능
     // request 전체 내용 중 변경된 내용만 반영해야 한다. 그럼 request의 14개의 필드 null 체크를 다 해줘야 하나...?
-    public ResponseEntity<ApiResponse<ModifySchedulesResponse>> modifyScedules(
+    public ResponseEntity<ApiResponse<Void>> modifySchedule(
         @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
 
             scheduleQueryService.findScheduleById(scheduleId);
@@ -147,13 +146,13 @@ public class ScheduleController {
     }
 
     // 중간장소 후보 조회
-    @Operation(summary = "중간장소 후보 조회", description = "중간장소 후보를 조회합니다.")
+    @Operation(summary = "중간장소 후보 조회 & 중간장소 투표결과 확인", description = "중간장소 후보를 조회 & 중간장소 투표결과 확인 합니다.")
     @GetMapping("/show-suggested-locations{scheduleId}")
     public ResponseEntity<ApiResponse<ShowSuggestedLocationsResponse>> showSuggestedLocations(
         @PathVariable Long scheduleId) {
 
             scheduleQueryService.findScheduleById(scheduleId);
-            ShowSuggestedLocationsResponse response = scheduleQueryService.findSuggestedLocation(scheduleId);
+            ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -165,7 +164,8 @@ public class ScheduleController {
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
         try {
-            Optional<ScheduleMember> lmId = scheduleMemberQueryRepository.findById(scheduleMemberId);
+            Schedule sId = scheduleQueryService.findScheduleById(request.getScheduleId());
+            Optional<ScheduleMember> smId = scheduleMemberQueryRepository.findById(scheduleMemberId);
             Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
 
             if (lId.isEmpty()) {
@@ -174,7 +174,7 @@ public class ScheduleController {
                         "해당 투표리스트(장소)를 찾을 수 없습니다. locationId를 확인해주세요."));
             }
 
-            scheduleCommandService.voteMiddleLocation(lmId, lId);
+            scheduleCommandService.voteMiddleLocation(smId, lId, sId);
 
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
         } catch (Exception e) {

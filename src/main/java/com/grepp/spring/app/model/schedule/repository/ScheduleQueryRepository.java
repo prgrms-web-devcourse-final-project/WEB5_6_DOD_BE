@@ -14,7 +14,4 @@ public interface ScheduleQueryRepository extends JpaRepository<Schedule, Long> {
 
     List<Schedule> findByEventIdAndStatusInAndActivatedTrue(Long eventId, List<ScheduleStatus> list);
 
-    @Query("SELECT m from MetroTransfer m where m.location.id = :locationId")
-    List<MetroTransfer> findByLocationId(@Param("locationId") Long locationId);
-
 }
