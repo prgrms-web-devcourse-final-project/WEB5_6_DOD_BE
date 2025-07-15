@@ -2,14 +2,14 @@ package com.grepp.spring.app.controller.api.group;
 
 
 import com.grepp.spring.app.controller.api.group.payload.request.ControlGroupRoleRequest;
-import com.grepp.spring.app.controller.api.group.payload.response.ControlGroupRoleResponse;
 import com.grepp.spring.app.controller.api.group.payload.request.CreateGroupRequest;
+import com.grepp.spring.app.controller.api.group.payload.request.ModifyGroupInfoRequest;
+import com.grepp.spring.app.controller.api.group.payload.request.ScheduleToGroupRequest;
+import com.grepp.spring.app.controller.api.group.payload.response.ControlGroupRoleResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.CreateGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.DeleteGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.DeportGroupMemberResponse;
-import com.grepp.spring.app.controller.api.group.payload.request.ModifyGroupInfoRequest;
 import com.grepp.spring.app.controller.api.group.payload.response.ModifyGroupInfoResponse;
-import com.grepp.spring.app.controller.api.group.payload.request.ScheduleToGroupRequest;
 import com.grepp.spring.app.controller.api.group.payload.response.ScheduleToGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupMemberResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
@@ -38,10 +38,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -113,11 +113,12 @@ public class GroupController {
     @Operation(summary = "그룹 내 일정 조회")
     @GetMapping("/schedule-groups/{id}")
     public ResponseEntity<ApiResponse<ShowGroupScheduleResponse>> getGroupSchedules(
-        @RequestParam Long id
+        @PathVariable Long id
     ) {
         try {
             // 그룹 일정 조회
-            ShowGroupScheduleResponse response = groupQueryGroupScheduleService.displayGroupSchedule(id);
+            ShowGroupScheduleResponse response = groupQueryGroupScheduleService.displayGroupSchedule(
+                id);
             // 그룹 일정 조회 성공
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (Exception e) {
@@ -137,23 +138,12 @@ public class GroupController {
     @Operation(summary = "그룹 삭제")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<DeleteGroupResponse>> deleteGroup(
-        @RequestParam Long id
+        @PathVariable Long id
     ) {
-        try {
-            // 그룹 삭제
-            groupCommandDeleteGroupService.deleteGroup(id);
-            // 그룹 삭제 성공
-            return ResponseEntity.ok(ApiResponse.success("그룹이 삭제되었습니다."));
-        } catch (Exception e) {
-            // 권한 없음: 401
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 삭제
+        groupCommandDeleteGroupService.deleteGroup(id);
+        // 그룹 삭제 성공
+        return ResponseEntity.ok(ApiResponse.success("그룹이 삭제되었습니다."));
     }
 
 
@@ -161,7 +151,7 @@ public class GroupController {
     @Operation(summary = "그룹 멤버 조회")
     @GetMapping("/{id}/member")
     public ResponseEntity<ApiResponse<ShowGroupMemberResponse>> getGroupMembers(
-        @RequestParam Long id
+        @PathVariable Long id
     ) {
         // 그룹 멤버 조회
         ShowGroupMemberResponse response = groupQueryService.displayGroupMember(id);
@@ -174,7 +164,7 @@ public class GroupController {
     @Operation(summary = "그룹 정보 수정")
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<ModifyGroupInfoResponse>> updateGroupInfo(
-        @RequestParam Long id,
+        @PathVariable Long id,
         @RequestBody ModifyGroupInfoRequest request
     ) {
         // 그룹 정보 수정
@@ -188,8 +178,8 @@ public class GroupController {
     @Operation(summary = "그룹 멤버 내보내기")
     @PatchMapping("/{groupId}/members/{userId}")
     public ResponseEntity<ApiResponse<DeportGroupMemberResponse>> deportGroupMember(
-        @RequestParam Long groupId,
-        @RequestParam String userId
+        @PathVariable Long groupId,
+        @PathVariable String userId
     ) {
         try {
             // 그룹 멤버 내보내기
@@ -213,7 +203,7 @@ public class GroupController {
     @Operation(summary = "그룹 멤버 권한 관리")
     @PatchMapping("/{id}/members")
     public ResponseEntity<ApiResponse<ControlGroupRoleResponse>> controlGroupRoles(
-        @RequestParam Long id,
+        @PathVariable Long id,
         @RequestBody ControlGroupRoleRequest request
     ) {
         // 그룹 멤버 권한 관리
@@ -227,11 +217,12 @@ public class GroupController {
     @Operation(summary = "그룹 통계 조회")
     @GetMapping("/{id}/statistics")
     public ResponseEntity<ApiResponse<ShowGroupStatisticsResponse>> getGroupStatistics(
-        @RequestParam Long id
+        @PathVariable Long id
     ) {
         try {
             // 그룹 통게 조회
-            ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(id);
+            ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(
+                id);
             // 그룹 통계 조회 성공
             return ResponseEntity.ok(ApiResponse.success(response));
         } catch (Exception e) {
@@ -275,7 +266,7 @@ public class GroupController {
     @Operation(summary = "그룹 탈퇴")
     @PatchMapping("/{id}/leave")
     public ResponseEntity<ApiResponse<WithdrawGroupResponse>> withdrawGroup(
-        @RequestParam Long id
+        @PathVariable Long id
     ) {
         try {
             // 그룹 탈퇴
