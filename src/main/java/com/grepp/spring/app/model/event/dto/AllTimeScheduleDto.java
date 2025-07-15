@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 public class AllTimeScheduleDto {
     private final Long eventId;
     private final String eventTitle;
+    private final String description;
     private final TimeTableDto timeTable;
     private final List<MemberScheduleDto> memberSchedules;
     private final Integer totalMembers;
@@ -56,6 +57,7 @@ public class AllTimeScheduleDto {
 
         response.setEventId(dto.getEventId());
         response.setEventTitle(dto.getEventTitle());
+        response.setDescription(dto.getDescription());
         response.setTotalMembers(dto.getTotalMembers());
         response.setConfirmedMembers(dto.getConfirmedMembers());
 

@@ -251,6 +251,7 @@ public class EventService {
         AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
             .eventId(event.getId())
             .eventTitle(event.getTitle())
+            .description(event.getDescription())
             .timeTable(timeTable)
             .memberSchedules(memberSchedules)
             .totalMembers(eventMembers.size())
