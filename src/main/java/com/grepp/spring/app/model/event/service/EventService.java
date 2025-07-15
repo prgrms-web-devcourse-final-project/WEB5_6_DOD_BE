@@ -69,13 +69,21 @@ public class EventService {
 
             event = CreateEventDto.toEntity(serviceRequest, group);
         } else {
-            event = CreateEventDto.toEntity(serviceRequest);
+            Group tempGroup = createTempGroupForSingleEvent(serviceRequest.getTitle(), serviceRequest.getDescription());
+            event = CreateEventDto.toEntity(serviceRequest, tempGroup);
         }
 
         event = eventRepository.save(event);
         EventMemberDto masterDto = EventMemberDto.toDto(event.getId(), currentMemberId, Role.ROLE_MASTER);
         createEventMember(masterDto);
         createCandidateDates(event, serviceRequest.getCandidateDates());
+    }
+
+    private Group createTempGroupForSingleEvent(String eventTitle, String eventDescription) {
+        TempGroupCreateDto tempGroupDto = TempGroupCreateDto.forSingleEvent(eventTitle, eventDescription);
+        Group tempGroup = TempGroupCreateDto.toEntity(tempGroupDto);
+
+        return groupRepository.save(tempGroup);
     }
 
     private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
