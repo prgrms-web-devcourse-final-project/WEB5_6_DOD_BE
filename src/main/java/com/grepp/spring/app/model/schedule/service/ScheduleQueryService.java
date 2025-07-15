@@ -15,6 +15,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroTransferQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
@@ -46,6 +47,8 @@ public class ScheduleQueryService {
     @Autowired private LocationQueryRepository locationQueryRepository;
     @Autowired
     private VoteQueryRepository voteQueryRepository;
+    @Autowired
+    private MetroTransferQueryRepository metroTransferQueryRepository;
 
 
     @Transactional
@@ -77,7 +80,7 @@ public class ScheduleQueryService {
     public ShowSuggestedLocationsResponse findSuggestedLocation(Long scheduleId) {
 
         Location location = locationQueryRepository.findByScheduleId(scheduleId);
-        List<MetroTransfer> transfer = scheduleQueryRepository.findByLocationId(location.getId());
+        List<MetroTransfer> transfer = metroTransferQueryRepository.findByLocationId(location.getId());
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
         int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
 
