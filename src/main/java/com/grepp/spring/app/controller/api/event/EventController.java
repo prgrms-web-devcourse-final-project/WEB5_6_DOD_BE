@@ -2,10 +2,7 @@ package com.grepp.spring.app.controller.api.event;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
-import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
-import com.grepp.spring.app.controller.api.event.payload.response.CreateEventResponse;
-import com.grepp.spring.app.controller.api.event.payload.response.DeleteEventResponse;
-import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.*;
 import com.grepp.spring.app.model.event.service.EventService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
@@ -55,6 +52,29 @@ public class EventController {
 
         } catch (Exception e) {
             log.error("이벤트 생성 중 예상치 못한 오류", e);
+            return ResponseEntity.status(500)
+                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
+        }
+    }
+
+    // 이벤트 조회
+    @Operation(summary = "이벤트 조회")
+    @GetMapping("/{eventId}")
+    public ResponseEntity<ApiResponse<ShowEventResponse>> getEvent(@PathVariable Long eventId) {
+
+        try {
+            String currentMemberId = extractCurrentMemberId();
+
+            ShowEventResponse response = eventService.getEvent(eventId, currentMemberId);
+
+            return ResponseEntity.ok(ApiResponse.success("이벤트 조회가 성공적으로 완료되었습니다.", response));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404)
+                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
+
+        } catch (Exception e) {
+            log.error("이벤트 상세 조회 중 예상치 못한 오류", e);
             return ResponseEntity.status(500)
                 .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
         }
