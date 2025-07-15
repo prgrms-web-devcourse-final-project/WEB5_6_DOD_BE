@@ -1,6 +1,7 @@
 package com.grepp.spring.app.controller.api.member;
 
 import com.grepp.spring.app.controller.api.member.payload.MemberInfoResponse;
+import com.grepp.spring.app.controller.api.member.payload.ModifyMemberInfoResponse;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -66,5 +68,17 @@ public class MemberController {
         String userId = authentication.getName();
         memberService.withdraw(userId, response);
         return ResponseEntity.ok(ApiResponse.noContent());
+    }
+
+    @Operation(summary = "사용자 정보 수정", description = "현재 로그인 중인 사용자의 이름과 프로필 사진을 수정할 수 있습니다."
+        + "프로필 사진은 랜덤으로 변경됩니다.")
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<ModifyMemberInfoResponse>> modifyMemberInfo(String username){
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+
+        ModifyMemberInfoResponse response = memberService.modifyMemberInfo(userId, username);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
