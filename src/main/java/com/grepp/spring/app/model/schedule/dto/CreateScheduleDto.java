@@ -22,7 +22,7 @@ public class CreateScheduleDto {
     private String scheduleName;
     private String description;
 
-    private int maxNumber; // 추가
+//    private int maxNumber; // 추가
 
     private List<ScheduleMemberRolesDto> memberRoles;
 
@@ -35,7 +35,7 @@ public class CreateScheduleDto {
             .meetingType(request.getMeetingType())
             .scheduleName(request.getScheduleName())
             .description(request.getDescription())
-            .maxNumber(request.getMaxNumber())
+//            .maxNumber(request.getMaxNumber())
             .memberRoles(request.getMemberRoles()).build();
     }
 

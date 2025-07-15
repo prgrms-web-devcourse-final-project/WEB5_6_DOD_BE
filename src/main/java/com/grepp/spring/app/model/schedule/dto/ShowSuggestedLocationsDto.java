@@ -13,11 +13,11 @@ public class ShowSuggestedLocationsDto {
     private List<MetroInfoDto> suggestedLocations;
     private int noVoteCount;
 
-    public static ShowSuggestedLocationsDto fromMetroInfoDto(List<MetroInfoDto> dto, int scheduleMemberNumber) {
+    public static ShowSuggestedLocationsDto fromMetroInfoDto(List<MetroInfoDto> dto, int scheduleMemberNumber, int voteCount) {
 
         return ShowSuggestedLocationsDto.builder()
             .suggestedLocations(dto)
-            .noVoteCount(dto.size())
+            .noVoteCount(scheduleMemberNumber - voteCount)
             .build();
     }
 
