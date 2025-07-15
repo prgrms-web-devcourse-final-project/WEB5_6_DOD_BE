@@ -12,6 +12,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.infra.error.exceptions.member.InvalidNameException;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -20,12 +21,13 @@ import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
@@ -165,18 +167,17 @@ public class MemberService {
     // 이름 요구사항 검증 메서드
     private void validateName(String username){
         if (username == null) {
-            throw new IllegalArgumentException("이름은 필수 입력값입니다.");
+            throw new InvalidNameException("이름은 필수 입력값입니다.");
         }
 
         if (username.length() < 2 || username.length() > 10) {
-            throw new IllegalArgumentException("이름은 2자 이상 10자 이하로만 가능합니다.");
+            throw new InvalidNameException("이름은 2자 이상 10자 이하로만 가능합니다.");
         }
         // 한글, 영어 조합. 양 끝 제외 공백 허용
         String pattern = "^[가-힣a-zA-Z](?:[가-힣a-zA-Z ]*[가-힣a-zA-Z])?$";
 
         if (!username.matches(pattern)) {
-            throw new IllegalArgumentException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
+            throw new InvalidNameException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
         }
     }
-
 }
