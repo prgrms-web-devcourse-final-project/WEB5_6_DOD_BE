@@ -12,7 +12,8 @@ public enum GroupErrorCode {
     SCHEDULE_NOT_FOUND("404", HttpStatus.NOT_FOUND,"존재하지 않는 일정입니다."),
     USER_NOT_IN_GROUP("404", HttpStatus.NOT_FOUND,"유저가 해당 그룹에 포함되어 있지 않습니다."),
     SCHEDULE_ALREADY_IN_GROUP("409", HttpStatus.CONFLICT,"이미 그룹에 존재한 일정입니다."),
-    USER_ALREADY_IN_GROUP("409", HttpStatus.CONFLICT,"이미 그룹에 존재한 유저입니다.");
+    USER_ALREADY_IN_GROUP("409", HttpStatus.CONFLICT,"이미 그룹에 존재한 유저입니다."),
+    ONE_GROUP_LEADER("409", HttpStatus.CONFLICT,"그룹 내 유일한 그룹장입니다. 그룹원에게 그룹장 권한을 부여해주세요.");
 
 
     private final String code;
