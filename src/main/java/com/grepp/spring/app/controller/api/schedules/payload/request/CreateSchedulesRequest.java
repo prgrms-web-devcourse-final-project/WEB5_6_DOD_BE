@@ -21,7 +21,7 @@ public class CreateSchedulesRequest {
     private ScheduleStatus schedulesStatus;
     private MeetingType meetingType;
 
-    private int maxNumber; // 추가
+//    private int maxNumber; // 추가
 
     private List<ScheduleMemberRolesDto> memberRoles;
 }
