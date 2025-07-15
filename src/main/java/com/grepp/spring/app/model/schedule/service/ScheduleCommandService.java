@@ -192,11 +192,11 @@ public class ScheduleCommandService {
 
         // workspace, metroTransfer, vote, location, scheduleMember, schedule 순서로 삭제
 
-        workspaceCommandRepository.deleteByScheduleId(scheduleId); // 워크스페이스 삭제
-        metroTransferCommandRepository.deleteByScheduleId(scheduleId); // 환승정보 삭제
-        voteCommandRepository.deleteByScheduleId(scheduleId); // 투표정보 삭제
-        locationCommandRepository.deleteByScheduleId(scheduleId); // 장소정보 삭제
-        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId); // 스케줄멤버 삭제
+//        workspaceCommandRepository.deleteByScheduleId(scheduleId); // 워크스페이스 삭제x
+//        metroTransferCommandRepository.deleteByScheduleId(scheduleId); // 환승정보 삭제x
+//        voteCommandRepository.deleteByScheduleId(scheduleId); // 투표정보 삭제x
+//        locationCommandRepository.deleteByScheduleId(scheduleId); // 장소정보 삭제x
+//        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId); // 스케줄멤버 삭제x
         scheduleCommandRepository.deleteById(scheduleId); // 스케줄 삭제
     }
 
