@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.event;
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.CreateEventResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.DeleteEventResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
 import com.grepp.spring.app.model.event.service.EventService;
@@ -33,14 +34,14 @@ public class EventController {
 
     @PostMapping
     @Operation(summary = "이벤트 생성", description = "그룹 이벤트 또는 일회성 이벤트를 생성합니다.")
-    public ResponseEntity<ApiResponse<Void>> createEvent(@RequestBody @Valid CreateEventRequest request) {
+    public ResponseEntity<ApiResponse<CreateEventResponse>> createEvent(@RequestBody @Valid CreateEventRequest request) {
         try {
             String currentMemberId = extractCurrentMemberId();
 
-            eventService.createEvent(request, currentMemberId);
+            CreateEventResponse response = eventService.createEvent(request, currentMemberId);
 
             return ResponseEntity.status(200)
-                .body(ApiResponse.success("이벤트가 성공적으로 생성되었습니다."));
+                .body(ApiResponse.success("이벤트가 성공적으로 생성되었습니다.", response));
 
         } catch (AuthApiException e) {
             log.warn("이벤트 생성 권한 오류: {}", e.getMessage());

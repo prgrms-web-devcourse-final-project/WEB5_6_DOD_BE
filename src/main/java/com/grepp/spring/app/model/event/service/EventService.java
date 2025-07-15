@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.event.service;
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.CreateEventResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
@@ -53,7 +54,7 @@ public class EventService {
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     @Transactional
-    public void createEvent(CreateEventRequest webRequest, String currentMemberId) {
+    public CreateEventResponse createEvent(CreateEventRequest webRequest, String currentMemberId) {
         CreateEventDto serviceRequest = CreateEventDto.toDto(webRequest, currentMemberId);
 
         validate(serviceRequest);
@@ -77,6 +78,11 @@ public class EventService {
         EventMemberDto masterDto = EventMemberDto.toDto(event.getId(), currentMemberId, Role.ROLE_MASTER);
         createEventMember(masterDto);
         createCandidateDates(event, serviceRequest.getCandidateDates());
+
+        return CreateEventResponse.of(
+            event.getId(),
+            event.getTitle()
+        );
     }
 
     private Group createTempGroupForSingleEvent(String eventTitle, String eventDescription) {
