@@ -41,7 +41,7 @@ public class CalendarSyncService {
 
   private final RestTemplate restTemplate = new RestTemplate();
 
-  // ✅ 캘린더 동기화 (매번 새로고침 방식)
+  // 캘린더 동기화 (매번 새로고침해서 일정 받아오는 방식)
   public ApiResponse<List<GoogleEventDto>> syncCalendar(String memberId) {
 
     // 1) 회원 조회
@@ -66,7 +66,7 @@ public class CalendarSyncService {
       return ApiResponse.error(ResponseCode.UNAUTHORIZED, googleOAuthService.buildReauthUrl());
     }
 
-    // 4) ✅ 구글 캘린더 API 직접 호출
+    // 4) 구글 캘린더 API 직접 호출
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(accessToken);
 
@@ -79,7 +79,7 @@ public class CalendarSyncService {
         Map.class
     );
 
-    // 5) ✅ 구글 응답 → DTO 변환
+    // 5) 구글 응답 → DTO 변환
     List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("items");
     List<GoogleEventDto> events = convertToDto(items);
 
@@ -87,7 +87,7 @@ public class CalendarSyncService {
     return ApiResponse.success(events);
   }
 
-  // ✅ Google JSON → DTO 변환
+  // Google JSON → DTO 변환
   private List<GoogleEventDto> convertToDto(List<Map<String, Object>> items) {
     List<GoogleEventDto> events = new ArrayList<>();
 
@@ -126,20 +126,20 @@ public class CalendarSyncService {
   }
 
 
-  // ✅ 연동 상태 조회 (원하면 유지)
-  public CalendarSyncStatusResponse getCalendarSyncStatus(String memberId) {
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-
-    Calendar calendar = calendarRepository.findByMember(member)
-        .orElseThrow(() -> new IllegalStateException("캘린더가 존재하지 않습니다."));
-
-    return new CalendarSyncStatusResponse(
-        calendar.getId(),
-        calendar.getName(),
-        calendar.getSynced()
-    );
-  }
+//  // 연동 상태 조회 (원하면 유지) -> 마지막 새로고침 시간 보여줄 거임?
+//  public CalendarSyncStatusResponse getCalendarSyncStatus(String memberId) {
+//    Member member = memberRepository.findById(memberId)
+//        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+//
+//    Calendar calendar = calendarRepository.findByMember(member)
+//        .orElseThrow(() -> new IllegalStateException("캘린더가 존재하지 않습니다."));
+//
+//    return new CalendarSyncStatusResponse(
+//        calendar.getId(),
+//        calendar.getName(),
+//        calendar.getSynced()
+//    );
+//  }
 
   }
 
