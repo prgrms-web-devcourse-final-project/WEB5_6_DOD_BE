@@ -10,6 +10,45 @@ values (1,'DOD 이벤트 생성', 10, 'OFFLINE', 'DOD 이벤트', 1, true);
 insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
 values (1, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '강남역 롯데시네마', 'FIXED',1,true, 'DOD 만나는 날입니당', '모여라! DOD!');
 
+-- 워크스페이스 테이블 생성
+insert into workspaces(id,schedule_id,type,name,url)
+values (1,1,'DISCORD','DOD discord','www.discord.com');
+
+insert into workspaces(id,schedule_id,type,name,url)
+values (2,1,'FIGMA','이때 어때 figma','www.figma.com');
+
+insert into workspaces(id,schedule_id,type,name,url)
+values (3,1,'ZEP','데브코스 zep','www.zep.com');
+
+-- 장소 테이블 생성
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (1,1,'동대문역사문화공원역',123.123,456.456, 'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (2,1,'역삼역',321.321,312.312,'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (3,1,'홍대입구역',678.678,867.876, 'DEFAULT');
+
+-- 환승 정보 테이블 생성
+insert into metro_transfer(location_id, line_name, color)
+values (1, '2','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (1, '4','#00A2D1');
+
+insert into metro_transfer(location_id, line_name, color)
+values (1, '5','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '2','#00A84D');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '4','#00A2D1');
+
+insert into metro_transfer(location_id, line_name, color)
+values (2, '5','#00A84D');
+
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
 values ('1a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'a@mail.com','이서준', 1, '010-1111-1111');

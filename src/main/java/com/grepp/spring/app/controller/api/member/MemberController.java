@@ -6,6 +6,7 @@ import com.grepp.spring.app.model.member.service.MemberService;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -58,12 +59,12 @@ public class MemberController {
 
     @Operation(summary = "회원 탈퇴", description = "서비스 탈퇴를 진행합니다.")
     @DeleteMapping("/withdraw")
-    public ResponseEntity<ApiResponse<?>> withdraw() {
+    public ResponseEntity<ApiResponse<?>> withdraw(HttpServletResponse response) {
 
         // SecurityContextHolder 에서 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
-        memberService.withdraw(userId);
+        memberService.withdraw(userId, response);
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 }

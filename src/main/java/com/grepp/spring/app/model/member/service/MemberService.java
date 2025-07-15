@@ -12,21 +12,25 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService {
 
-    private static final Logger log = LoggerFactory.getLogger(MemberService.class);
     private final MemberRepository memberRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final GroupRepository groupRepository;
@@ -38,7 +42,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void withdraw(String userId) {
+    public void withdraw(String userId, HttpServletResponse response) {
         Member member = memberRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         // 이 사람이 그룹의 관리자인지를 체크
@@ -56,7 +60,7 @@ public class MemberService {
                 // 내가 그룹의 유일한 멤바라면 그룹까지 날려버리깅
                 if (groupMembers.size() == 1 && groupMembers.getFirst().getMember().equals(member)){
                     groupRepository.delete(group);
-                    log.info("그룹 " + group.getName() + "의 유일한 멤버이므로 그룹이 삭제됩니다.");
+                    log.info("그룹 {}의 유일한 멤버이므로 그룹이 삭제됩니다.", group.getName());
                     continue;
                 }
 
@@ -69,11 +73,11 @@ public class MemberService {
 
                     newAdmin.setGroupAdmin(true); // 너 이제부터 수퍼리더야.
                     groupMemberRepository.save(newAdmin);
-                    log.info("그룹 " + group.getName() + "의 새 관리자가 " + newAdmin.getMember().getName() + "님 으로 위임되었습니다.");
+                    log.info("그룹 {}의 새 관리자가 {} 님 에게 위임되었습니다.", group.getName(), newAdmin.getMember().getName());
                 }else {
                     // 리더가 없으면 예외 발생 시켜야하니깐 그룹을 리스트에 추가해두자. 나중에 응답에 쓸거임
                     withdrawNotAllowedGroups.add(group);
-                    log.info("위임할 리더가 없는 그룹: " + group.getName());
+                    log.info("위임할 리더가 없는 그룹: {}", group.getName());
                 }
             }
         }
@@ -96,23 +100,39 @@ public class MemberService {
                 if (scheduleMembers.isEmpty()){
                     // 본인이 일정의 유일 멤버라면? 일정 너도 삭제야.
                     scheduleCommandRepository.delete(schedule);
-                    log.info("일정 " + schedule.getScheduleName() + "의 마지막 멤버이므로 일정이 삭제됩니다.");
+                    log.info("일정 {}의 마지막 멤버이므로 일정이 삭제됩니다.", schedule.getScheduleName());
                 } else {
                     // 다른 멤바가 있다면 랜덤으로 관리자 위임
                     ScheduleMember newScheduleMaster = selectRandomMember(scheduleMembers);
                     newScheduleMaster.setRole(ScheduleRole.ROLE_MASTER); // 새 관리자로 임명
                     scheduleMemberRepository.save(newScheduleMaster);
-                    log.info("일정 "+ schedule.getScheduleName() +"의 새 관리자가 " + newScheduleMaster.getMember().getName() + " 님 으로 위임되었습니다.");
+                    log.info("일정 {}의 새 관리자가 {}님 에게 위임되었습니다.", schedule.getScheduleName(),newScheduleMaster.getMember().getName());
                 }
             }
         }
 
-        // 연관 테이블에서 삭제 먼저 (양방향 매핑이 아니라서 수동으로..)
-        groupMemberRepository.deleteByMember(member);
-        scheduleMemberRepository.deleteByMember(member);
         // 이제 진짜 탈퇴.
         memberRepository.delete(member);
-        log.info("회원 탈퇴가 완료되었습니다. 회원 ID: " + member.getId(), "회원명: ", member.getName());
+        log.info("회원 탈퇴가 완료되었습니다. 회원 ID: {}, 회원명: {}", member.getId(), member.getName());
+
+        ResponseCookie deleteAccessToken = ResponseCookie.from("ACCESS_TOKEN", "")
+            .path("/")
+            .httpOnly(true)
+//            .secure(true) // HTTPS 환경이라면 true
+            .maxAge(0)
+            .build();
+
+        ResponseCookie deleteRefreshToken = ResponseCookie.from("REFRESH_TOKEN", "")
+            .path("/")
+            .httpOnly(true)
+//            .secure(true) // HTTPS 환경이라면 true
+            .maxAge(0)
+            .build();
+
+        // 응답 헤더에 쿠키 삭제 정보 추가
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessToken.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshToken.toString());
+        log.info("탈퇴한 회원이므로 자동으로 로그아웃됩니다.");
     }
 
     // 다음 리더를 뽑아주는 제네릭 메서드 : 이렇게 하면 그룹이랑 스케줄에서 같이 쓸 수 있습니다
