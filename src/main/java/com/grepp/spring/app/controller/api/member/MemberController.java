@@ -61,7 +61,7 @@ public class MemberController {
 
     @Operation(summary = "회원 탈퇴", description = "서비스 탈퇴를 진행합니다.")
     @DeleteMapping("/withdraw")
-    public ResponseEntity<ApiResponse<?>> withdraw(HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> withdraw(HttpServletResponse response) {
 
         // SecurityContextHolder 에서 사용자 정보 가져오기
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
