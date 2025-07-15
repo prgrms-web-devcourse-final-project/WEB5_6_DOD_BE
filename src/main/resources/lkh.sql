@@ -118,7 +118,7 @@ insert into locations(id,schedule_id, name, latitude, longitude,status)
 values (1,1,'동대문역사문화공원역',123.123,456.456, 'DEFAULT');
 
 insert into locations(id,schedule_id, name, latitude, longitude,status)
-values (2,1,'역삼역',321.321,312.312,'DEFAULT');
+values (2,1,'역삼역',321.321,312.312,'WINNER');
 
 insert into locations(id,schedule_id, name, latitude, longitude,status)
 values (3,1,'홍대입구역',678.678,867.876, 'DEFAULT');

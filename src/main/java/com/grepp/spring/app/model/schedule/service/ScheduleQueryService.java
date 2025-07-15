@@ -22,6 +22,7 @@ import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.response.GroupErrorCode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -77,17 +78,22 @@ public class ScheduleQueryService {
         return eventRepository.findById(eventId);
     }
 
-    public ShowSuggestedLocationsResponse findSuggestedLocation(Long scheduleId) {
+    public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
 
-        Location location = locationQueryRepository.findByScheduleId(scheduleId);
-        List<MetroTransfer> transfer = metroTransferQueryRepository.findByLocationId(location.getId());
+        List<Location> location = locationQueryRepository.findByScheduleId(scheduleId);
+
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
         int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
 
-        List<MetroTransferDto> transDto = MetroTransferDto.toDto(transfer);
-        List<MetroInfoDto> infoDto = MetroInfoDto.toDto(location, transDto);
+        List<MetroInfoDto> infoDto = new ArrayList<>();
+            for (Location l : location) {
+                List<MetroTransfer> transferForLocation = metroTransferQueryRepository.findByLocationId(l.getId());
+                infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
+            }
+
         ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto, scheduleMemberNumber,voteCount);
         
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }
+
 }

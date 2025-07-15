@@ -11,7 +11,6 @@ import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSche
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateWorkspaceResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.DeleteWorkSpaceResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ModifySchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.VoteMiddleLocationsResponse;
@@ -153,7 +152,7 @@ public class ScheduleController {
         @PathVariable Long scheduleId) {
 
             scheduleQueryService.findScheduleById(scheduleId);
-            ShowSuggestedLocationsResponse response = scheduleQueryService.findSuggestedLocation(scheduleId);
+            ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
     }
