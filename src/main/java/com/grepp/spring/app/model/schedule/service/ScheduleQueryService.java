@@ -83,7 +83,7 @@ public class ScheduleQueryService {
 
         List<MetroTransferDto> transDto = MetroTransferDto.toDto(transfer);
         List<MetroInfoDto> infoDto = MetroInfoDto.toDto(location, transDto);
-        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto,scheduleMemberNumber);
+        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto, scheduleMemberNumber,voteCount);
         
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }

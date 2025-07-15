@@ -7,6 +7,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface LocationQueryRepository extends JpaRepository<Location, Long> {
 
-    @Query("SELECT l FROM Location l where l.schedule.id = :scheduleId")
+    @Query("SELECT l FROM Location l where l.schedule.id = :scheduleId and l.status = 'WINNER'")
     Location findByScheduleId(@Param("scheduleId") Long scheduleId);
 }
