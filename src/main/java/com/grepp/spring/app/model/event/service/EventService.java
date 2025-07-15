@@ -79,10 +79,11 @@ public class EventService {
         createEventMember(masterDto);
         createCandidateDates(event, serviceRequest.getCandidateDates());
 
-        return CreateEventResponse.of(
-            event.getId(),
-            event.getTitle()
-        );
+        CreateEventResponse response = new CreateEventResponse();
+        response.setEventId(event.getId());
+        response.setTitle(event.getTitle());
+
+        return response;
     }
 
     private Group createTempGroupForSingleEvent(String eventTitle, String eventDescription) {
