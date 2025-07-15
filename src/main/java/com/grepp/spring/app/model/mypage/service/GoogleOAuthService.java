@@ -45,7 +45,7 @@ public class GoogleOAuthService {
   }
 
 
-   // ✅ 최초 연동 시: authorization_code → access_token + refresh_token 교환
+   // 최초 연동 시: authorization_code → access_token + refresh_token 교환
 
   public GoogleTokenResponse exchangeCodeForToken(String code) {
     HttpHeaders headers = new HttpHeaders();
@@ -66,11 +66,11 @@ public class GoogleOAuthService {
         GoogleTokenResponse.class
     );
 
-    return response.getBody(); // ✅ 여기엔 access_token + refresh_token 둘 다 옴
+    return response.getBody(); // 여기엔 access_token + refresh_token 둘 다 옴
   }
 
 
-   // ✅ 기존 refresh_token으로 새 access_token만 재발급
+   // 기존 refresh_token으로 새 access_token만 재발급
 
   public GoogleTokenResponse refreshAccessToken(String refreshToken) {
     HttpHeaders headers = new HttpHeaders();
@@ -90,6 +90,6 @@ public class GoogleOAuthService {
         GoogleTokenResponse.class
     );
 
-    return response.getBody(); // ✅ 여기엔 refresh_token은 안 내려오고 access_token만 옴
+    return response.getBody(); // 여기엔 refresh_token은 안 내려오고 access_token만 옴
   }
 }

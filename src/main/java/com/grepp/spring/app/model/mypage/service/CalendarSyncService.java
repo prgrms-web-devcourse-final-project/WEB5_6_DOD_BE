@@ -1,10 +1,6 @@
 package com.grepp.spring.app.model.mypage.service;
 
-import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyncRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.response.CalendarSyncStatusResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
-import com.grepp.spring.app.model.mainpage.entity.Calendar;
+import com.grepp.spring.app.model.mainpage.service.GoogleScheduleService;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.entity.SocialAuthToken;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
@@ -26,7 +22,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -36,8 +31,10 @@ public class CalendarSyncService {
   private final MemberRepository memberRepository;
   private final SocialAuthTokenRepository socialAuthTokenRepository;
   private final CalendarRepository calendarRepository;
+
   private final SocialAuthTokenService socialAuthTokenService; // refresh_token → access_token 자동 갱신 담당
   private final GoogleOAuthService googleOAuthService;
+  private final GoogleScheduleService googleScheduleService;
 
   private final RestTemplate restTemplate = new RestTemplate();
 
@@ -50,9 +47,8 @@ public class CalendarSyncService {
 
     // 2) 사용자 구글 토큰 조회
     Optional<SocialAuthToken> tokenOpt = socialAuthTokenRepository.findByMember(member);
-
     if (tokenOpt.isEmpty()) {
-      // // 아예 연동 안 된 상태 → 재인증 필요
+      // 아예 연동 안 된 상태 → 재인증 필요
       return ApiResponse.error(ResponseCode.UNAUTHORIZED, googleOAuthService.buildReauthUrl());
     }
 
@@ -60,9 +56,8 @@ public class CalendarSyncService {
 
     // 3) refresh_token으로 유효한 access_token 확보 (만료 시 자동 갱신)
     String accessToken = socialAuthTokenService.getValidAccessToken(token);
-
     if (accessToken == null) {
-      // // refresh_token 무효 → 재인증 필요
+      // refresh_token 무효 → 재인증 필요
       return ApiResponse.error(ResponseCode.UNAUTHORIZED, googleOAuthService.buildReauthUrl());
     }
 
@@ -83,7 +78,11 @@ public class CalendarSyncService {
     List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("items");
     List<GoogleEventDto> events = convertToDto(items);
 
-    // // 최신 이벤트 반환
+    // 6) DB 저장 (새로운 일정만 저장하거나 업데이트)
+    googleScheduleService.syncGoogleEvents(member, events);
+
+
+    // 최신 이벤트 반환
     return ApiResponse.success(events);
   }
 
@@ -95,6 +94,7 @@ public class CalendarSyncService {
       for (Map<String, Object> item : items) {
         String id = (String) item.get("id");
         String summary = (String) item.get("summary");
+        String etag = (String) item.get("etag");
 
         Map<String, String> startMap = (Map<String, String>) item.get("start");
         Map<String, String> endMap = (Map<String, String>) item.get("end");
@@ -105,12 +105,14 @@ public class CalendarSyncService {
 
         LocalDateTime start;
         LocalDateTime end;
+        boolean allDay = false; // 초기값 false
 
         if (startDateTime != null) {
           start = LocalDateTime.parse(startDateTime, DateTimeFormatter.ISO_DATE_TIME);
         } else {
           // 종일 이벤트 → date(YYYY-MM-DD)를 LocalDateTime으로 변환
           start = LocalDate.parse(startMap.get("date"), DateTimeFormatter.ISO_DATE).atStartOfDay();
+          allDay = true; // 종일 일정
         }
 
         if (endDateTime != null) {
@@ -119,7 +121,16 @@ public class CalendarSyncService {
           end = LocalDate.parse(endMap.get("date"), DateTimeFormatter.ISO_DATE).atStartOfDay();
         }
 
-        events.add(new GoogleEventDto(id, summary, start, end));
+        events.add(
+            GoogleEventDto.builder()
+                .googleEventId(id)
+                .title(summary)
+                .start(start)
+                .end(end)
+                .allDay(allDay)
+                .etag(etag)
+                .build()
+        );
       }
     }
     return events;
