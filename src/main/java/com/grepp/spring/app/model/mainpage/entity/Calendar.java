@@ -49,7 +49,7 @@ public class Calendar extends BaseEntity {
     private Boolean synced;
 
     @Column(nullable = false)
-    private LocalDateTime syncedAt;
+    private LocalDateTime syncUpdatedAt; // lastSyncedAt 에서 변경
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", unique = true)

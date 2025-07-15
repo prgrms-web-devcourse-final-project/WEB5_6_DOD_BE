@@ -93,7 +93,7 @@ public class MypageService {
       throw new IllegalArgumentException("요청 정보가 없습니다.");
     }
 
-    String[] days = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
+    String[] days = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
     List<FavoriteTimetableDto> resultList = new ArrayList<>();
 
     for (String day : days) {
@@ -101,7 +101,7 @@ public class MypageService {
       if (newBitHex == null || newBitHex.trim().isEmpty()) continue;
 
       Long newBitLong = Long.parseUnsignedLong(newBitHex, 16);
-      Optional<FavoriteTimetable> existing = myTimetableRepository.findByMemberIdAndDay(memberId, day);
+      Optional<FavoriteTimetable> existing = myTimetableRepository.findByMemberIdAndDay(memberId, day.toUpperCase());
 
       if (existing.isPresent()) {
         FavoriteTimetable schedule = existing.get();
@@ -115,7 +115,7 @@ public class MypageService {
           resultList.add(FavoriteTimetableDto.fromEntity(schedule));
         }
       } else {
-        FavoriteTimetable newSchedule = FavoriteTimetable.of(member, day, newBitLong);
+        FavoriteTimetable newSchedule = FavoriteTimetable.of(member, day.toUpperCase(), newBitLong);
         myTimetableRepository.save(newSchedule);
         resultList.add(FavoriteTimetableDto.fromEntity(newSchedule));
       }
@@ -134,13 +134,13 @@ public class MypageService {
 
   private String getTimeBitByDay(CreateFavoriteTimeRequest req, String day) {
     return switch (day) {
-      case "mon" -> req.getTimeBitMon();
-      case "tue" -> req.getTimeBitTue();
-      case "wed" -> req.getTimeBitWed();
-      case "thu" -> req.getTimeBitThu();
-      case "fri" -> req.getTimeBitFri();
-      case "sat" -> req.getTimeBitSat();
-      case "sun" -> req.getTimeBitSun();
+      case "MON" -> req.getTimeBitMon();
+      case "TUE" -> req.getTimeBitTue();
+      case "WED" -> req.getTimeBitWed();
+      case "THU" -> req.getTimeBitThu();
+      case "FRI" -> req.getTimeBitFri();
+      case "SAT" -> req.getTimeBitSat();
+      case "SUN" -> req.getTimeBitSun();
       default -> null;
     };
   }

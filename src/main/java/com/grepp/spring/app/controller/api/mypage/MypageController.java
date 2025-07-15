@@ -10,8 +10,11 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavorit
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyProfileResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
+import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
 import com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto;
+import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
+import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.MypageService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -25,8 +28,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -43,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MypageController {
 
   private final MypageService mypageService;
+  private final CalendarSyncService calendarSyncService;
 
   // 즐겨찾기 장소 등록
   @PostMapping("/favorite-locations")
@@ -98,7 +104,8 @@ public class MypageController {
 
       String memberId = authentication.getName();
 
-      List<FavoriteTimetableDto> dtos = mypageService.createOrUpdateFavoriteTimetable(memberId, request);
+      List<FavoriteTimetableDto> dtos = mypageService.createOrUpdateFavoriteTimetable(memberId,
+          request);
 
       // 요일 → 비트값 맵 생성
       Map<String, String> dayToBitMap = dtos.stream()
@@ -111,10 +118,11 @@ public class MypageController {
 
       // API 응답 감싸서 반환
       return ResponseEntity.ok(ApiResponse.success(response));
-      
+
     } catch (IllegalStateException e) {
       return ResponseEntity.status(409)
-          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
+          .body(
+              ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
     } catch (Exception e) {
       if (e instanceof AuthApiException) {
         return ResponseEntity.status(401)
@@ -210,105 +218,41 @@ public class MypageController {
     }
   }
 
-
-//  // 즐겨찾기 시간대 수정
-//  @Operation(summary = "즐겨찾기 시간대 수정", description = "회원 즐겨찾기 시간대 수정")
-//  @PatchMapping("/favorite-timetable/{memberId}")
-//  public ResponseEntity<ApiResponse<ModifyFavoriteTimeResponse>> modifyFavoriteTime(
-//      @RequestBody @Valid ModifyFavoriteTimeRequest request) {
-//
-//    try {
-//      ModifyFavoriteTimeResponse response = new ModifyFavoriteTimeResponse();
-//      List<ModifyFavoriteTimeResponse.ModifyFavTimeList> times = new ArrayList<>();
-//
-//      ModifyFavoriteTimeResponse.ModifyFavTimeList time1 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
-//      time1.setFavoriteTimeId(200L);
-//      time1.setStartTime(LocalTime.of(14, 0));
-//      time1.setEndTime(LocalTime.of(15, 0));
-//
-//      LocalDateTime dateTime = LocalDateTime.of(2025, 7, 10, 0, 0); // 예: 목요일
-//      DayOfWeek weekday = dateTime.getDayOfWeek(); // THURSDAY
-//      time1.setWeekday(weekday);  //
-//
-//      ModifyFavoriteTimeResponse.ModifyFavTimeList time2 = new ModifyFavoriteTimeResponse.ModifyFavTimeList();
-//      time2.setFavoriteTimeId(201L);
-//      time2.setStartTime(LocalTime.of(17, 0));
-//      time2.setEndTime(LocalTime.of(21, 0));
-//
-//
-//      LocalDateTime dateTime2 = LocalDateTime.of(2025, 7, 6, 0, 0); // 예: 목요일
-//      DayOfWeek weekday2 = dateTime2.getDayOfWeek(); // SUNDAY
-//      time2.setWeekday(weekday2);  //
-//
-//
-//      time1.setUpdatedAt(LocalDateTime.now());
-//      time2.setUpdatedAt(LocalDateTime.now());
-//
-//
-//      times.add(time1);
-//      times.add(time2);
-//
-//
-//      response.setModifyFavTime(times);
-//
-//      return ResponseEntity.ok(ApiResponse.success(response));
-//    } catch (Exception e) {
-//      if (e instanceof AuthenticationException) {
-//        return ResponseEntity.status(401)
-//            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-//      }
-//      return ResponseEntity.status(400)
-//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
-//    }
-//  }
-
-
-//  // 프로필 수정 (사진 + 이름 수정)
-//  @Operation(summary = "프로필", description = "회원 프로필 내 이름 및 프로필 캐릭터 수정")
-//  @PatchMapping("/member-profile/{memberId}")
-//  public ResponseEntity<ApiResponse<ModifyProfileResponse>> modifyProfile(
-//      @PathVariable String memberId) {
+//  // 캘린더 연동 변경
+//  @Operation(summary = "캘린더 연동 설정 변경", description = "회원 프로필 내 캘린더 연동 설정 변경 (ON/OFF)")
+//  @PatchMapping("/calendar/{memberId}")
+//  public ResponseEntity<ApiResponse<SetCalendarSyncResponse>> modifyCalendarSync(
+//      @PathVariable String memberId,
+//      @RequestBody @Valid SetCalendarSyncRequest request) {
 //
 //    try {
 //
-//      ModifyProfileResponse response = new ModifyProfileResponse();
-//      response.setMemberId("KAKAO_1234");
-//      response.setProfileImageNumber("7");
-//      response.setName("ABC");
+//      SetCalendarSyncResponse response = new SetCalendarSyncResponse();
+//      response.setSynced(true);
+//      response.setSyncUpdatedAt(LocalDateTime.of(2025, 7, 5, 14, 30, 0));
 //
 //
 //      return ResponseEntity.ok(ApiResponse.success(response));
+//    } catch (AuthenticationException e) {
+//      return ResponseEntity.status(401)
+//          .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
 //    } catch (Exception e) {
-//      if (e instanceof AuthenticationException) {
-//        return ResponseEntity.status(401)
-//            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-//      }
 //      return ResponseEntity.status(400)
-//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
+//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었거나 잘못된 요청입니다."));
 //    }
 //  }
 
-  // 캘린더 연동 변경
-  @Operation(summary = "캘린더 연동 설정 변경", description = "회원 프로필 내 캘린더 연동 설정 변경 (ON/OFF)")
-  @PatchMapping("/calendar/{memberId}")
-  public ResponseEntity<ApiResponse<SetCalendarSyncResponse>> modifyCalendarSync(
-      @PathVariable String memberId,
-      @RequestBody @Valid SetCalendarSyncRequest request) {
+  @Operation(summary = "캘린더 동기화 새로고침")
+  @PostMapping("/calendar/sync")
+  public ApiResponse<List<GoogleEventDto>> syncCalendar() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    try {
-
-      SetCalendarSyncResponse response = new SetCalendarSyncResponse();
-      response.setSynced(true);
-      response.setLastSyncAt(LocalDateTime.of(2025, 7, 5, 14, 30, 0));
-
-
-      return ResponseEntity.ok(ApiResponse.success(response));
-    } catch (AuthenticationException e) {
-      return ResponseEntity.status(401)
-          .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-    } catch (Exception e) {
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었거나 잘못된 요청입니다."));
+    if (authentication == null || !authentication.isAuthenticated()) {
+      throw new AuthenticationCredentialsNotFoundException("로그인 필요");
     }
+
+    String memberId = authentication.getName(); //
+
+    return calendarSyncService.syncCalendar(memberId);
   }
 }

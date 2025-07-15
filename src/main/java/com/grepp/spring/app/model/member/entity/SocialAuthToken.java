@@ -1,8 +1,11 @@
 package com.grepp.spring.app.model.member.entity;
 
+import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,8 +51,9 @@ public class SocialAuthToken extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String provider;
+    private Provider provider;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
