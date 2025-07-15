@@ -4,6 +4,7 @@ import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.group.repository.GroupRepository;
+import com.grepp.spring.app.controller.api.member.payload.ModifyMemberInfoResponse;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
@@ -11,6 +12,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.infra.error.exceptions.member.InvalidNameException;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -19,12 +21,11 @@ import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -140,5 +141,43 @@ public class MemberService {
         Random random = new Random();
         int randomIndex = random.nextInt(members.size());
         return members.get(randomIndex);
+    }
+    @Transactional
+    public ModifyMemberInfoResponse modifyMemberInfo(String userId, String username) {
+
+        Member member = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (StringUtils.hasText(username)) {
+            // 앞 뒤 공백 제거
+            username = username.trim();
+            // 정규표현식으로 검증
+            validateName(username);
+            member.setName(username);
+        }
+        member.setProfileImageNumber((long) new Random().nextInt(10));
+
+        memberRepository.save(member);
+        log.info("프로필이 변경되었습니다. 이름: {}, 프로필 사진 번호: {}", member.getName(), member.getProfileImageNumber());
+
+        // 변경된 사용자 정보 리턴 (나중에 응답에 넣을 거임)
+        return new ModifyMemberInfoResponse(member.getId(), member.getName(), member.getProfileImageNumber());
+    }
+
+    // 이름 요구사항 검증 메서드
+    private void validateName(String username){
+        if (username == null) {
+            throw new InvalidNameException("이름은 필수 입력값입니다.");
+        }
+
+        if (username.length() < 2 || username.length() > 10) {
+            throw new InvalidNameException("이름은 2자 이상 10자 이하로만 가능합니다.");
+        }
+        // 한글, 영어 조합. 양 끝 제외 공백 허용
+        String pattern = "^[가-힣a-zA-Z](?:[가-힣a-zA-Z ]*[가-힣a-zA-Z])?$";
+
+        if (!username.matches(pattern)) {
+            throw new InvalidNameException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
+        }
     }
 }
