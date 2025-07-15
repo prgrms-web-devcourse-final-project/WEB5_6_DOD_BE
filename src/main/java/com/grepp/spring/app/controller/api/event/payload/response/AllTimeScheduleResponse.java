@@ -10,6 +10,7 @@ import java.util.List;
 public class AllTimeScheduleResponse {
     private Long eventId;
     private String eventTitle;
+    private String description;
     private TimeTable timeTable;
     private List<MemberSchedule> memberSchedules;
     private Integer totalMembers;
