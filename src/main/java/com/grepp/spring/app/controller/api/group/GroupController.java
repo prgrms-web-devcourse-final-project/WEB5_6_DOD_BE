@@ -177,21 +177,10 @@ public class GroupController {
         @RequestParam Long id,
         @RequestBody ModifyGroupInfoRequest request
     ) {
-        try {
-            // 그룹 정보 수정
-            groupCommandModifyGroupService.modifyGroup(id, request);
-            // 그룹 정보 수정 완료
-            return ResponseEntity.ok(ApiResponse.success("그룹 내용이 수정되었습니다."));
-        } catch (Exception e) {
-            // 권한 없음: 401
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 정보 수정
+        groupCommandModifyGroupService.modifyGroup(id, request);
+        // 그룹 정보 수정 완료
+        return ResponseEntity.ok(ApiResponse.success("그룹 내용이 수정되었습니다."));
     }
 
 
