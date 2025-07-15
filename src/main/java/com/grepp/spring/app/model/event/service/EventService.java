@@ -3,7 +3,9 @@ package com.grepp.spring.app.model.event.service;
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
 import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.CreateEventResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.ShowEventResponse;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.dto.*;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -53,7 +55,7 @@ public class EventService {
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     @Transactional
-    public void createEvent(CreateEventRequest webRequest, String currentMemberId) {
+    public CreateEventResponse createEvent(CreateEventRequest webRequest, String currentMemberId) {
         CreateEventDto serviceRequest = CreateEventDto.toDto(webRequest, currentMemberId);
 
         validate(serviceRequest);
@@ -69,13 +71,44 @@ public class EventService {
 
             event = CreateEventDto.toEntity(serviceRequest, group);
         } else {
-            event = CreateEventDto.toEntity(serviceRequest);
+            Group tempGroup = createTempGroupForSingleEvent(serviceRequest.getTitle(), serviceRequest.getDescription());
+            event = CreateEventDto.toEntity(serviceRequest, tempGroup);
         }
 
         event = eventRepository.save(event);
         EventMemberDto masterDto = EventMemberDto.toDto(event.getId(), currentMemberId, Role.ROLE_MASTER);
         createEventMember(masterDto);
         createCandidateDates(event, serviceRequest.getCandidateDates());
+
+        CreateEventResponse response = new CreateEventResponse();
+        response.setEventId(event.getId());
+        response.setTitle(event.getTitle());
+
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public ShowEventResponse getEvent(Long eventId, String currentMemberId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+
+        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
+            .orElseThrow(() -> new NotFoundException("해당 이벤트에 참여하지 않은 사용자입니다."));
+
+        ShowEventResponse response = new ShowEventResponse();
+        response.setEventId(event.getId());
+        response.setTitle(event.getTitle());
+        response.setDescription(event.getDescription());
+        response.setRole(eventMember.getRole().name());
+
+        return response;
+    }
+
+    private Group createTempGroupForSingleEvent(String eventTitle, String eventDescription) {
+        TempGroupCreateDto tempGroupDto = TempGroupCreateDto.forSingleEvent(eventTitle, eventDescription);
+        Group tempGroup = TempGroupCreateDto.toEntity(tempGroupDto);
+
+        return groupRepository.save(tempGroup);
     }
 
     private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
