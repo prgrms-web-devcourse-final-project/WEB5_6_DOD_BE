@@ -60,14 +60,7 @@ public class GroupCommandDeleteGroupService {
         }
 
         // 그룹 삭제 진행
-        groupMemberCommandRepository.deleteByGroupId(groupId);
-        // 그룹 내 이벤트 조회(삭제예정)
-
-        // 그룹 내 일정 조회(삭제예정)
-
+        // cascade 삭제
         groupCommandRepository.deleteById(groupId);
-        // TODO: 그룹 삭제 이후 해당 그룹의 일정들에 대한 처리
-        // 이벤트 및 일정에 대한 사후처리
-        // 일단은 지금은 다 삭제
     }
 }
