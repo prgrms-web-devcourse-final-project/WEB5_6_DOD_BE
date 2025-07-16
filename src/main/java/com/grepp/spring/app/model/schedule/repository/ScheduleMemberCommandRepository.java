@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.repository;
 
+import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ public interface ScheduleMemberCommandRepository extends JpaRepository<ScheduleM
     @Modifying
     @Query("DELETE from ScheduleMember sm where sm.schedule.id = :scheduleId")
     void deleteAllByScheduleId(@Param("scheduleId") Long scheduleId);
+
+    void deleteByScheduleAndMemberId(Schedule schedule, String id);
 }

@@ -1,8 +1,10 @@
 package com.grepp.spring.app.model.group.repository;
 
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.member.entity.Member;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -20,4 +22,8 @@ public interface GroupMemberQueryRepository extends JpaRepository<GroupMember, L
     List<GroupMember> findByGroupIdIn(List<Long> groupIds);
 
     List<GroupMember> findByGroup(Group group);
+
+    ArrayList<GroupMember> findByGroupAndRole(Group group, GroupRole role);
+
+    ArrayList<GroupMember> findByGroupAndMember(Group group, Member member);
 }
