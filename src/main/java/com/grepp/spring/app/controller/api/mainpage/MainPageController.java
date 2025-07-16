@@ -1,14 +1,17 @@
 package com.grepp.spring.app.controller.api.mainpage;
 
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
+import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.service.MainPageService;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDate;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,6 +40,29 @@ public class MainPageController {
 
     return ResponseEntity.ok(ApiResponse.success(response));
   }
+
+  @Operation(summary = "월 단위 일정 조회 (메인페이지 확장)")
+  @GetMapping("/main-page/calendar")
+  public ApiResponse<List<UnifiedScheduleDto>> getMonthlySchedules(
+      @RequestParam int year,
+      @RequestParam int month
+  ) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null) {
+      throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
+    }
+
+    String memberId = authentication.getName();
+
+    LocalDate firstDay = LocalDate.of(year, month, 1);
+    LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
+
+    List<UnifiedScheduleDto> unifiedSchedules = mainPageService.getUnifiedSchedules(
+        memberId, firstDay, lastDay);
+
+    return ApiResponse.success(unifiedSchedules);
+  }
+
 }
 
 

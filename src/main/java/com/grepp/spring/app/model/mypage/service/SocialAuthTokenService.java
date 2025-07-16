@@ -5,7 +5,6 @@ import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.entity.SocialAuthToken;
-import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.member.repository.SocialAuthTokenRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;

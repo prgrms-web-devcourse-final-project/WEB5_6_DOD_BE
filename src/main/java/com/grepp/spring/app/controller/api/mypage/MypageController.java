@@ -223,11 +223,11 @@ public class MypageController {
   public ApiResponse<List<GoogleEventDto>> syncCalendar() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    if (authentication == null || !authentication.isAuthenticated()) {
-      throw new AuthenticationCredentialsNotFoundException("로그인 필요");
+    if (authentication == null) {
+      throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
     }
 
-    String memberId = authentication.getName(); //
+    String memberId = authentication.getName();
 
     return calendarSyncService.syncCalendar(memberId);
   }

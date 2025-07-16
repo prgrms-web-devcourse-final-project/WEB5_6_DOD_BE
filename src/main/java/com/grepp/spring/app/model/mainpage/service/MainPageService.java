@@ -3,13 +3,9 @@ package com.grepp.spring.app.model.mainpage.service;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
 import com.grepp.spring.app.model.group.service.GroupQueryService;
-import com.grepp.spring.app.model.mainpage.code.ScheduleSource;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
-import com.grepp.spring.app.model.mainpage.repository.GoogleScheduleRepository;
-import com.grepp.spring.app.model.mainpage.repository.MainPageScheduleRepository;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,16 +14,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내부 일정 통합)
 
   private final GroupQueryService groupQueryService;
-  private final ScheduleQueryService scheduleQueryService;
   private final MainPageScheduleService mainPageScheduleService;
-  private final MainPageScheduleRepository mainPageScheduleRepository;
   private final GoogleScheduleService googleScheduleService;
 
   public ShowMainPageResponse getMainPageData(String memberId, LocalDate targetDate) {
@@ -42,6 +38,9 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     LocalDate weekStart = targetDate.with(DayOfWeek.MONDAY); // targetDate 가 속한 주에서 월요일을 시작으로 설정
     LocalDate weekEnd = weekStart.plusDays(6);
     List<UnifiedScheduleDto> weeklySchedules = getUnifiedSchedules(memberId, weekStart, weekEnd);
+
+    log.info(">>> [메인페이지] memberId={}, targetDate={}, todaySchedules={}, weeklySchedules={}",
+        memberId, targetDate, todaySchedules.size(), weeklySchedules.size());
 
     ShowMainPageResponse.WeeklyScheduleDto weeklyScheduleDto =
         ShowMainPageResponse.WeeklyScheduleDto.builder()
@@ -59,10 +58,20 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         .build();
   }
 
-  private List<UnifiedScheduleDto> getUnifiedSchedules(String memberId, LocalDate start, LocalDate end) {
+  public List<UnifiedScheduleDto> getUnifiedSchedules(String memberId, LocalDate start, LocalDate end) {
+
+    LocalDateTime startDateTime = start.atStartOfDay();
+    LocalDateTime endDateTime = end.atTime(23, 59, 59);
+
+    log.info(">>> [getUnifiedSchedules] memberId={}, start={}, end={}",
+        memberId, startDateTime, endDateTime);
+
 
     List<Schedule> schedules = mainPageScheduleService.findSchedulesInRange(memberId, start, end);
     List<CalendarDetail> googleSchedules = googleScheduleService.findSchedulesInRange(memberId, start, end);
+
+    log.info(">>> 내부 일정 개수={}, 구글 일정 개수={}",
+        schedules.size(), googleSchedules.size());
 
     // 우리 서비스 일정 → DTO 변환 호출
     List<UnifiedScheduleDto> internalDtos = schedules.stream()

@@ -3,7 +3,6 @@ package com.grepp.spring.app.model.mainpage.repository;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,13 +12,10 @@ import org.springframework.stereotype.Repository;
 public interface GoogleScheduleRepository extends JpaRepository<CalendarDetail, Long> {
 
   @Query("""
-    SELECT g FROM CalendarDetail g
-    WHERE g.calendar.member.id = :memberId
-      AND (
-            (g.startDatetime BETWEEN :start AND :end) 
-         OR (g.endDatetime BETWEEN :start AND :end)
-         OR (g.startDatetime <= :start AND :end <= :end)
-      )
+SELECT g FROM CalendarDetail g
+WHERE g.calendar.member.id = :memberId
+  AND g.startDatetime < :end
+  AND g.endDatetime > :start
 """)
   List<CalendarDetail> findGoogleSchedulesForMainPage(
       @Param("memberId") String memberId,

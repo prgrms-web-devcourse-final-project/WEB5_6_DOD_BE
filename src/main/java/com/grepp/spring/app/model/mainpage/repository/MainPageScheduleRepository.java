@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.mainpage.repository;
 
 import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,14 +16,11 @@ public interface MainPageScheduleRepository extends JpaRepository<Schedule, Long
   // 3. 시작 ~ 종료 날짜가 한 주에 포함될 때
 
   @Query("""
-    SELECT sm.schedule 
+    SELECT sm.schedule
     FROM ScheduleMember sm
     WHERE sm.member.id = :memberId
-      AND (
-            (sm.schedule.startTime BETWEEN :start AND :end)
-         OR (sm.schedule.endTime BETWEEN :start AND :end)
-         OR (sm.schedule.startTime <= :start AND sm.schedule.endTime >= :end)
-      )
+      AND sm.schedule.startTime < :end
+      AND sm.schedule.endTime > :start
 """)
   List<Schedule> findSchedulesForMainPage(
       @Param("memberId") String memberId,
