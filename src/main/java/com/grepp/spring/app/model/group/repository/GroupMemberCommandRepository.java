@@ -8,5 +8,5 @@ public interface GroupMemberCommandRepository extends JpaRepository<GroupMember,
 
     void deleteByGroupId(Long groupId);
 
-    void delete(Group group, String id);
+    void deleteByGroupAndMemberId(Group group, String id);
 }

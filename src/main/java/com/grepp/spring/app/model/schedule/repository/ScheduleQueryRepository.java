@@ -11,5 +11,6 @@ public interface ScheduleQueryRepository extends JpaRepository<Schedule, Long> {
 
     List<Schedule> findByEventIdAndStatusInAndActivatedTrue(Long eventId, List<ScheduleStatus> list);
 
-    List<Schedule> findByEnvet(Event event);
+
+    List<Schedule> findByEvent(Event event);
 }

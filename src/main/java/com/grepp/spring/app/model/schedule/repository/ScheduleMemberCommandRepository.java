@@ -13,5 +13,5 @@ public interface ScheduleMemberCommandRepository extends JpaRepository<ScheduleM
     @Query("DELETE from ScheduleMember sm where sm.schedule.id = :scheduleId")
     void deleteAllByScheduleId(@Param("scheduleId") Long scheduleId);
 
-    void delete(Schedule schedule, String memberId);
+    void deleteByScheduleAndMemberId(Schedule schedule, String id);
 }

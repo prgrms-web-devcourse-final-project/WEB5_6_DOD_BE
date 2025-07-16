@@ -98,23 +98,23 @@ public class GroupCommandWithdrawService {
 
         // 삭제 진행
         // groupMember 삭제
-        groupMemberCommandRepository.delete(group, member.getId());
+        groupMemberCommandRepository.deleteByGroupAndMemberId(group, member.getId());
         // 그룹 내 이벤트에 대한 처리
         for(Event event: eventRepository.findByGroupId(groupId)){
             // eventMember 삭제
-            eventMemberRepository.delete(event, member.getId());
+            eventMemberRepository.deleteByEventAndMemberId(event, member.getId());
             // 이벤트 내 일정에 대한 처리
-            for(Schedule schedule: scheduleQueryRepository.findByEnvet(event)){
+            for(Schedule schedule: scheduleQueryRepository.findByEvent(event)){
                 // scheduleMember 삭제
                 // 일정에 본인이 일정 팀장인 경우 isRoleMaster를 true로 설정
                 boolean isRoleMaster = false;
                 if(scheduleMemberQueryRepository
-                    .findByEventAndMemberId(event, member.getId())
+                    .findByScheduleAndMemberId(schedule, member.getId())
                     .getRole()
                     .equals(ScheduleRole.ROLE_MASTER)){
                     isRoleMaster = true;
                 }
-                scheduleMemberCommandRepository.delete(schedule, member.getId());
+                scheduleMemberCommandRepository.deleteByScheduleAndMemberId(schedule, member.getId());
                 // 일정에 본인만 포함된 경우 -> schedule 삭제
                 if(scheduleMemberQueryRepository.findBySchedule(schedule).isEmpty()){
                     scheduleCommandRepository.delete(schedule);
