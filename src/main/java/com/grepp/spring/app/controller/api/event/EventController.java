@@ -82,13 +82,15 @@ public class EventController {
 
     // 이벤트 일정 참여
     @Operation(summary = "이벤트 참여")
-    @PostMapping("/{eventId}")
-    public ResponseEntity<ApiResponse<Void>> joinEvent(@PathVariable Long eventId) {
+    @PostMapping("/{eventId}/join/{groupId}")
+    public ResponseEntity<ApiResponse<Void>> joinEvent(
+        @PathVariable Long eventId,
+        @PathVariable Long groupId) {
 
         try {
             String currentMemberId = extractCurrentMemberId();
 
-            eventService.joinEvent(eventId, currentMemberId);
+            eventService.joinEvent(eventId, groupId, currentMemberId);
 
             return ResponseEntity.ok(ApiResponse.success("이벤트에 성공적으로 참여했습니다."));
 
