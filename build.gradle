@@ -77,6 +77,9 @@ dependencies {
     testAnnotationProcessor('org.projectlombok:lombok')
 
     testImplementation('org.springframework.boot:spring-boot-starter-test')
+
+    // Apache POI로 엑셀파일 읽는 모듈
+    implementation 'org.apache.poi:poi-ooxml:5.2.3'
 }
 
 //node {
