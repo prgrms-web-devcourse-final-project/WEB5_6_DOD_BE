@@ -10,6 +10,7 @@ import com.grepp.spring.infra.error.exceptions.group.OnlyOneGroupLeaderException
 import com.grepp.spring.infra.error.exceptions.group.ScheduleAlreadyInGroupException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserAlreadyInGroupException;
+import com.grepp.spring.infra.error.exceptions.group.UserGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotInGroupException;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -115,5 +116,13 @@ public class GroupExceptionAdvice {
 
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
             .body(ApiResponse.error(GroupErrorCode.ONE_GROUP_LEADER));
+    }
+
+    @ExceptionHandler(UserGroupLeaderException.class)
+    public ResponseEntity<ApiResponse<String>> userIsGroupLeaderExHandler(
+        UserGroupLeaderException ex){
+
+        return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
+            .body(ApiResponse.error(GroupErrorCode.USER_GROUP_LEADER));
     }
 }

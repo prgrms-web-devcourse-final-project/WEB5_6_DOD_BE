@@ -180,7 +180,8 @@ public class GroupController {
     ) {
         // 그룹 정보 수정
         // 그룹 정보 수정 완료
-        return ResponseEntity.ok(ApiResponse.success(groupCommandModifyGroupService.modifyGroup(id,request)));
+        return ResponseEntity.ok(
+            ApiResponse.success(groupCommandModifyGroupService.modifyGroup(id, request)));
     }
 
 
@@ -191,21 +192,10 @@ public class GroupController {
         @PathVariable Long groupId,
         @PathVariable String userId
     ) {
-        try {
-            // 그룹 멤버 내보내기
-            groupCommandExileGroupMemberService.deportMember(groupId, userId);
-            // 그룹 멤버 내보내기 성공
-            return ResponseEntity.ok(ApiResponse.success("그룹에서 해당 유저를 내보냈습니다."));
-        } catch (Exception e) {
-            // 권한 없음: 401
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 멤버 내보내기
+        groupCommandExileGroupMemberService.deportMember(groupId, userId);
+        // 그룹 멤버 내보내기 성공
+        return ResponseEntity.ok(ApiResponse.success("그룹에서 해당 유저를 내보냈습니다."));
     }
 
 
