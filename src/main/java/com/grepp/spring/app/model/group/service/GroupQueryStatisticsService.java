@@ -1,10 +1,36 @@
 package com.grepp.spring.app.model.group.service;
 
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
+import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.event.entity.Event;
+import com.grepp.spring.app.model.event.repository.EventRepository;
+import com.grepp.spring.app.model.group.code.GroupRole;
+import com.grepp.spring.app.model.group.dto.GroupSchedule;
+import com.grepp.spring.app.model.group.dto.GroupUserDetail;
+import com.grepp.spring.app.model.group.dto.WeekDetail;
+import com.grepp.spring.app.model.group.entity.Group;
+import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberQueryRepository;
 import com.grepp.spring.app.model.group.repository.GroupQueryRepository;
+import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
+import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
+import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
+import com.grepp.spring.infra.response.GroupErrorCode;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,37 +40,101 @@ public class GroupQueryStatisticsService {
 
     private final GroupQueryRepository groupQueryRepository;
     private final GroupMemberQueryRepository groupMemberQueryRepository;
+    private final MemberRepository memberRepository;
+    private final EventRepository eventRepository;
+    private final ScheduleQueryRepository scheduleQueryRepository;
+    private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     // 그룹 통계 조회
     public ShowGroupStatisticsResponse displayStatistics(Long groupId) {
+        // http 요청 사용자 조회
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal user = (Principal) authentication.getPrincipal();
+        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+        // TODO: member가 없다면 throw 예외(회원이 아닙니다: 401)
 
-        return null;
+        Optional<Group> groupOptional = groupQueryRepository.findById(groupId);
+        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
+        if(groupOptional.isEmpty()){
+            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
+        }
+
+        Optional<GroupMember> groupMemberOptional = groupMemberQueryRepository.findByGroupIdAndMemberId(groupId,
+            member.getId());
+        // 예외 발생: http 메서드를 요청한 유저가 해당 그룹의 그룹원이 아님 - 403 NOT_GROUP_MEMBER
+        if(groupMemberOptional.isEmpty()){
+            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
+        }
+        GroupMember groupMember = groupMemberOptional.get();
+
+        // 예외 발생: http 메서드를 요청한 유저가 해당 그룹의 그룹장이 아님 - 403 NOT_GROUP_LEADER
+        if(!groupMember.getRole().equals(GroupRole.GROUP_LEADER)){
+            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+        }
+
+        // 그룹 통계 조회
+        long scheduleNum = 0L;
+        HashMap<String, Long> locationMap = new HashMap<>();
+        HashMap<String, Long> memberMap = new HashMap<>();
+        long[] weekDayArray = new long[7];
+        for(Event event: eventRepository.findByGroupId(groupId)){
+            for(Schedule schedule: scheduleQueryRepository.findByEvent(event)){
+                scheduleNum +=1L;
+                String location = schedule.getLocation();
+                if (!locationMap.containsKey(location)){
+                    locationMap.put(location, 1L);
+                }
+                else{
+                    locationMap.put(location,locationMap.get(location)+1L);
+                }
+                if(schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.MONDAY)){
+                    weekDayArray[0]+=1L;
+                } else if (schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.TUESDAY)) {
+                    weekDayArray[1]+=1L;
+                }else if (schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.WEDNESDAY)) {
+                    weekDayArray[2]+=1L;
+                }else if (schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.THURSDAY)) {
+                    weekDayArray[3]+=1L;
+                }else if (schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.FRIDAY)) {
+                    weekDayArray[4]+=1L;
+                }else if (schedule.getStartTime().getDayOfWeek().equals(DayOfWeek.SATURDAY)) {
+                    weekDayArray[5]+=1L;
+                }else{
+                    weekDayArray[6]+=1L;
+                }
+                for(ScheduleMember scheduleMember: scheduleMemberQueryRepository.findBySchedule(schedule)){
+                    if(!memberMap.containsKey(scheduleMember.getMember().getId())){
+                        memberMap.put(scheduleMember.getMember().getId(), 1L);
+                    }else{
+                        memberMap.put(scheduleMember.getMember().getId(), memberMap.get(scheduleMember.getMember().getId())+1L);
+                    }
+                }
+            }
+        }
+
+        ArrayList<WeekDetail> weekDetails = new ArrayList<>();
+
+        ArrayList<GroupUserDetail> userDetails = memberMap.entrySet().stream()
+            .map(entry -> new GroupUserDetail(entry.getKey(), entry.getValue()))
+            .collect(Collectors.toCollection(ArrayList::new));
+
+        ArrayList<GroupSchedule> groupSchedules = locationMap.entrySet().stream()
+            .map(entry -> new GroupSchedule(entry.getKey(), entry.getValue()))
+            .collect(Collectors.toCollection(ArrayList::new));
+
+        weekDetails.add(new WeekDetail(DayOfWeek.MONDAY, weekDayArray[0]));
+        weekDetails.add(new WeekDetail(DayOfWeek.TUESDAY, weekDayArray[1]));
+        weekDetails.add(new WeekDetail(DayOfWeek.WEDNESDAY, weekDayArray[2]));
+        weekDetails.add(new WeekDetail(DayOfWeek.THURSDAY, weekDayArray[3]));
+        weekDetails.add(new WeekDetail(DayOfWeek.FRIDAY, weekDayArray[4]));
+        weekDetails.add(new WeekDetail(DayOfWeek.SATURDAY, weekDayArray[5]));
+        weekDetails.add(new WeekDetail(DayOfWeek.SUNDAY, weekDayArray[6]));
+
+        return ShowGroupStatisticsResponse.builder()
+            .scheduleNumber(scheduleNum)
+            .groupUserDetails(userDetails)
+            .groupSchedules(groupSchedules)
+            .weekDetails(weekDetails)
+            .build();
     }
-    // TODO: 예외처리
-    // id가 db에 없다
-    // groupId가 db에 없다면 404_GROUP_NOT_FOUND
-    // 현재 유저가 해당 그룹의 그룹원이 아니면 403_NOT_GROUP_MEMBER면 404_GROUP_NOT_FOUND
-
-
-        //builder()
-        //        .groupUserDetails(new ArrayList<>(List.of(
-        //new GroupUserDetail("KAKAO_1001", "김우주", GroupRole.GROUP_LEADER, new ArrayList<>(List.of(30000L, 30002L, 30003L, 30004L, 30005L))),
-        //new GroupUserDetail("KAKAO_1002", "백연우", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30002L))),
-        //new GroupUserDetail("KAKAO_1003", "하예나", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30003L, 30005L))),
-        //new GroupUserDetail("KAKAO_1004", "박민지", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30002L, 30004L, 30005L))),
-        //new GroupUserDetail("KAKAO_1005", "성서아", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30003L, 30004L, 30005L))),
-        //new GroupUserDetail("KAKAO_1006", "허서영", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30002L, 30003L, 30004L, 30005L))),
-        //new GroupUserDetail("KAKAO_1007", "최승현", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30002L, 30003L))),
-        //new GroupUserDetail("KAKAO_1008", "박이안", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L))),
-        //new GroupUserDetail("KAKAO_1009", "전태오", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30000L, 30004L, 30005L))),
-        //new GroupUserDetail("KAKAO_1010", "신지우", GroupRole.GROUP_MEMBER, new ArrayList<>(List.of(30003L, 30004L, 30005L)))
-        //)))
-        //.groupSchedules(new ArrayList<>(List.of(
-        //new GroupSchedule(30001L, "인천역", LocalDateTime.now(), LocalDateTime.MAX),
-        //new GroupSchedule(30002L, "국제금융센터-부산은행역", LocalDateTime.now(), LocalDateTime.MAX),
-        //new GroupSchedule(30003L, "합정역", LocalDateTime.now(), LocalDateTime.MAX),
-        //new GroupSchedule(30004L, "역삼역", LocalDateTime.now(), LocalDateTime.MAX),
-        //new GroupSchedule(30005L, "서초역", LocalDateTime.now(), LocalDateTime.MAX)
-        //)))
-        //.build();
 }
