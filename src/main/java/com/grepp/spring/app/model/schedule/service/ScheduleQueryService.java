@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
@@ -63,7 +64,9 @@ public class ScheduleQueryService {
             scheduleId);
         List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
 
-        ShowScheduleDto dto = ShowScheduleDto.fromEntity(eventId, schedule.orElse(null),
+        MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
+
+        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule.orElse(null),
             scheduleMembers, workspaces);
 
         return ShowScheduleDto.fromDto(dto);

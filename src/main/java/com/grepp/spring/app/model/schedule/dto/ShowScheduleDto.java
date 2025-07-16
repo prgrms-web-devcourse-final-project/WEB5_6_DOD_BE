@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.schedule.dto;
 
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.WorkspaceType;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -27,10 +28,13 @@ public class ShowScheduleDto {
     private Long eventId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private MeetingType meetingType; // 온오프라인여부
     private String location;
     private String specificLocation;
     private String scheduleName;
     private String description;
+
+
 
     private MeetingPlatform meetingPlatform; // ZOOM | GOOGLE_MEET | NONE
     private String platformName;
@@ -45,6 +49,7 @@ public class ShowScheduleDto {
             .eventId(dto.getEventId())
             .startTime(dto.getStartTime())
             .endTime(dto.getEndTime())
+            .meetingType(dto.getMeetingType())
             .location(dto.getLocation())
             .specificLocation(dto.getSpecificLocation())
             .scheduleName(dto.getScheduleName())
@@ -57,7 +62,7 @@ public class ShowScheduleDto {
             .build();
     }
 
-    public static ShowScheduleDto fromEntity(Long event, Schedule schedule,
+    public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule,
         List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
 
         List<String> members = scheduleMembers.stream().map(ScheduleMember::getName)
@@ -86,6 +91,7 @@ public class ShowScheduleDto {
             .eventId(event)
             .startTime(schedule.getStartTime())
             .endTime(schedule.getEndTime())
+            .meetingType(meetingType)
             .location(schedule.getLocation())
             .specificLocation(schedule.getSpecificLocation())
             .description(schedule.getDescription())

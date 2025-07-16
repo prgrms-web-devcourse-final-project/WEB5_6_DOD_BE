@@ -65,7 +65,6 @@ public class ScheduleController {
             ShowScheduleResponse response = scheduleQueryService.showSchedule(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
-
     }
 
     // 일정 등록

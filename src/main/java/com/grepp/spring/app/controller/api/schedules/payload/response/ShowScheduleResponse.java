@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.schedules.payload.response;
 
+import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
@@ -25,6 +26,8 @@ public class ShowScheduleResponse {
     private String specificLocation; // 상세장소
     private String scheduleName;
     private String description;
+
+    private MeetingType meetingType; // 온오프라인여부
 
     private MeetingPlatform meetingPlatform; // ZOOM | GOOGLE_MEET | NONE
     private String platformName;

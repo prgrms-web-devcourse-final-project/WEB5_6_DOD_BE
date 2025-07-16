@@ -27,7 +27,7 @@ public class Line {
     private String color;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "metro_id", updatable = false)
+    @JoinColumn(name = "metro_id")
     private Metro metro;
 
 }
