@@ -208,22 +208,11 @@ public class GroupController {
     public ResponseEntity<ApiResponse<ShowGroupStatisticsResponse>> getGroupStatistics(
         @PathVariable Long id
     ) {
-        try {
-            // 그룹 통게 조회
-            ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(
-                id);
-            // 그룹 통계 조회 성공
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (Exception e) {
-            // 권한 없음: 403
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 통게 조회
+        ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(
+            id);
+        // 그룹 통계 조회 성공
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 
