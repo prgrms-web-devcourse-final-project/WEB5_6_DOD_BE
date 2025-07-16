@@ -1,7 +1,6 @@
 package com.grepp.spring.app.model.mainpage.entity;
 
 import com.grepp.spring.app.model.member.entity.Member;
-import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

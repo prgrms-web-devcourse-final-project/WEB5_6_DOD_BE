@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SocialAuthTokenRepository extends JpaRepository<SocialAuthToken, Long> {
 
-  void deleteByMemberAndProvider(Member member, Provider provider);
 
   Optional<SocialAuthToken> findByMember(Member member);
 }

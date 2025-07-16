@@ -51,7 +51,7 @@ public class MypageController {
   private final CalendarSyncService calendarSyncService;
 
   // 즐겨찾기 장소 등록
-  @PostMapping("/favorite-locations")
+  @PostMapping("/favorite-location")
   @Operation(summary = "즐겨찾기 장소 등록", description = "회원 즐겨찾기 장소 등록")
   public ResponseEntity<ApiResponse<CreateFavoritePlaceResponse>> createFavoriteLocation(
       @RequestBody @Valid CreateFavoritePlaceRequest request) {
@@ -133,7 +133,7 @@ public class MypageController {
     }
   }
 
-  @GetMapping("/favorite-locations")
+  @GetMapping("/favorite-location")
   @Operation(summary = "즐겨찾기 장소 조회", description = "회원 즐겨찾기 장소 조회")
   public ResponseEntity<ApiResponse<List<FavoriteLocationDto>>> getFavoriteLocations() {
     try {
@@ -218,41 +218,19 @@ public class MypageController {
     }
   }
 
-//  // 캘린더 연동 변경
-//  @Operation(summary = "캘린더 연동 설정 변경", description = "회원 프로필 내 캘린더 연동 설정 변경 (ON/OFF)")
-//  @PatchMapping("/calendar/{memberId}")
-//  public ResponseEntity<ApiResponse<SetCalendarSyncResponse>> modifyCalendarSync(
-//      @PathVariable String memberId,
-//      @RequestBody @Valid SetCalendarSyncRequest request) {
-//
-//    try {
-//
-//      SetCalendarSyncResponse response = new SetCalendarSyncResponse();
-//      response.setSynced(true);
-//      response.setSyncUpdatedAt(LocalDateTime.of(2025, 7, 5, 14, 30, 0));
-//
-//
-//      return ResponseEntity.ok(ApiResponse.success(response));
-//    } catch (AuthenticationException e) {
-//      return ResponseEntity.status(401)
-//          .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-//    } catch (Exception e) {
-//      return ResponseEntity.status(400)
-//          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었거나 잘못된 요청입니다."));
-//    }
-//  }
-
   @Operation(summary = "캘린더 동기화 새로고침")
   @PostMapping("/calendar/sync")
   public ApiResponse<List<GoogleEventDto>> syncCalendar() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    if (authentication == null || !authentication.isAuthenticated()) {
-      throw new AuthenticationCredentialsNotFoundException("로그인 필요");
+    if (authentication == null) {
+      throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
     }
 
-    String memberId = authentication.getName(); //
+    String memberId = authentication.getName();
 
-    return calendarSyncService.syncCalendar(memberId);
+    List<GoogleEventDto> events = calendarSyncService.syncCalendar(memberId);
+
+    return ApiResponse.success(events);
   }
 }
