@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.group.service;
 
 import com.grepp.spring.app.controller.api.group.payload.request.ModifyGroupInfoRequest;
+import com.grepp.spring.app.controller.api.group.payload.response.ModifyGroupInfoResponse;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
@@ -36,7 +37,7 @@ public class GroupCommandModifyGroupService {
 
     // 그룹 정보 수정
     @Transactional
-    public void modifyGroup(Long groupId, ModifyGroupInfoRequest request){
+    public ModifyGroupInfoResponse modifyGroup(Long groupId, ModifyGroupInfoRequest request){
         // http 요청 사용자 조회
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Principal user = (Principal) authentication.getPrincipal();
@@ -69,5 +70,11 @@ public class GroupCommandModifyGroupService {
             group1.setDescription(request.getDescription());
         }
         groupCommandRepository.save(group1);
+
+        return ModifyGroupInfoResponse.builder()
+            .groupId(group1.getId())
+            .groupName(group1.getName())
+            .description(group1.getDescription())
+            .build();
     }
 }

@@ -1,15 +1,25 @@
 package com.grepp.spring.app.model.group.service;
 
 import com.grepp.spring.app.controller.api.group.payload.request.CreateGroupRequest;
+import com.grepp.spring.app.controller.api.group.payload.response.CreateGroupResponse;
+import com.grepp.spring.app.controller.api.group.payload.response.InviteGroupMemberResponse;
 import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.dto.GroupCreateDto;
 import com.grepp.spring.app.model.group.dto.GroupMemberCreateDto;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupCommandRepository;
 import com.grepp.spring.app.model.group.repository.GroupMemberCommandRepository;
+import com.grepp.spring.app.model.group.repository.GroupMemberQueryRepository;
+import com.grepp.spring.app.model.group.repository.GroupQueryRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
+import com.grepp.spring.infra.error.exceptions.group.UserAlreadyInGroupException;
+import com.grepp.spring.infra.response.GroupErrorCode;
+import java.util.ArrayList;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -23,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupCommandService {
     private final GroupCommandRepository groupCommandRepository;
     private final GroupMemberCommandRepository groupMemberCommandRepository;
+    private final GroupQueryRepository groupQueryRepository;
+    private final GroupMemberQueryRepository groupMemberQueryRepository;
     // TODO: memberRepository에도 CQRS를 적용한다면, memberRepository 대신 memberQueryRepository로 변환
     // member를 가져오는 전략
     // 1. Controller에서 MemberId로 Member객체를 조회한 후, 매개변수에 담아 Service로 Member객체를 넘겨줌.
@@ -38,7 +50,7 @@ public class GroupCommandService {
 
     // 그룹 생성
     @Transactional
-    public void registGroup(CreateGroupRequest request){
+    public CreateGroupResponse registGroup(CreateGroupRequest request){
 
         // 그룹 생성
         GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
@@ -56,5 +68,49 @@ public class GroupCommandService {
         GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
         groupMemberCommandRepository.save(groupMember);
         log.info("그룹-멤버 생성 CommandService");
+
+        return CreateGroupResponse.builder()
+            .groupId(group.getId())
+            .groupName(group.getName())
+            .description(group.getDescription())
+            .build();
+    }
+
+    // 그룹 멤버 추가
+    public InviteGroupMemberResponse addGroupMember(Long groupId) {
+        // http 요청 사용자 조회
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Principal user = (Principal) authentication.getPrincipal();
+        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+        // TODO: member가 없다면 throw 예외(회원이 아닙니다.)
+
+
+        Optional<Group> group = groupQueryRepository.findById(groupId);
+        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
+        if(group.isEmpty()){
+            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
+        }
+        Group group1 =  group.get();
+
+        ArrayList<GroupMember> groupMembers = groupMemberQueryRepository.findByGroupId(groupId);
+        for(GroupMember groupMember: groupMembers){
+            // 예외 발생: 이미 그룹에 있음 - 409 USER_ALREADY_IN_GROUP
+            if(groupMember.getMember().getId().equals(member.getId())){
+                throw new UserAlreadyInGroupException(GroupErrorCode.USER_ALREADY_IN_GROUP);
+            }
+        }
+
+        // 그룹-멤버 생성 (중간 테이블)
+        GroupMember groupMember = GroupMemberCreateDto.toEntity(group1, member);
+        groupMember.setGroupAdmin(false);
+        groupMember.setRole(GroupRole.GROUP_MEMBER);
+        groupMemberCommandRepository.save(groupMember);
+        log.info("그룹-멤버 생성 CommandService");
+
+        return InviteGroupMemberResponse.builder()
+            .memberId(member.getId())
+            .memberName(member.getName())
+            .groupId(groupId)
+            .build();
     }
 }
