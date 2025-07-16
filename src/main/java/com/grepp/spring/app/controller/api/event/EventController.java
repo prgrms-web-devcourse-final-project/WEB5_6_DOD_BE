@@ -82,10 +82,10 @@ public class EventController {
 
     // 이벤트 일정 참여
     @Operation(summary = "이벤트 참여")
-    @PostMapping("/{eventId}")
+    @PostMapping("/{eventId}/join/{groupId}")
     public ResponseEntity<ApiResponse<Void>> joinEvent(
         @PathVariable Long eventId,
-        @RequestParam Long groupId) {
+        @PathVariable Long groupId) {
 
         try {
             String currentMemberId = extractCurrentMemberId();
