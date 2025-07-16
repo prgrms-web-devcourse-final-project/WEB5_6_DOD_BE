@@ -69,21 +69,21 @@ public class ScheduleCommandService {
     @Autowired
     private LocationCommandRepository locationCommandRepository;
 
-//    @Transactional
-    public ShowScheduleResponse showSchedule(Long scheduleId) {
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-
-        // Lazy init 해결하기 위해서 Transactional 내에서 처리
-        Long eventId = schedule.get().getEvent().getId();
-
-        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
-        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
-
-        ShowScheduleDto dto = ShowScheduleDto.fromEntity(eventId, schedule.orElse(null), scheduleMembers, workspaces);
-
-
-        return ShowScheduleDto.fromDto(dto);
-    }
+////    @Transactional
+//    public ShowScheduleResponse showSchedule(Long scheduleId) {
+//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+//
+//        // Lazy init 해결하기 위해서 Transactional 내에서 처리
+//        Long eventId = schedule.get().getEvent().getId();
+//
+//        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+//        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
+//
+//        ShowScheduleDto dto = ShowScheduleDto.fromEntity(eventId, schedule.orElse(null), scheduleMembers, workspaces);
+//
+//
+//        return ShowScheduleDto.fromDto(dto);
+//    }
 
     public Optional<Schedule> findScheduleById(Long scheduleId) {
         return scheduleQueryRepository.findById(scheduleId);

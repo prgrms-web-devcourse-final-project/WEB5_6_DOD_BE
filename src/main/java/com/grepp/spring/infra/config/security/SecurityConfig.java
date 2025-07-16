@@ -54,6 +54,7 @@ public class SecurityConfig {
                                   .requestMatchers("/", "/error").permitAll()
                                   .requestMatchers("/api/v1/auth/update-tokens", "/api/v1/auth/login").permitAll()
                                   .requestMatchers("/api/**").authenticated()
+//                                  .requestMatchers("/api/**").permitAll()
                                   .anyRequest().permitAll()
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
