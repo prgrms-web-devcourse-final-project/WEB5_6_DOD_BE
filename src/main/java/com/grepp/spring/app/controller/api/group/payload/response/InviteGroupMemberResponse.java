@@ -6,5 +6,8 @@ import lombok.Data;
 @Builder
 @Data
 public class InviteGroupMemberResponse {
+    private String memberId;
+    private String memberName;
+    private Long groupId;
 
 }

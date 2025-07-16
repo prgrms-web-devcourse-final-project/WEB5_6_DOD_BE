@@ -6,5 +6,8 @@ import lombok.Data;
 @Builder
 @Data
 public class ModifyGroupInfoResponse {
+    private Long groupId;
+    private String groupName;
+    private String description;
 
 }
