@@ -103,27 +103,27 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
-    @Operation(summary = "소셜 연동 조회", description = "계정에 연동된 소셜 계정들을 조회합니다.")
-    @GetMapping("/social-connections")
-    public ResponseEntity<ApiResponse<?>> socialAccount() {
-        return ResponseEntity.ok(ApiResponse.success(
-            Map.of("socialAccounts", List.of(new SocialAccountResponse("jgnsjn198283718", Provider.GOOGLE),
-                new SocialAccountResponse("892bgdh71hb2dda", Provider.KAKAO)))));
-    }
-
-    @Operation(summary = "소셜 연동 요청", description = "계정에 새로운 소셜 계정을 연동합니다."
-        + "test AuthorizationCode : dkftndjqtsmsdlswmdzhem123")
-    @PostMapping("/social-connections")
-    public ResponseEntity<ApiResponse<?>> socialAccountConnections(@Valid @RequestBody SocialAccountConnectionRequest request) {
-        if (request.getAuthorizationCode().equals("dkftndjqtsmsdlswmdzhem123")) {
-            return ResponseEntity.ok(ApiResponse.success(
-                new SocialAccountConnectionResponse(Provider.GOOGLE)
-            ));
-        } else {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
-        }
-    }
+//    @Operation(summary = "소셜 연동 조회", description = "계정에 연동된 소셜 계정들을 조회합니다.")
+//    @GetMapping("/social-connections")
+//    public ResponseEntity<ApiResponse<?>> socialAccount() {
+//        return ResponseEntity.ok(ApiResponse.success(
+//            Map.of("socialAccounts", List.of(new SocialAccountResponse("jgnsjn198283718", Provider.GOOGLE),
+//                new SocialAccountResponse("892bgdh71hb2dda", Provider.KAKAO)))));
+//    }
+//
+//    @Operation(summary = "소셜 연동 요청", description = "계정에 새로운 소셜 계정을 연동합니다."
+//        + "test AuthorizationCode : dkftndjqtsmsdlswmdzhem123")
+//    @PostMapping("/social-connections")
+//    public ResponseEntity<ApiResponse<?>> socialAccountConnections(@Valid @RequestBody SocialAccountConnectionRequest request) {
+//        if (request.getAuthorizationCode().equals("dkftndjqtsmsdlswmdzhem123")) {
+//            return ResponseEntity.ok(ApiResponse.success(
+//                new SocialAccountConnectionResponse(Provider.GOOGLE)
+//            ));
+//        } else {
+//            return ResponseEntity.status(400)
+//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST));
+//        }
+//    }
 
     @Operation(summary = "토큰 갱신", description = "리프레시 토큰을 보내 엑세스 토큰과 리프레시 토큰을 갱신합니다.")
     @PostMapping("/update-tokens")
