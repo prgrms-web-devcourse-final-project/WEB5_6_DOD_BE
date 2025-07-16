@@ -2,13 +2,8 @@ package com.grepp.spring.app.controller.api.mainpage.payload.response;
 
 
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
-import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
-import com.grepp.spring.app.model.event.code.MeetingType;
-import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

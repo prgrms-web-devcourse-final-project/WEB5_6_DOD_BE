@@ -1,6 +1,5 @@
 package com.grepp.spring.app.model.mypage.service;
 
-
 import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
 import com.grepp.spring.app.model.member.entity.Member;

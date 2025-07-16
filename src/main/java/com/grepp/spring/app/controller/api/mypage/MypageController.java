@@ -229,6 +229,8 @@ public class MypageController {
 
     String memberId = authentication.getName();
 
-    return calendarSyncService.syncCalendar(memberId);
+    List<GoogleEventDto> events = calendarSyncService.syncCalendar(memberId);
+
+    return ApiResponse.success(events);
   }
 }

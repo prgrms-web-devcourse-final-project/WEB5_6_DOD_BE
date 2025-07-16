@@ -1,17 +1,15 @@
 package com.grepp.spring.app.controller.api.mypage;
 
 import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
-import com.grepp.spring.app.model.mainpage.service.GoogleScheduleService;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
-import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
 import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.GoogleOAuthService;
 import com.grepp.spring.app.model.mypage.service.SocialAuthTokenService;
 import com.grepp.spring.infra.response.ApiResponse;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,7 +32,7 @@ public class CalendarOAuthController {
 
   // 구글 캘린더 OAuth 콜백 (최초 인증)
   @GetMapping("/google-calendar")
-  public ApiResponse<Void> handleGoogleCalendarCallback(@RequestParam("code") String code) {
+  public ResponseEntity<ApiResponse<String>> handleGoogleCalendarCallback(@RequestParam("code") String code) {
 
     // 로그인 사용자 정보 가져오기
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,7 +56,7 @@ public class CalendarOAuthController {
     // 수동 새로고침 로직 호출
     calendarSyncService.syncCalendar(memberId);
 
-    return ApiResponse.success(null); // 새로고침 API가 따로 있으므로 단순 성공만 반환
+    return ResponseEntity.ok(ApiResponse.success("구글 캘린더 연동 성공")); // 새로고침 API 가 따로 있으므로 단순 성공만 반환
   }
 }
 

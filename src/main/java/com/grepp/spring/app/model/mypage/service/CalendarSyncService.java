@@ -7,8 +7,6 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.member.repository.SocialAuthTokenRepository;
 import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
 import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
-import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.ResponseCode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +37,7 @@ public class CalendarSyncService {
   private final RestTemplate restTemplate = new RestTemplate();
 
   // 캘린더 동기화 (매번 새로고침해서 일정 받아오는 방식)
-  public ApiResponse<List<GoogleEventDto>> syncCalendar(String memberId) {
+  public List<GoogleEventDto> syncCalendar(String memberId) {
 
     // 1) 회원 조회
     Member member = memberRepository.findById(memberId)
@@ -49,7 +47,8 @@ public class CalendarSyncService {
     Optional<SocialAuthToken> tokenOpt = socialAuthTokenRepository.findByMember(member);
     if (tokenOpt.isEmpty()) {
       // 아예 연동 안 된 상태 → 재인증 필요
-      return ApiResponse.error(ResponseCode.UNAUTHORIZED, googleOAuthService.buildReauthUrl());
+      throw new IllegalStateException("구글 캘린더 연동이 필요합니다. 재인증 URL: "
+                                      + googleOAuthService.buildReauthUrl());
     }
 
     SocialAuthToken token = tokenOpt.get();
@@ -58,7 +57,8 @@ public class CalendarSyncService {
     String accessToken = socialAuthTokenService.getValidAccessToken(token);
     if (accessToken == null) {
       // refresh_token 무효 → 재인증 필요
-      return ApiResponse.error(ResponseCode.UNAUTHORIZED, googleOAuthService.buildReauthUrl());
+      throw new IllegalStateException("구글 토큰이 만료되었습니다. 재인증 URL: "
+                                      + googleOAuthService.buildReauthUrl());
     }
 
     // 4) 구글 캘린더 API 직접 호출
@@ -83,7 +83,7 @@ public class CalendarSyncService {
 
 
     // 최신 이벤트 반환
-    return ApiResponse.success(events);
+    return events;
   }
 
   // Google JSON → DTO 변환
@@ -136,22 +136,6 @@ public class CalendarSyncService {
     return events;
   }
 
-
-//  // 연동 상태 조회 (원하면 유지) -> 마지막 새로고침 시간 보여줄 거임?
-//  public CalendarSyncStatusResponse getCalendarSyncStatus(String memberId) {
-//    Member member = memberRepository.findById(memberId)
-//        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-//
-//    Calendar calendar = calendarRepository.findByMember(member)
-//        .orElseThrow(() -> new IllegalStateException("캘린더가 존재하지 않습니다."));
-//
-//    return new CalendarSyncStatusResponse(
-//        calendar.getId(),
-//        calendar.getName(),
-//        calendar.getSynced()
-//    );
-//  }
-
-  }
+}
 
 

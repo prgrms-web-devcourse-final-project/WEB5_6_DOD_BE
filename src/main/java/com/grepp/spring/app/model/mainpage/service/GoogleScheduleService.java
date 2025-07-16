@@ -1,6 +1,5 @@
 package com.grepp.spring.app.model.mainpage.service;
 
-
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.mainpage.repository.GoogleScheduleRepository;
 import com.grepp.spring.app.model.member.entity.Member;

@@ -77,7 +77,7 @@ public class AuthService {
             memberRepository.save(member);
             log.info("새로운 유저 DB에 저장 완료: {}", userId);
 
-            memberRepository.flush(); // DB 에 즉시 insert ,!!
+            memberRepository.flush(); // DB 에 즉시 insert !!
 
             // 캘린더 생성
             Calendar calendar = new Calendar();

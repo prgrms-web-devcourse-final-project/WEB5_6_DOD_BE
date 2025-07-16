@@ -11,9 +11,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MainPageScheduleRepository extends JpaRepository<Schedule, Long> {
 
-  // 1. 시작 날짜가 한 주에 걸칠 때
-  // 2. 종료 날짜가 한 주에 걸칠 때
-  // 3. 시작 ~ 종료 날짜가 한 주에 포함될 때
+  // 조회 구간과 일정이 한 번이라도 겹치면 포함
+  // = 제외한 이유: all-day 일정의 end 는 다음날 00:00 으로 잡혀서 다음날까지 중복 조회됨
 
   @Query("""
     SELECT sm.schedule
