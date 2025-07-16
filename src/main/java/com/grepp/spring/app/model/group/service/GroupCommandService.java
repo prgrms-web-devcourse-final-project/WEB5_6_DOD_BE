@@ -77,6 +77,7 @@ public class GroupCommandService {
     }
 
     // 그룹 멤버 추가
+    @Transactional
     public InviteGroupMemberResponse addGroupMember(Long groupId) {
         // http 요청 사용자 조회
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
