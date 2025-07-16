@@ -2,11 +2,13 @@ package com.grepp.spring.app.controller.api.mainpage;
 
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
+import com.grepp.spring.app.model.mainpage.service.CalendarService;
 import com.grepp.spring.app.model.mainpage.service.MainPageService;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/main-page")
 public class MainPageController {
 
   private final MainPageService mainPageService;
+  private final CalendarService calendarService;
+
 
   // 통합된 하나의 API
   @Operation(summary = "메인페이지", description = "회원의 그룹리스트, 일정 및 캘린더 조회")
-  @GetMapping("/main-page")
+  @GetMapping()
   public ResponseEntity<ApiResponse<ShowMainPageResponse>> getMainPage(
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
       Authentication authentication
@@ -42,8 +46,8 @@ public class MainPageController {
   }
 
   @Operation(summary = "월 단위 일정 조회 (메인페이지 확장)")
-  @GetMapping("/main-page/calendar")
-  public ApiResponse<List<UnifiedScheduleDto>> getMonthlySchedules(
+  @GetMapping("/calendar")
+  public ApiResponse<Map<LocalDate,List<UnifiedScheduleDto>>> getMonthlySchedules(
       @RequestParam int year,
       @RequestParam int month
   ) {
@@ -54,13 +58,13 @@ public class MainPageController {
 
     String memberId = authentication.getName();
 
-    LocalDate firstDay = LocalDate.of(year, month, 1);
-    LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
+    // 그냥 해당 월의 1일만 CalendarService에 넘기면 알아서 월간 범위 조회
+    LocalDate anyDateInMonth = LocalDate.of(year, month, 1);
 
-    List<UnifiedScheduleDto> unifiedSchedules = mainPageService.getUnifiedSchedules(
-        memberId, firstDay, lastDay);
+    Map<LocalDate, List<UnifiedScheduleDto>> monthlySchedules =
+        calendarService.getMonthlySchedules(memberId, anyDateInMonth);
 
-    return ApiResponse.success(unifiedSchedules);
+    return ApiResponse.success("월간 일정 조회 성공",monthlySchedules);
   }
 
 }
