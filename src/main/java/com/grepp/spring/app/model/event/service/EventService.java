@@ -16,6 +16,7 @@ import com.grepp.spring.app.model.event.repository.CandidateDateRepository;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.event.repository.TempScheduleRepository;
+import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
@@ -61,9 +62,10 @@ public class EventService {
         validate(serviceRequest);
 
         Event event = null;
+        Group group = null;
 
         if (serviceRequest.getGroupId() != null) {
-            Group group = groupRepository.findById(serviceRequest.getGroupId())
+            group = groupRepository.findById(serviceRequest.getGroupId())
                 .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다. ID: " + serviceRequest.getGroupId()));
 
             GroupMember groupMember = groupMemberRepository.findByGroupIdAndMemberId(serviceRequest.getGroupId(), currentMemberId)
@@ -71,8 +73,9 @@ public class EventService {
 
             event = CreateEventDto.toEntity(serviceRequest, group);
         } else {
-            Group tempGroup = createTempGroupForSingleEvent(serviceRequest.getTitle(), serviceRequest.getDescription());
-            event = CreateEventDto.toEntity(serviceRequest, tempGroup);
+            group = createTempGroupForSingleEvent(serviceRequest.getTitle(), serviceRequest.getDescription());
+            event = CreateEventDto.toEntity(serviceRequest, group);
+            addUserToGroup(group.getId(), currentMemberId);
         }
 
         event = eventRepository.save(event);
@@ -83,6 +86,7 @@ public class EventService {
         CreateEventResponse response = new CreateEventResponse();
         response.setEventId(event.getId());
         response.setTitle(event.getTitle());
+        response.setGroupId(group.getId());
 
         return response;
     }
@@ -136,7 +140,7 @@ public class EventService {
     }
 
     @Transactional
-    public void joinEvent(Long eventId, String currentMemberId) {
+    public void joinEvent(Long eventId, Long groupId, String currentMemberId) {
 
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
@@ -153,13 +157,39 @@ public class EventService {
         Long currentMemberCount = eventMemberRepository.countByEventId(dto.getEventId());
         validateEventCapacity(event, currentMemberCount);
 
-        if (event.getGroup() != null) {
-            validateGroupMembership(event.getGroup().getId(), dto.getMemberId());
-        }
+        addUserToGroup(groupId, dto.getMemberId());
 
         EventMemberDto memberDto = EventMemberDto.toDto(dto.getEventId(), dto.getMemberId(), Role.ROLE_MEMBER);
         createEventMember(memberDto);
 
+    }
+
+    private void addUserToGroup(Long groupId, String memberId) {
+        try {
+            Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다. ID: " + groupId));
+
+            Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + memberId));
+
+            Optional<GroupMember> existingGroupMember = groupMemberRepository
+                .findByGroupIdAndMemberId(groupId, memberId);
+
+            if (existingGroupMember.isPresent()) {
+                return;
+            }
+
+            GroupMember groupMember = new GroupMember();
+            groupMember.setGroup(group);
+            groupMember.setMember(member);
+            groupMember.setRole(GroupRole.GROUP_MEMBER);
+            groupMember.setGroupAdmin(false);
+
+            groupMemberRepository.save(groupMember);
+
+        } catch (Exception e) {
+            throw new IllegalStateException("그룹 멤버 추가에 실패했습니다.", e);
+        }
     }
 
     private void validateEventCapacity(Event event, Long currentMemberCount) {
