@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -78,8 +79,14 @@ public class CalendarSyncService {
     List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("items");
     List<GoogleEventDto> events = convertToDto(items);
 
-    // 6) DB 저장 (새로운 일정만 저장하거나 업데이트)
-    googleScheduleService.syncGoogleEvents(member, events);
+
+
+    try {
+      // 6) DB 저장 (새로운 일정만 저장하거나 업데이트)
+      googleScheduleService.syncGoogleEvents(member, events);
+    } catch (DataAccessException e) {
+      throw new IllegalStateException("구글 일정 저장 중 오류가 발생했습니다.", e);
+    }
 
 
     // 최신 이벤트 반환
