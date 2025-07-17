@@ -306,9 +306,9 @@ public class EventService {
         LocalTime startTime = firstCandidate.getStartTime();
         LocalTime endTime = firstCandidate.getEndTime();
 
-        int totalSlots = (int) java.time.Duration.between(startTime, endTime).toMinutes() / 30;
-
-        int startSlotIndex = startTime.getHour() * 2 + (startTime.getMinute() / 30);
+        int startSlotIndex = startTime.getHour() * 2 + (startTime.getMinute() >= 30 ? 1 : 0);
+        int endSlotIndex = endTime.getHour() * 2 + (endTime.getMinute() >= 30 ? 1 : 0);
+        int totalSlots = endSlotIndex - startSlotIndex;
 
         for (CandidateDate candidateDate : candidateDates) {
             LocalDate date = candidateDate.getDate();
