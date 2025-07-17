@@ -73,6 +73,13 @@ public class ScheduleQueryService {
     }
 
     public Schedule findScheduleById(Long scheduleId) {
+
+//        if (scheduleQueryRepository.findById(scheduleId).isEmpty()) {
+//            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
+//        }
+//        return scheduleQueryRepository.findById(scheduleId).get();
+
+        // orElseThrow 는 빈 배열로 반환되어서
         return scheduleQueryRepository.findById(scheduleId).orElseThrow(() -> new ScheduleNotFoundException(
             GroupErrorCode.SCHEDULE_NOT_FOUND));
     }

@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class WorkspaceDto {
+    private Long workspaceId;
     private WorkspaceType type;
     private String name;
     private String url;

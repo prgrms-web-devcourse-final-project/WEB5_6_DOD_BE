@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.schedule.dto;
 
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
@@ -47,5 +48,11 @@ public class CreateScheduleDto {
             .status(dto.getScheduleStatus()) // 이벤트 -> 일정 생성 , 일정 픽스 2개의 상태가 있다. 생성 시 무조건 NONE으로 고정불가
             .scheduleName(dto.getScheduleName())
             .description(dto.getDescription()).build();
+    }
+
+    public static CreateSchedulesResponse toResponse(Long scheduleId) {
+        return CreateSchedulesResponse.builder()
+            .scheduleId(scheduleId)
+            .build();
     }
 }
