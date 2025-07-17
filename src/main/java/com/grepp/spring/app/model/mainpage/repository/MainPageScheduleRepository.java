@@ -15,11 +15,16 @@ public interface MainPageScheduleRepository extends JpaRepository<Schedule, Long
   // = 제외한 이유: all-day 일정의 end 는 다음날 00:00 으로 잡혀서 다음날까지 중복 조회됨
 
   @Query("""
-    SELECT sm.schedule
-    FROM ScheduleMember sm
+    SELECT DISTINCT s
+    FROM Schedule s
+    JOIN s.scheduleMembers sm
+    JOIN FETCH s.event e
+    JOIN FETCH e.group g
+    LEFT JOIN FETCH g.groupMembers gm
+    LEFT JOIN FETCH gm.member m
     WHERE sm.member.id = :memberId
-      AND sm.schedule.startTime < :end
-      AND sm.schedule.endTime > :start
+      AND s.startTime < :end
+      AND s.endTime > :start
 """)
   List<Schedule> findSchedulesForMainPage(
       @Param("memberId") String memberId,

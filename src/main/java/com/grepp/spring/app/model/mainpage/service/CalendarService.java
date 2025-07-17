@@ -1,5 +1,7 @@
 package com.grepp.spring.app.model.mainpage.service;
 
+import com.grepp.spring.app.model.group.entity.Group;
+import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.mainpage.repository.GoogleScheduleRepository;
@@ -42,7 +44,11 @@ public class CalendarService {
 
     // 3. DTO 변환
     List<UnifiedScheduleDto> internalDtos = schedules.stream()
-        .map(UnifiedScheduleDto::fromService)
+        .map(schedule -> {
+          Group group = schedule.getEvent().getGroup();
+          List<GroupMember> groupMembers = group.getGroupMembers();
+          return UnifiedScheduleDto.fromService(schedule, group, groupMembers);
+        })
         .toList();
 
     List<UnifiedScheduleDto> googleDtos = googleSchedules.stream()

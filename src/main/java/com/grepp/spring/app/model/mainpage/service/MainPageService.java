@@ -2,6 +2,8 @@ package com.grepp.spring.app.model.mainpage.service;
 
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
+import com.grepp.spring.app.model.group.entity.Group;
+import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.service.GroupQueryService;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
@@ -75,7 +77,11 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
 
     // 우리 서비스 일정 → DTO 변환 호출
     List<UnifiedScheduleDto> internalDtos = schedules.stream()
-        .map(UnifiedScheduleDto::fromService)
+        .map(schedule -> {
+          Group group = schedule.getEvent().getGroup();
+          List<GroupMember> groupMembers = group.getGroupMembers();
+          return UnifiedScheduleDto.fromService(schedule, group, groupMembers);
+        })
         .toList();
 
     // 구글 일정(calendar_detail) → DTO 변환 호출
