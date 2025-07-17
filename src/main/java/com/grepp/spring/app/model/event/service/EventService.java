@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -278,6 +279,8 @@ public class EventService {
             .filter(EventMember::getConfirmed)
             .count();
 
+        Map<String, List<Integer>> participantCounts = calculateParticipantCounts(candidateDates, memberScheduleMap);
+
         AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
             .eventId(event.getId())
             .eventTitle(event.getTitle())
@@ -286,9 +289,61 @@ public class EventService {
             .memberSchedules(memberSchedules)
             .totalMembers(eventMembers.size())
             .confirmedMembers(confirmedMembers)
+            .participantCounts(participantCounts)
             .build();
 
         return AllTimeScheduleDto.fromDto(dto);
+    }
+
+
+    private Map<String, List<Integer>> calculateParticipantCounts(
+        List<CandidateDate> candidateDates,
+        Map<Long, List<TempSchedule>> memberScheduleMap
+    ) {
+        Map<String, List<Integer>> participantCounts = new HashMap<>();
+
+        CandidateDate firstCandidate = candidateDates.getFirst();
+        LocalTime startTime = firstCandidate.getStartTime();
+        LocalTime endTime = firstCandidate.getEndTime();
+
+        int startSlotIndex = startTime.getHour() * 2 + (startTime.getMinute() >= 30 ? 1 : 0);
+        int endSlotIndex = endTime.getHour() * 2 + (endTime.getMinute() >= 30 ? 1 : 0);
+        int totalSlots = endSlotIndex - startSlotIndex;
+
+        for (CandidateDate candidateDate : candidateDates) {
+            LocalDate date = candidateDate.getDate();
+            String dateKey = date.toString();
+
+            int[] timeSlotCounts = new int[totalSlots];
+
+            for (List<TempSchedule> memberSchedules : memberScheduleMap.values()) {
+                TempSchedule dateSchedule = memberSchedules.stream()
+                    .filter(schedule -> schedule.getDate().equals(date))
+                    .findFirst()
+                    .orElse(null);
+
+                if (dateSchedule != null && dateSchedule.getTimeBit() != null) {
+                    long timeBit = dateSchedule.getTimeBit();
+
+                    for (int i = 0; i < totalSlots; i++) {
+                        int actualBitIndex = startSlotIndex + i;
+
+                        if (actualBitIndex < 48 && (timeBit & (1L << actualBitIndex)) != 0) {
+                            timeSlotCounts[i]++;
+                        }
+                    }
+                }
+            }
+
+            List<Integer> participantList = Arrays.stream(timeSlotCounts)
+                .boxed()
+                .collect(Collectors.toList());
+
+            participantCounts.put(dateKey, participantList);
+
+        }
+
+        return participantCounts;
     }
 
     private Map<Long, List<TempSchedule>> getMemberScheduleMap(List<EventMember> eventMembers) {
