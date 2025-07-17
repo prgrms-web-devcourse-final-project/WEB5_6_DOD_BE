@@ -228,30 +228,33 @@ public class ScheduleCommandService {
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
             request.getMemberId(), scheduleId);
 
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
-        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
+//        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
+        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
 
         scheduleMember.setDepartLocationName(dto.getDepartLocationName());
         scheduleMember.setLongitude(dto.getLongitude());
         scheduleMember.setLatitude(dto.getLatitude());
 
-        saveLocation(dto);
+        //TODO : 출발장소들을 이용하여 중간장소 계산
+
+//        saveLocation(dto);
 
     }
 
-    private void saveLocation(CreateDepartLocationDto dto) {
-        Location location = Location.builder()
-            .latitude(dto.getLatitude())
-            .longitude(dto.getLongitude())
-            .name(dto.getDepartLocationName())
-            .suggestedMemberId(dto.getSuggestedMemberId())
-            .status(dto.getStatus())
-            .schedule(dto.getScheduleId())
-            .build();
-
-        locationCommandRepository.save(location);
-    }
+//    private void saveLocation(CreateDepartLocationDto dto) {
+//        Location location = Location.builder()
+//            .latitude(dto.getLatitude())
+//            .longitude(dto.getLongitude())
+//            .name(dto.getDepartLocationName())
+//            .suggestedMemberId(dto.getSuggestedMemberId())
+//            .status(dto.getStatus())
+//            .schedule(dto.getScheduleId())
+//            .build();
+//
+//        locationCommandRepository.save(location);
+//    }
 
     @Transactional
     public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule sId) {

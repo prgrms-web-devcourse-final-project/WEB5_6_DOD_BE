@@ -17,19 +17,17 @@ public class CreateDepartLocationDto {
     private Double longitude;   // 위도
     private Double latitude;    // 경도
 
-    private Schedule scheduleId;
-    private String suggestedMemberId;
-    private VoteStatus status;
+//
+//    private Schedule scheduleId;
+//    private String suggestedMemberId;
+//    private VoteStatus status;
 
 
-    public static CreateDepartLocationDto toDto(CreateDepartLocationRequest request, Schedule scheduleId, String memberId) {
+    public static CreateDepartLocationDto toDto(CreateDepartLocationRequest request) {
         return CreateDepartLocationDto.builder()
             .departLocationName(request.getDepartLocationName())
             .longitude(request.getLongitude())
             .latitude(request.getLatitude())
-            .scheduleId(scheduleId)
-            .suggestedMemberId(memberId)
-            .status(VoteStatus.DEFAULT)
             .build();
     }
 

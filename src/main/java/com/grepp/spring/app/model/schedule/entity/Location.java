@@ -49,8 +49,8 @@ public class Location extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column
-    private String suggestedMemberId;
+//    @Column
+//    private String suggestedMemberId;
 
     @Column
     private Long voteCount;
