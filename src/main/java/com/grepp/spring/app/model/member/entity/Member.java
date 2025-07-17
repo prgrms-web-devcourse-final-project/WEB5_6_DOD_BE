@@ -18,6 +18,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -34,6 +38,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false, updatable = false)
     private String id;
 
+    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,20}$", message = "비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자여야 합니다.")
     @Column(nullable = false)
     private String password;
 
@@ -45,6 +50,7 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Email
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -52,9 +58,12 @@ public class Member extends BaseEntity {
     private String name;
 
     @Column(nullable = false)
-    private Long profileImageNumber;
+    @Min(0)
+    @Max(7)
+    private Integer profileImageNumber;
 
     @Column(nullable = true, unique = true) // 잠깐 나가있어
+    @Pattern(regexp = "^01(?:0|1|[6-9])-(?:\\d{3}|\\d{4})-\\d{4}$", message = "유효하지 않은 전화번호 형식입니다. (예: 010-1234-5678)")
     private String tel;
 
     // 멤버가 삭제되면 그 멤버의 소셜 토큰도 삭제

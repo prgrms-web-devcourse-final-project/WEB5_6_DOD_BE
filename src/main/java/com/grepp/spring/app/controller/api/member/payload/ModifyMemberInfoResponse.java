@@ -9,6 +9,6 @@ public class ModifyMemberInfoResponse {
 
     private String id;
     private String name;
-    private Long profileImageNumber;
+    private Integer profile;
 
 }

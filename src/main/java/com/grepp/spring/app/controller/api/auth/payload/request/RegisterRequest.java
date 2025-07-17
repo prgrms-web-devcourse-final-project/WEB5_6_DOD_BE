@@ -11,7 +11,7 @@ public class RegisterRequest {
     private String role;
     private String email;
     private String name;
-    private Long profileImageNumber;
+    private Integer profileImageNumber;
     private String tel;
 
 }
