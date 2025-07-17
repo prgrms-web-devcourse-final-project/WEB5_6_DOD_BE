@@ -91,6 +91,14 @@ public class ScheduleQueryService {
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
 
         List<Location> location = locationQueryRepository.findByScheduleId(scheduleId);
+        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+
+        int departLocationCount = 0;
+        for (ScheduleMember scheduleMember : scheduleMembers) {
+            if (scheduleMember.getDepartLocationName() != null) {
+                departLocationCount++;
+            }
+        }
 
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
         int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
@@ -101,7 +109,7 @@ public class ScheduleQueryService {
                 infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
             }
 
-        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto, scheduleMemberNumber,voteCount);
+        ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto, scheduleMemberNumber, voteCount, departLocationCount);
         
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }

@@ -11,13 +11,16 @@ import lombok.Setter;
 @Builder
 public class ShowSuggestedLocationsDto {
     private List<MetroInfoDto> suggestedLocations;
-    private int noVoteCount;
+    private int noVoteCount; // 투표하지 않은 사람의 수
+    private int noDepartLocationCount; // 추가 // 출발장소를 등록하지 않은 사람의 수
 
-    public static ShowSuggestedLocationsDto fromMetroInfoDto(List<MetroInfoDto> dto, int scheduleMemberNumber, int voteCount) {
+
+    public static ShowSuggestedLocationsDto fromMetroInfoDto(List<MetroInfoDto> dto, int scheduleMemberNumber, int voteCount, int departLocationCount) {
 
         return ShowSuggestedLocationsDto.builder()
             .suggestedLocations(dto)
             .noVoteCount(scheduleMemberNumber - voteCount)
+            .noDepartLocationCount(scheduleMemberNumber - departLocationCount)
             .build();
     }
 
@@ -25,6 +28,7 @@ public class ShowSuggestedLocationsDto {
         return ShowSuggestedLocationsResponse.builder()
             .suggestedLocations(dto.getSuggestedLocations())
             .noVoteCount(dto.getNoVoteCount())
+            .noDepartLocationCount(dto.getNoDepartLocationCount())
             .build();
     }
 }
