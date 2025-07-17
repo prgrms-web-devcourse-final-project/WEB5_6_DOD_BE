@@ -5,6 +5,7 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSched
 import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
@@ -90,7 +91,7 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void createSchedule(CreateSchedulesRequest request) {
+    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request) {
         Optional<Event> eid = eventRepository.findById(request.getEventId());
 
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
@@ -115,6 +116,8 @@ public class ScheduleCommandService {
 
             scheduleMemberQueryRepository.save(scheduleMember);
         }
+
+        return CreateScheduleDto.toResponse(schedule.getId());
     }
 
     @Transactional // JPA 영속성 컨텍스트 변경 감지. setter를 사용해서 값 바꾸면 자동으로 변경

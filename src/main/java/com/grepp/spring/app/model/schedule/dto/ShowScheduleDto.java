@@ -80,6 +80,7 @@ public class ShowScheduleDto {
 
         List<WorkspaceDto> workspaces = IntStream.range(0, workspace.size())
             .mapToObj(i-> new WorkspaceDto(
+                workspace.get(i).getId(),
                 workspacesType.get(i),
                 workspacesNames.get(i),
                 workspacesUrls.get(i)

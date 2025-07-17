@@ -105,13 +105,13 @@ values (10,'10a',1, 'ROLE_MEMBER','이수역', 37.487521, 126.982309, '황수지
 
 -- 워크스페이스 테이블 생성
 insert into workspaces(id,schedule_id,type,name,url)
-values (1,1,'DISCORD','DOD discord','www.discord.com');
+values (1,1,'GITHUB','DOD github','www.github.com');
 
 insert into workspaces(id,schedule_id,type,name,url)
 values (2,1,'FIGMA','이때 어때 figma','www.figma.com');
 
 insert into workspaces(id,schedule_id,type,name,url)
-values (3,1,'ZEP','데브코스 zep','www.zep.com');
+values (3,1,'NOTION','데브코스 notion','www.notion.com');
 
 -- 장소 테이블 생성
 insert into locations(id,schedule_id, name, latitude, longitude,status)

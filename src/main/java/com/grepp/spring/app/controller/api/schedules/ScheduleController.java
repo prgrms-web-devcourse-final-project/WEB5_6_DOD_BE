@@ -82,9 +82,9 @@ public class ScheduleController {
                         "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
             }
 
-            scheduleCommandService.createSchedule(request);
+            CreateSchedulesResponse response = scheduleCommandService.createSchedule(request);
 
-            return ResponseEntity.ok(ApiResponse.success("일정이 등록되었습니다."));
+            return ResponseEntity.ok(ApiResponse.success(response));
         }
          catch (Exception e) {
 
