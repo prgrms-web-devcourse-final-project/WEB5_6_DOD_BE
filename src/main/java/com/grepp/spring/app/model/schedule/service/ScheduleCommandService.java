@@ -6,7 +6,6 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspac
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
@@ -18,7 +17,6 @@ import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
-import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
@@ -37,7 +35,6 @@ import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
-import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +155,14 @@ public class ScheduleCommandService {
 
         if (dto.getSpecificLocation() != null) {
             schedule.get().setSpecificLocation(dto.getSpecificLocation());
+        }
+
+        if (dto.getSpecificLatitude() != null) {
+            schedule.get().setSpecificLatitude(dto.getSpecificLatitude());
+        }
+
+        if (dto.getSpecificLongitude() != null) {
+            schedule.get().setSpecificLongitude(dto.getSpecificLongitude());
         }
 
         if (dto.getMeetingPlatform() != null) {

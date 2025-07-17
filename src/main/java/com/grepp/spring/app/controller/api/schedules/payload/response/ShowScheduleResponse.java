@@ -24,6 +24,10 @@ public class ShowScheduleResponse {
     private LocalDateTime endTime;
     private String location; // 중간장소
     private String specificLocation; // 상세장소
+
+    private Double specificLatitude; // 추가
+    private Double specificLongitude; // 추가
+
     private String scheduleName;
     private String description;
 

@@ -31,6 +31,10 @@ public class ShowScheduleDto {
     private MeetingType meetingType; // 온오프라인여부
     private String location;
     private String specificLocation;
+
+    private Double specificLatitude;  //추가
+    private Double specificLongitude; //추가
+
     private String scheduleName;
     private String description;
 
@@ -52,6 +56,8 @@ public class ShowScheduleDto {
             .meetingType(dto.getMeetingType())
             .location(dto.getLocation())
             .specificLocation(dto.getSpecificLocation())
+            .specificLatitude(dto.getSpecificLatitude()) // 추가
+            .specificLongitude(dto.getSpecificLongitude()) // 추가
             .scheduleName(dto.getScheduleName())
             .description(dto.getDescription())
             .meetingPlatform(dto.getMeetingPlatform())
@@ -95,6 +101,8 @@ public class ShowScheduleDto {
             .meetingType(meetingType)
             .location(schedule.getLocation())
             .specificLocation(schedule.getSpecificLocation())
+            .specificLatitude(schedule.getSpecificLatitude()) // 추가
+            .specificLongitude(schedule.getSpecificLongitude()) // 추가
             .description(schedule.getDescription())
             .meetingPlatform(schedule.getMeetingPlatform())
             .platformUrl(schedule.getPlatformUrl())

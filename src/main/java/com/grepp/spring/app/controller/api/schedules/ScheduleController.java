@@ -146,7 +146,7 @@ public class ScheduleController {
 
     // 중간장소 후보 조회
     @Operation(summary = "중간장소 후보 조회 & 중간장소 투표결과 확인", description = "중간장소 후보를 조회 & 중간장소 투표결과 확인 합니다.")
-    @GetMapping("/show-suggested-locations{scheduleId}")
+    @GetMapping("/show-suggested-locations/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowSuggestedLocationsResponse>> showSuggestedLocations(
         @PathVariable Long scheduleId) {
 
