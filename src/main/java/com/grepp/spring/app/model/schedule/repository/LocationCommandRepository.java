@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.schedule.repository;
 
+import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

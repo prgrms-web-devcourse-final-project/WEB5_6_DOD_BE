@@ -2,7 +2,7 @@
   인증 init
  */
 INSERT INTO Members (id, password, provider, role, email, name, profile_image_number, tel)
-VALUES ('GOOGLE_1234', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'test@gmail.com', '하명도', 1010101, '010-1234-5678');
+VALUES ('GOOGLE_1234', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'test@gmail.com', '하명도', 1, '010-1234-5678');
 
 /**
   강현 init

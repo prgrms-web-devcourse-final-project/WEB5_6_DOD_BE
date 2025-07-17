@@ -73,7 +73,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
         @RequestBody CreateSchedulesRequest request) {
 
-        try {
+
             Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
 
             if (eId.isEmpty()) {
@@ -85,14 +85,8 @@ public class ScheduleController {
             CreateSchedulesResponse response = scheduleCommandService.createSchedule(request);
 
             return ResponseEntity.ok(ApiResponse.success(response));
-        }
-         catch (Exception e) {
 
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
-
 
     // 일정 수정
     @Operation(summary = "일정 수정", description = "일정 수정을 진행합니다.")
@@ -128,20 +122,12 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(
         @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
 
-        try {
+            scheduleQueryService.findScheduleById(scheduleId);
+
 
             scheduleCommandService.createDepartLocation(scheduleId, request);
 
             return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
-                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
 
     // 중간장소 후보 조회

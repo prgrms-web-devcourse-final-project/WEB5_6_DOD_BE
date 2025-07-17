@@ -228,12 +228,29 @@ public class ScheduleCommandService {
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
             request.getMemberId(), scheduleId);
 
-        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+
+        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
 
         scheduleMember.setDepartLocationName(dto.getDepartLocationName());
         scheduleMember.setLongitude(dto.getLongitude());
         scheduleMember.setLatitude(dto.getLatitude());
 
+        saveLocation(dto);
+
+    }
+
+    private void saveLocation(CreateDepartLocationDto dto) {
+        Location location = Location.builder()
+            .latitude(dto.getLatitude())
+            .longitude(dto.getLongitude())
+            .name(dto.getDepartLocationName())
+            .suggestedMemberId(dto.getSuggestedMemberId())
+            .status(dto.getStatus())
+            .schedule(dto.getScheduleId())
+            .build();
+
+        locationCommandRepository.save(location);
     }
 
     @Transactional
