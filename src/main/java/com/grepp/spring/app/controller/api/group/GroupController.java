@@ -12,6 +12,7 @@ import com.grepp.spring.app.controller.api.group.payload.response.DeportGroupMem
 import com.grepp.spring.app.controller.api.group.payload.response.InviteGroupMemberResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ModifyGroupInfoResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ScheduleToGroupResponse;
+import com.grepp.spring.app.controller.api.group.payload.response.ShowCandidateGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupMemberResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupScheduleResponse;
@@ -25,6 +26,7 @@ import com.grepp.spring.app.model.group.service.GroupCommandModifyGroupService;
 import com.grepp.spring.app.model.group.service.GroupCommandService;
 import com.grepp.spring.app.model.group.service.GroupCommandWithdrawService;
 import com.grepp.spring.app.model.group.service.GroupQueryGroupScheduleService;
+import com.grepp.spring.app.model.group.service.GroupQueryGroupTransferCandidateService;
 import com.grepp.spring.app.model.group.service.GroupQueryService;
 import com.grepp.spring.app.model.group.service.GroupQueryStatisticsService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
@@ -62,6 +64,7 @@ public class GroupController {
     private final GroupCommandModifyGroupRoleService groupCommandModifyGroupRoleService;
     private final GroupCommandWithdrawService groupCommandWithdrawService;
     private final GroupCommandGroupTransferService groupCommandGroupTransferService;
+    private final GroupQueryGroupTransferCandidateService groupQueryGroupTransferCandidateService;
     // TODO: refactoring end
 
     // 현재 유저가 속한 그룹 조회
@@ -212,6 +215,19 @@ public class GroupController {
         ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(
             id);
         // 그룹 통계 조회 성공
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    // 일회성 일정 -> 그룹 일정으로 이동
+    @Operation(summary = "일회성 일정을 편입시킬 수 있는 그룹 조회")
+    @GetMapping("/move-schedule/{id}")
+    public ResponseEntity<ApiResponse<ShowCandidateGroupResponse>> showGroupCandidate(
+        @PathVariable Long id
+    ) {
+        // 일회성 일정 -> 그룹 일정으로 이동
+        ShowCandidateGroupResponse response = groupQueryGroupTransferCandidateService.transferCandidateSchedule(id);
+        // 일회성 일정 -> 그룹 일정으로 이동 성공
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
