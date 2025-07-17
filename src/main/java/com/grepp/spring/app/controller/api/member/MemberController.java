@@ -70,7 +70,7 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
-    @Operation(summary = "사용자 정보 수정", description = "사용자의 이름을 수정합니다.")
+    @Operation(summary = "회원 이름 수정", description = "사용자의 이름을 수정합니다.")
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<ModifyMemberInfoResponse>> modifyMemberInfo(String username){
 
@@ -78,10 +78,10 @@ public class MemberController {
         String userId = authentication.getName();
 
         ModifyMemberInfoResponse response = memberService.modifyMemberInfo(userId, username);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success("이름이 정상적으로 변경되었습니다.", response));
     }
 
-    @Operation(summary = "프로필 캐릭터 변경", description = "사용자의 프로필 캐릭터를 랜덤으로 변경합니다.")
+    @Operation(summary = "회원 프로필 변경", description = "사용자의 프로필 캐릭터를 랜덤으로 변경합니다.")
     @PatchMapping("/profile")
     public ResponseEntity<ApiResponse<ModifyMemberInfoResponse>> modifyProfileImage(){
 
@@ -89,6 +89,6 @@ public class MemberController {
         String userId = authentication.getName();
 
         ModifyMemberInfoResponse response = memberService.modifyProfileImage(userId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success("프로필이 임의의 캐릭터로 변경되었습니다.", response));
     }
 }
