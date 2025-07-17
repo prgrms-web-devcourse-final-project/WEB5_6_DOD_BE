@@ -142,13 +142,13 @@ public class ScheduleController {
             return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 출발 장소 투표하기
-    @Operation(summary = "출발 장소 투표하기", description = "출발 장소를 투표합니다.")
+    // 중간장소 투표하기
+    @Operation(summary = "중간장소 투표하기", description = "중간장소를 투표합니다.")
     @PostMapping("/suggested-locations/vote/{scheduleMemberId}")
     public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
-        try {
+//        try {
             Schedule sId = scheduleQueryService.findScheduleById(request.getScheduleId());
             Optional<ScheduleMember> smId = scheduleMemberQueryRepository.findById(scheduleMemberId);
             Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
@@ -162,15 +162,15 @@ public class ScheduleController {
             scheduleCommandService.voteMiddleLocation(smId, lId, sId);
 
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
-                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+//        } catch (Exception e) {
+//            if (e instanceof AuthApiException) {
+//                return ResponseEntity.status(401)
+//                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
+//                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
+//            }
+//            return ResponseEntity.status(400)
+//                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
+//        }
     }
 
     // 온라인 회의장 링크 개설(줌, 구글미트)

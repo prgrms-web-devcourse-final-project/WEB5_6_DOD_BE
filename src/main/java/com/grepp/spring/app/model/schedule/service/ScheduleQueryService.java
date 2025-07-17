@@ -6,6 +6,7 @@ import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.dto.MetroInfoDto;
 import com.grepp.spring.app.model.schedule.dto.MetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
@@ -103,8 +104,18 @@ public class ScheduleQueryService {
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
         int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
 
+
+
         List<MetroInfoDto> infoDto = new ArrayList<>();
+//        int winner = 0;
+//        Long lid = null;
             for (Location l : location) {
+//                if (scheduleMemberNumber - voteCount == 0) {
+//                    if (winner < voteCount) {
+//                        winner = voteCount;
+//                        lid = l.getId();
+//                    }
+//                }
                 List<MetroTransfer> transferForLocation = metroTransferQueryRepository.findByLocationId(l.getId());
                 infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
             }

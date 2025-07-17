@@ -11,6 +11,7 @@ import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
+import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
@@ -31,10 +32,12 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,9 @@ public class ScheduleCommandService {
     @Autowired private EventRepository eventRepository;
 
     @Autowired private MemberRepository memberRepository;
+
+    @Autowired
+    private VoteQueryRepository voteQueryRepository;
 
 
     @Autowired
@@ -257,11 +263,11 @@ public class ScheduleCommandService {
 //    }
 
     @Transactional
-    public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule sId) {
+    public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule schedule) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
 
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(smId, lid, sId);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(smId, lid, schedule);
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
@@ -270,10 +276,28 @@ public class ScheduleCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Location ID 없음")))
             .orElseThrow(() -> new IllegalArgumentException("해당 Location 없음"));
 
-        if (location.getVoteCount() != null) {
+//        if (location.getVoteCount() != null) {
             location.setVoteCount(location.getVoteCount() + 1);
-        } else if (location.getVoteCount() == null) {
-            location.setVoteCount(1L);
+//        } else if (location.getVoteCount() == null) {
+//            location.setVoteCount(1);
+//        }
+
+        List<Location> location2 = locationQueryRepository.findByScheduleId(schedule.getId());
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
+        int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
+
+        if (scheduleMemberNumber - voteCount == 0) {
+            int winner = 0;
+            Long winnerLid = null;
+            for (Location l : location2) {
+                if (winner <= l.getVoteCount()) {
+                    winner = l.getVoteCount();
+                    winnerLid = l.getId();
+                }
+            }
+
+            Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLid);
+            winnerLocation.get().setStatus(VoteStatus.WINNER);
         }
 
     }
