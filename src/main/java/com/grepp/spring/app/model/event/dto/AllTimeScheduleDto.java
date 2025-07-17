@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
@@ -19,6 +20,7 @@ public class AllTimeScheduleDto {
     private final List<MemberScheduleDto> memberSchedules;
     private final Integer totalMembers;
     private final Integer confirmedMembers;
+    private final Map<String, List<Integer>> participantCounts;
 
     @Getter
     @Builder
@@ -60,6 +62,7 @@ public class AllTimeScheduleDto {
         response.setDescription(dto.getDescription());
         response.setTotalMembers(dto.getTotalMembers());
         response.setConfirmedMembers(dto.getConfirmedMembers());
+        response.setParticipantCounts(dto.getParticipantCounts());
 
         if (dto.getTimeTable() != null) {
             AllTimeScheduleResponse.TimeTable timeTable = new AllTimeScheduleResponse.TimeTable();

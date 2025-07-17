@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,6 +16,7 @@ public class AllTimeScheduleResponse {
     private List<MemberSchedule> memberSchedules;
     private Integer totalMembers;
     private Integer confirmedMembers;
+    private Map<String, List<Integer>> participantCounts;
 
     @Getter
     @Setter
