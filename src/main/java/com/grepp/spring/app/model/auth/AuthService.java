@@ -70,7 +70,7 @@ public class AuthService {
             member.setName(userInfo.getName());
             member.setEmail(userInfo.getEmail());
             member.setRole(Role.ROLE_USER);
-            member.setProfileImageNumber((long) new Random().nextInt(10));
+            member.setProfileImageNumber(new Random().nextInt(8));
             member.setPassword("123qwe!@#");
             // 일단 전화번호는 나중에 받고
             // 프로필 사진은 모르겠다 일단 아무 숫자나 넣자

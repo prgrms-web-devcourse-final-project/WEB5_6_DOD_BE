@@ -142,6 +142,8 @@ public class MemberService {
         int randomIndex = random.nextInt(members.size());
         return members.get(randomIndex);
     }
+
+    // 이름 변경
     @Transactional
     public ModifyMemberInfoResponse modifyMemberInfo(String userId, String username) {
 
@@ -155,10 +157,10 @@ public class MemberService {
             validateName(username);
             member.setName(username);
         }
-        member.setProfileImageNumber((long) new Random().nextInt(10));
+//        member.setProfileImageNumber((long) new Random().nextInt(10));
 
         memberRepository.save(member);
-        log.info("프로필이 변경되었습니다. 이름: {}, 프로필 사진 번호: {}", member.getName(), member.getProfileImageNumber());
+        log.info("프로필이 변경되었습니다. 이름: {}", member.getName());
 
         // 변경된 사용자 정보 리턴 (나중에 응답에 넣을 거임)
         return new ModifyMemberInfoResponse(member.getId(), member.getName(), member.getProfileImageNumber());
@@ -179,5 +181,24 @@ public class MemberService {
         if (!username.matches(pattern)) {
             throw new InvalidNameException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
         }
+    }
+
+    // 프로필 사진 변경
+    @Transactional
+    public ModifyMemberInfoResponse modifyProfileImage(String userId) {
+
+        Member member = memberRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        // 기존의 프로필 번호
+        int currentProfileNumber = member.getProfileImageNumber();
+        int newProfileNumber;
+        Random random = new Random();
+        do {
+            newProfileNumber = random.nextInt(8);
+        } while (newProfileNumber == currentProfileNumber); //기존 번호와 같으면 다시
+
+        member.setProfileImageNumber(newProfileNumber);
+        return new ModifyMemberInfoResponse(member.getId(), member.getName(), member.getProfileImageNumber());
     }
 }

@@ -10,7 +10,7 @@ public class MemberInfoResponse {
     private String id;
     private String email;
     private String name;
-    private Long profileImageNumber;
+    private Integer profileImageNumber;
     private String provider;
     private String role;
 
