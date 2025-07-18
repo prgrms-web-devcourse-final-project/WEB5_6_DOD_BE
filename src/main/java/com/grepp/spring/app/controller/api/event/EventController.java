@@ -242,29 +242,6 @@ public class EventController {
         }
     }
 
-    // 이벤트 삭제
-    @Operation(summary = "이벤트 삭제")
-    @DeleteMapping("/{eventId}")
-    public ResponseEntity<ApiResponse<DeleteEventResponse>> deleteEvent(@PathVariable Long eventId) {
-
-        try {
-            if (
-                eventId != 20000 && eventId != 20001 && eventId != 20002 &&
-                    eventId != 20003 && eventId != 20004 && eventId != 20005
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다."));
-            }
-            return ResponseEntity.ok(ApiResponse.success("이벤트가 성공적으로 삭제되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthenticationException) {
-                return ResponseEntity.status(401).body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
-    }
-
     private String extractCurrentMemberId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
