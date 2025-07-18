@@ -73,7 +73,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
         @RequestBody CreateSchedulesRequest request) {
 
-        try {
+
             Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
 
             if (eId.isEmpty()) {
@@ -85,14 +85,8 @@ public class ScheduleController {
             CreateSchedulesResponse response = scheduleCommandService.createSchedule(request);
 
             return ResponseEntity.ok(ApiResponse.success(response));
-        }
-         catch (Exception e) {
 
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
-
 
     // 일정 수정
     @Operation(summary = "일정 수정", description = "일정 수정을 진행합니다.")
@@ -128,25 +122,17 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(
         @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
 
-        try {
+            scheduleQueryService.findScheduleById(scheduleId);
+
 
             scheduleCommandService.createDepartLocation(scheduleId, request);
 
             return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
-                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
 
     // 중간장소 후보 조회
     @Operation(summary = "중간장소 후보 조회 & 중간장소 투표결과 확인", description = "중간장소 후보를 조회 & 중간장소 투표결과 확인 합니다.")
-    @GetMapping("/show-suggested-locations{scheduleId}")
+    @GetMapping("/show-suggested-locations/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowSuggestedLocationsResponse>> showSuggestedLocations(
         @PathVariable Long scheduleId) {
 
@@ -156,13 +142,12 @@ public class ScheduleController {
             return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 출발 장소 투표하기
-    @Operation(summary = "출발 장소 투표하기", description = "출발 장소를 투표합니다.")
+    // 중간장소 투표하기
+    @Operation(summary = "중간장소 투표하기", description = "중간장소를 투표합니다.")
     @PostMapping("/suggested-locations/vote/{scheduleMemberId}")
     public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
-        try {
             Schedule sId = scheduleQueryService.findScheduleById(request.getScheduleId());
             Optional<ScheduleMember> smId = scheduleMemberQueryRepository.findById(scheduleMemberId);
             Optional<Location> lId = locationQueryRepository.findById(request.getLocationId());
@@ -176,15 +161,6 @@ public class ScheduleController {
             scheduleCommandService.voteMiddleLocation(smId, lId, sId);
 
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED,
-                        "인증(로그인)이 되어있지 않습니다. 헤더에 Bearer {AccressToken}을 넘겼는지 확인해주세요."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
 
     // 온라인 회의장 링크 개설(줌, 구글미트)

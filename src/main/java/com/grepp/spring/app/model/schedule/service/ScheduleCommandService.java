@@ -6,19 +6,18 @@ import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspac
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
+import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
-import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
@@ -33,6 +32,7 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
@@ -62,6 +62,9 @@ public class ScheduleCommandService {
     @Autowired private EventRepository eventRepository;
 
     @Autowired private MemberRepository memberRepository;
+
+    @Autowired
+    private VoteQueryRepository voteQueryRepository;
 
 
     @Autowired
@@ -160,6 +163,14 @@ public class ScheduleCommandService {
             schedule.get().setSpecificLocation(dto.getSpecificLocation());
         }
 
+        if (dto.getSpecificLatitude() != null) {
+            schedule.get().setSpecificLatitude(dto.getSpecificLatitude());
+        }
+
+        if (dto.getSpecificLongitude() != null) {
+            schedule.get().setSpecificLongitude(dto.getSpecificLongitude());
+        }
+
         if (dto.getMeetingPlatform() != null) {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
@@ -223,20 +234,40 @@ public class ScheduleCommandService {
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
             request.getMemberId(), scheduleId);
 
+//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+
+//        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
         CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
 
         scheduleMember.setDepartLocationName(dto.getDepartLocationName());
         scheduleMember.setLongitude(dto.getLongitude());
         scheduleMember.setLatitude(dto.getLatitude());
 
+        //TODO : 출발장소들을 이용하여 중간장소 계산
+
+//        saveLocation(dto);
+
     }
 
+//    private void saveLocation(CreateDepartLocationDto dto) {
+//        Location location = Location.builder()
+//            .latitude(dto.getLatitude())
+//            .longitude(dto.getLongitude())
+//            .name(dto.getDepartLocationName())
+//            .suggestedMemberId(dto.getSuggestedMemberId())
+//            .status(dto.getStatus())
+//            .schedule(dto.getScheduleId())
+//            .build();
+//
+//        locationCommandRepository.save(location);
+//    }
+
     @Transactional
-    public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule sId) {
+    public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule schedule) {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
 
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(smId, lid, sId);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(smId, lid, schedule);
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
@@ -245,10 +276,28 @@ public class ScheduleCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Location ID 없음")))
             .orElseThrow(() -> new IllegalArgumentException("해당 Location 없음"));
 
-        if (location.getVoteCount() != null) {
+//        if (location.getVoteCount() != null) {
             location.setVoteCount(location.getVoteCount() + 1);
-        } else if (location.getVoteCount() == null) {
-            location.setVoteCount(1L);
+//        } else if (location.getVoteCount() == null) {
+//            location.setVoteCount(1);
+//        }
+
+        List<Location> location2 = locationQueryRepository.findByScheduleId(schedule.getId());
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
+        int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
+
+        if (scheduleMemberNumber - voteCount == 0) {
+            int winner = 0;
+            Long winnerLid = null;
+            for (Location l : location2) {
+                if (winner <= l.getVoteCount()) {
+                    winner = l.getVoteCount();
+                    winnerLid = l.getId();
+                }
+            }
+
+            Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLid);
+            winnerLocation.get().setStatus(VoteStatus.WINNER);
         }
 
     }

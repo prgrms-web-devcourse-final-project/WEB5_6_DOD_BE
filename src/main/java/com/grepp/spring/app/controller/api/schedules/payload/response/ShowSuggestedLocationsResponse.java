@@ -17,4 +17,5 @@ public class ShowSuggestedLocationsResponse {
 
     private List<MetroInfoDto> suggestedLocations;
     private int noVoteCount;
+    private int noDepartLocationCount;
 }

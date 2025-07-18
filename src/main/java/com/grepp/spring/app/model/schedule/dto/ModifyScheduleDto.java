@@ -24,6 +24,10 @@ public class ModifyScheduleDto {
     private String description;
     private String location;
     private String specificLocation;
+
+    private Double specificLatitude; // 추가
+    private Double specificLongitude;  // 추가
+
     private MeetingPlatform meetingPlatform;
     private String platformName;
     private String platformURL;
@@ -41,6 +45,8 @@ public class ModifyScheduleDto {
             .description(request.getDescription())
             .location(request.getLocation())
             .specificLocation(request.getSpecificLocation())
+            .specificLatitude(request.getSpecificLatitude()) // 추가
+            .specificLongitude(request.getSpecificLongitude()) // 추가
             .meetingPlatform(request.getMeetingPlatform())
             .platformName(request.getPlatformName())
             .platformURL(request.getPlatformURL())

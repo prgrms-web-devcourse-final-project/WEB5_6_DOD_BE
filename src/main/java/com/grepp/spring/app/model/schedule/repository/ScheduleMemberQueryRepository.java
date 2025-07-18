@@ -7,13 +7,13 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import io.lettuce.core.dynamic.annotation.Param;
 import java.util.ArrayList;
 import java.util.List;
-import javax.management.relation.Relation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface ScheduleMemberQueryRepository extends JpaRepository<ScheduleMember, Long> {
 
-    List<ScheduleMember> findByScheduleId(Long scheduleId);
+    @Query("select sm from ScheduleMember sm where sm.schedule.id = :scheduleId")
+    List<ScheduleMember> findByScheduleId(@Param("scheduleId") Long scheduleId);
 
 //    @Query("select sm from ScheduleMember sm where sm.member.id = :memberId and sm.schedule.id = :scheduleId")
 //    ScheduleMember findByMemberId(@Param("memberId") String memberId, @Param("scheduleId") Long scheduleId);

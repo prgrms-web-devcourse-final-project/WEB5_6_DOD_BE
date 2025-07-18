@@ -72,6 +72,12 @@ public class Schedule extends BaseEntity {
     @Column
     private String specificLocation;
 
+    @Column
+    private Double specificLatitude;
+
+    @Column
+    private Double specificLongitude;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
     private Event event;

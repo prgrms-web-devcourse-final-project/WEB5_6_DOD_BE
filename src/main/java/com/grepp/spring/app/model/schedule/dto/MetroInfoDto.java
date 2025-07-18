@@ -26,6 +26,14 @@ public class MetroInfoDto {
 
     public static MetroInfoDto toDto(Location location, List<MetroTransfer> transfer) {
 
+//        VoteStatus voteStatus;
+//
+//        if (lid != null && lid == location.getId()) {
+//            voteStatus = VoteStatus.WINNER;
+//        } else {
+//            voteStatus = VoteStatus.DEFAULT;
+//        }
+
         return MetroInfoDto.builder()
             .locationName(location.getName())
             .voteStatus(location.getStatus())
