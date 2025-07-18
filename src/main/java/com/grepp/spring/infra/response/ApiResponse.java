@@ -53,4 +53,12 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> error(GroupErrorCode code) {
         return new ApiResponse<>(code.code(), code.message(), null);
     }
+
+    public static <T> ApiResponse<T> error(EventErrorCode code) {
+        return new ApiResponse<>(code.code(), code.message(), null);
+    }
+
+    public static <T> ApiResponse<T> error(EventErrorCode code, T data) {
+        return new ApiResponse<>(code.code(), code.message(), data);
+    }
 }
