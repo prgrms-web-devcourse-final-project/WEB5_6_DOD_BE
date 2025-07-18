@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -46,6 +47,7 @@ public class GroupQueryStatisticsService {
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
     // 그룹 통계 조회
+    @Transactional(readOnly = true)
     public ShowGroupStatisticsResponse displayStatistics(Long groupId) {
         // http 요청 사용자 조회
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -103,10 +105,10 @@ public class GroupQueryStatisticsService {
                     weekDayArray[6]+=1L;
                 }
                 for(ScheduleMember scheduleMember: scheduleMemberQueryRepository.findBySchedule(schedule)){
-                    if(!memberMap.containsKey(scheduleMember.getMember().getId())){
-                        memberMap.put(scheduleMember.getMember().getId(), 1L);
+                    if(!memberMap.containsKey(scheduleMember.getMember().getName())){
+                        memberMap.put(scheduleMember.getMember().getName(), 1L);
                     }else{
-                        memberMap.put(scheduleMember.getMember().getId(), memberMap.get(scheduleMember.getMember().getId())+1L);
+                        memberMap.put(scheduleMember.getMember().getName(), memberMap.get(scheduleMember.getMember().getName())+1L);
                     }
                 }
             }
