@@ -11,14 +11,9 @@ import lombok.Setter;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class RefreshToken {
-    private String id = UUID.randomUUID().toString();
-    private String atId;
-    private String token = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString(); // 리프레시 토큰 id
+    private String atId; // 연결된 엑세스 토큰의 JTI
     private Long ttl = 3600 * 24 * 7L;
-    private Long expires;
-    
-    public RefreshToken(String atId) {
-        this.atId = atId;
-    }
 }

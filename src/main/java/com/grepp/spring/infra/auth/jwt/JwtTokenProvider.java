@@ -2,8 +2,10 @@ package com.grepp.spring.infra.auth.jwt;
 
 import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.domain.Principal;
+import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
+import com.grepp.spring.infra.auth.jwt.dto.RefreshTokenDto;
 import com.grepp.spring.infra.config.security.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -35,7 +37,8 @@ import org.springframework.stereotype.Service;
 public class JwtTokenProvider {
     
     private final UserDetailsServiceImpl userDetailsService;
-    
+    private final RefreshTokenService refreshTokenService;
+
     @Value("${jwt.secret}")
     private String key;
     
@@ -79,21 +82,32 @@ public class JwtTokenProvider {
     }
 
     // Refresh Token 생성
-    public RefreshToken generateRefreshToken(String accessTokenJti) {
+    public RefreshTokenDto generateRefreshToken(String accessTokenJti) {
         long now = (new Date()).getTime();
         Date refreshTokenExpiresIn = new Date(now + refreshTokenExpiration);
+
+        String refreshJti = UUID.randomUUID().toString();
 
         String token = Jwts.builder()
             .claim("atId", accessTokenJti)
             .expiration(refreshTokenExpiresIn)
+            .id(refreshJti)
             .signWith(getSecretKey())
             .compact();
 
-        return RefreshToken.builder()
-            .token(token)
-            .expires(refreshTokenExpiresIn.getTime())
+        RefreshToken refreshToken = RefreshToken.builder()
+            .id(refreshJti)
             .ttl(refreshTokenExpiration)
             .atId(accessTokenJti)
+            .build();
+
+        // 토큰은 Redis에 저장합시다.
+        refreshTokenService.saveWithAtId(refreshToken);
+
+        return RefreshTokenDto.builder()
+            .jti(refreshJti)
+            .token(token)
+            .expires(refreshTokenExpiration)
             .build();
     }
     

@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.auth;
 import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
+import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
 import com.grepp.spring.app.model.mainpage.entity.Calendar;
 import com.grepp.spring.app.model.member.code.Role;
@@ -11,6 +12,7 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
+import com.grepp.spring.infra.auth.jwt.dto.RefreshTokenDto;
 import com.grepp.spring.infra.auth.oauth2.user.OAuth2UserInfo;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -36,7 +38,9 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final CalendarRepository calendarRepository;
+    private final RefreshTokenService refreshTokenService;
 
+    // 나중에 삭제할 임시 로그인 메서드.
     public TokenDto signin(LoginRequest loginRequest) {
         UsernamePasswordAuthenticationToken authenticationToken =
             new UsernamePasswordAuthenticationToken(loginRequest.getId(),
@@ -51,7 +55,6 @@ public class AuthService {
             GrantedAuthority::getAuthority).toList());
         return processTokenSigninTest(authentication.getName(), roles);
     }
-
 
     @Transactional
     public TokenDto processTokenSignin(OAuth2UserInfo userInfo) {
@@ -91,22 +94,35 @@ public class AuthService {
         }
 
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
-        RefreshToken refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
+
+        RefreshTokenDto refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
+
 
         return TokenDto.builder()
             .accessToken(accessToken.getToken())
-            .expiresIn(accessToken.getExpires()) // 만료기간 엑세스 토큰만 해도 되는지 ?
+            .atId(accessToken.getJti())
+            .expiresIn(accessToken.getExpires())
             .refreshToken(refreshToken.getToken())
+            .refreshExpiresIn(refreshToken.getExpires())
+            .grantType("Bearer")
             .userId(userId)
             .userName(userInfo.getName())
             .build();
 
     }
 
+    // 나중에 삭제할 임시 로그인 메서드.
     public TokenDto processTokenSigninTest(String userId, String roles) {
 
         AccessTokenDto accessToken = jwtTokenProvider.generateAccessToken(userId, roles);
-        RefreshToken refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
+        RefreshTokenDto refreshToken = jwtTokenProvider.generateRefreshToken(accessToken.getJti());
+
+        // Redis에 저장.
+        refreshTokenService.saveWithAtId(RefreshToken.builder()
+            .id(refreshToken.getJti())
+            .atId(accessToken.getJti())
+            .ttl(refreshToken.getExpires())
+            .build());
 
         Member member = memberRepository.findById(userId)
             .orElseThrow(() -> new BadCredentialsException("인증된 사용자를 찾을 수 없습니다."));
@@ -122,5 +138,4 @@ public class AuthService {
             .userName(member.getName())
             .build();
     }
-
 }
