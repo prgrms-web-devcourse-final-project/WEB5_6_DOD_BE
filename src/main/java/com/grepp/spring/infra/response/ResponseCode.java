@@ -19,6 +19,7 @@ public enum ResponseCode {
     NOT_EXIST_PRE_AUTH_CREDENTIAL("401", HttpStatus.OK, "사전 인증 정보가 요청에서 발견되지 않았습니다."),
     INTERNAL_SERVER_ERROR("500", HttpStatus.INTERNAL_SERVER_ERROR, "서버에러 입니다."),
     SECURITY_INCIDENT("600", HttpStatus.OK, "비정상적인 로그인 시도가 감지되었습니다."),
+    EXPIRED_TOKEN("401", HttpStatus.UNAUTHORIZED, "엑세스 토큰이 만료되었습니다. 토큰을 갱신해주세요."),
     NOT_ALLOWED_WITHDRAW("403", HttpStatus.FORBIDDEN, "관리자 권한을 양도할 수 없는 그룹이 존재하여 탈퇴할 수 없습니다.");
     
     private final String code;
