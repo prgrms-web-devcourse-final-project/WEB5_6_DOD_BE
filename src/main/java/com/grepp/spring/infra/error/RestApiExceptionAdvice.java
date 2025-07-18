@@ -3,9 +3,8 @@ package com.grepp.spring.infra.error;
 import com.grepp.spring.infra.error.exceptions.CommonException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -15,8 +14,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @RestControllerAdvice(basePackages = "com.grepp.spring.app.controller.api")
 @Slf4j
+@Order(2)
 public class RestApiExceptionAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -58,7 +61,6 @@ public class RestApiExceptionAdvice {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> runtimeExceptionHandler(RuntimeException ex) {
         log.error(ex.getMessage(), ex);
-        log.error("500번대 예외");
         return ResponseEntity
             .internalServerError()
             .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));

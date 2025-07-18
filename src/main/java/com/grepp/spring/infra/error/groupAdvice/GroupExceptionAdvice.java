@@ -17,6 +17,7 @@ import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice(basePackages = "com.grepp.spring.app.controller.api.group")
 @Slf4j
+@Order(1)
 public class GroupExceptionAdvice {
 
     //403
