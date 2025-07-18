@@ -152,9 +152,10 @@ public class GroupQueryService {
         for (GroupMember groupMember : groupMembers) {
             String memberId = groupMember.getMember().getId();
             String memberName = memberRepository.findById(memberId).get().getName();
+            Integer profileImageNumber = memberRepository.findById(memberId).get().getProfileImageNumber();
             GroupRole groupRole = groupMember.getRole();
             // 멤버Id, 이름, 권한으로 GroupUser 리스트에 추가
-            groupUsers.add(new GroupUser(memberId, memberName, groupRole));
+            groupUsers.add(new GroupUser(memberId, memberName, profileImageNumber, groupRole));
             // http요청을 날린 멤버의 Id가 현재 탐색중인 member의 Id가 같다면, group에 해당 member 포함됨.
             if (memberId.equals(member.getId())) {
                 checking = true;

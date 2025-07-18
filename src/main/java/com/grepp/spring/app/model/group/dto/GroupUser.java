@@ -9,5 +9,6 @@ import lombok.Data;
 public class GroupUser {
     private String userId;
     private String userName;
+    private Integer profileImageNumber;
     private GroupRole groupRole;
 }
