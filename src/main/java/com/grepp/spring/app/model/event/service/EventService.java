@@ -106,6 +106,7 @@ public class EventService {
         response.setTitle(event.getTitle());
         response.setDescription(event.getDescription());
         response.setRole(eventMember.getRole().name());
+        response.setGroupId(event.getGroup().getId());
 
         return response;
     }
