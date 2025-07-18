@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +44,11 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
 
 
   // 우리 서비스 일정 → DTO
-  public static UnifiedScheduleDto fromService(Schedule s, Group g, List<GroupMember> groupMembers) {
+  public static UnifiedScheduleDto fromService(
+      Schedule s,
+      Group g,
+      ScheduleMember sm ,
+      List<GroupMember> groupMembers) {
 
     // 그룹원 리스트 중 그룹장만 찾아서 프로필 이미지 번호 가져오기
     Integer leaderProfileImage = groupMembers.stream()
@@ -72,7 +77,7 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .meetingPlatform(s.getMeetingPlatform())
         .scheduleStatus(s.getStatus())
         .source(ScheduleSource.SERVICE)
-        .activated(s.getActivated())
+        .activated(sm.getActivated())
         .build();
   }
 

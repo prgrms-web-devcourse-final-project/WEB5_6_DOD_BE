@@ -7,6 +7,8 @@ import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.mainpage.repository.GoogleScheduleRepository;
 import com.grepp.spring.app.model.mainpage.repository.MainPageScheduleRepository;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -24,6 +26,7 @@ public class CalendarService {
 
   private final MainPageScheduleRepository mainPageScheduleRepository;
   private final GoogleScheduleRepository googleScheduleRepository;
+  private final ScheduleMemberRepository scheduleMemberRepository;
 
   public Map<LocalDate, List<UnifiedScheduleDto>> getMonthlySchedules(
       String memberId,
@@ -47,7 +50,12 @@ public class CalendarService {
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<GroupMember> groupMembers = group.getGroupMembers();
-          return UnifiedScheduleDto.fromService(schedule, group, groupMembers);
+          ScheduleMember sm = scheduleMemberRepository
+              .findByScheduleIdAndMemberId(schedule.getId(), memberId)
+              .orElseThrow(() ->
+                  new IllegalStateException("해당 일정에 대한 ScheduleMember가 존재하지 않습니다. scheduleId=" + schedule.getId())
+              );
+          return UnifiedScheduleDto.fromService(schedule, group, sm ,groupMembers);
         })
         .toList();
 
