@@ -28,7 +28,8 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
-import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import com.grepp.spring.infra.error.exceptions.event.*;
+import com.grepp.spring.infra.response.EventErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,10 +68,10 @@ public class EventService {
 
         if (serviceRequest.getGroupId() != null) {
             group = groupRepository.findById(serviceRequest.getGroupId())
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다. ID: " + serviceRequest.getGroupId()));
+                .orElseThrow(() -> new EventNotFoundException(EventErrorCode.GROUP_NOT_FOUND));
 
             GroupMember groupMember = groupMemberRepository.findByGroupIdAndMemberId(serviceRequest.getGroupId(), currentMemberId)
-                .orElseThrow(() -> new NotFoundException("그룹에 속하지 않은 회원입니다. 그룹ID: " + serviceRequest.getGroupId()));
+                .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_GROUP_MEMBER));
 
             event = CreateEventDto.toEntity(serviceRequest, group);
         } else {
@@ -95,10 +96,10 @@ public class EventService {
     @Transactional(readOnly = true)
     public ShowEventResponse getEvent(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
-            .orElseThrow(() -> new NotFoundException("해당 이벤트에 참여하지 않은 사용자입니다."));
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
 
         ShowEventResponse response = new ShowEventResponse();
         response.setEventId(event.getId());
@@ -124,20 +125,16 @@ public class EventService {
 
     private void validate(CreateEventDto serviceRequest) {
         if (!serviceRequest.isValid()) {
-            throw new IllegalArgumentException("유효하지 않은 이벤트 생성 요청입니다.");
+            throw new InvalidEventDataException(EventErrorCode.INVALID_EVENT_DATA);
         }
 
         validateCandidateDates(serviceRequest.getCandidateDates());
-
-        // TODO: 비즈니스 규칙 추가
-        // 이벤트 제한 검증 (예: 최대 인원, 그룹 권한 등)
     }
 
     private void validateCandidateDates(List<CandidateDateDto> candidateDates) {
         if (candidateDates == null || candidateDates.isEmpty()) {
-            throw new IllegalArgumentException("후보 날짜는 최소 1개 이상 필요합니다.");
+            throw new InvalidEventDataException(EventErrorCode.INVALID_CANDIDATE_DATES);
         }
-        // TODO: 추가 검증 로직 구현
     }
 
     @Transactional
@@ -146,13 +143,13 @@ public class EventService {
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
         Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다."));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         Member member = memberRepository.findById(dto.getMemberId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다."));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
 
         if (eventMemberRepository.existsByEventIdAndMemberId(dto.getEventId(), dto.getMemberId())) {
-            throw new IllegalStateException("이미 참여 중인 이벤트입니다.");
+            throw new AlreadyJoinedEventException(EventErrorCode.ALREADY_JOINED_EVENT);
         }
 
         Long currentMemberCount = eventMemberRepository.countByEventId(dto.getEventId());
@@ -168,10 +165,10 @@ public class EventService {
     private void addUserToGroup(Long groupId, String memberId) {
         try {
             Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 그룹입니다. ID: " + groupId));
+                .orElseThrow(() -> new EventNotFoundException(EventErrorCode.GROUP_NOT_FOUND));
 
             Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + memberId));
+                .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
 
             Optional<GroupMember> existingGroupMember = groupMemberRepository
                 .findByGroupIdAndMemberId(groupId, memberId);
@@ -188,31 +185,26 @@ public class EventService {
 
             groupMemberRepository.save(groupMember);
 
+        } catch (EventNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("그룹 멤버 추가에 실패했습니다.", e);
+            throw new InvalidEventDataException(EventErrorCode.INVALID_EVENT_DATA);
         }
     }
 
     private void validateEventCapacity(Event event, Long currentMemberCount) {
         if (event.getMaxMember() != null && currentMemberCount >= event.getMaxMember()) {
-            throw new IllegalStateException("이벤트 정원이 초과되었습니다.");
-        }
-    }
-
-    private void validateGroupMembership(Long groupId, String memberId) {
-        boolean isMember = groupMemberRepository.findByGroupIdAndMemberId(groupId, memberId).isPresent();
-        if (!isMember) {
-            throw new IllegalStateException("그룹 멤버만 참여할 수 있는 이벤트입니다.");
+            throw new InvalidEventDataException(EventErrorCode.EVENT_MEMBER_LIMIT_EXCEEDED);
         }
     }
 
     @Transactional
     public void createEventMember(EventMemberDto dto) {
         Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         Member member = memberRepository.findById(dto.getMemberId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 회원입니다. ID: " + dto.getMemberId()));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
 
         EventMember eventMember = EventMemberDto.toEntity(dto, event, member);
         eventMemberRepository.save(eventMember);
@@ -223,10 +215,14 @@ public class EventService {
         MyTimeScheduleDto dto = MyTimeScheduleDto.toDto(request, eventId, currentMemberId);
 
         Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
-            .orElseThrow(() -> new NotFoundException("이벤트에 참여하지 않은 회원입니다."));
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
+
+        if (eventMember.getConfirmed()) {
+            throw new AlreadyCompletedScheduleException(EventErrorCode.ALREADY_COMPLETED_SCHEDULE);
+        }
 
         for (MyTimeScheduleDto.DailyTimeSlotDto slot : dto.getDailyTimeSlots()) {
             updateOrCreateTempSchedule(eventMember, slot);
@@ -255,10 +251,10 @@ public class EventService {
     @Transactional(readOnly = true)
     public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
-            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
+            throw new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER);
         }
 
         List<CandidateDate> candidateDates = candidateDateRepository
@@ -415,21 +411,21 @@ public class EventService {
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
         Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + dto.getEventId()));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
         EventMember eventMember = eventMemberRepository
             .findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
-            .orElseThrow(() -> new NotFoundException("이벤트에 참여하지 않은 회원입니다."));
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
 
         List<TempSchedule> schedules = tempScheduleRepository
             .findAllByEventMemberIdAndActivatedTrue(eventMember.getId());
 
         if (schedules.isEmpty()) {
-            throw new IllegalStateException("가능한 시간대를 먼저 입력해주세요.");
+            throw new InvalidEventDataException(EventErrorCode.CANNOT_COMPLETE_EMPTY_SCHEDULE);
         }
 
         if (eventMember.getConfirmed()) {
-            throw new IllegalStateException("이미 확정된 일정입니다.");
+            throw new AlreadyCompletedScheduleException(EventErrorCode.ALREADY_COMPLETED_SCHEDULE);
         }
 
         eventMember.setConfirmed(true);
@@ -439,11 +435,10 @@ public class EventService {
     @Transactional
     public void createScheduleResult(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
-        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
-            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
-        }
+        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
 
         eventScheduleResultService.createScheduleRecommendations(eventId);
     }
@@ -451,11 +446,10 @@ public class EventService {
     @Transactional(readOnly = true)
     public ScheduleResultResponse getScheduleResult(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
 
-        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
-            throw new IllegalStateException("해당 이벤트에 참여하지 않은 사용자입니다.");
-        }
+        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
 
         Integer totalParticipants = Math.toIntExact(eventMemberRepository.countByEventId(eventId));
 
@@ -465,7 +459,7 @@ public class EventService {
         );
 
         if (recommendSchedules.isEmpty()) {
-            throw new IllegalStateException("아직 조율 결과가 생성되지 않았습니다.");
+            throw new ScheduleResultNotFoundException(EventErrorCode.SCHEDULE_RESULT_NOT_FOUND);
         }
 
         List<ScheduleResultDto.TimeSlotDetailDto> longestMeetingTimes = findAllRecommendationsByType(

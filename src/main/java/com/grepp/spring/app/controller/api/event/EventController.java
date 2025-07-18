@@ -2,12 +2,14 @@ package com.grepp.spring.app.controller.api.event;
 
 import com.grepp.spring.app.controller.api.event.payload.request.CreateEventRequest;
 import com.grepp.spring.app.controller.api.event.payload.request.MyTimeScheduleRequest;
-import com.grepp.spring.app.controller.api.event.payload.response.*;
+import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.CreateEventResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
+import com.grepp.spring.app.controller.api.event.payload.response.ShowEventResponse;
 import com.grepp.spring.app.model.event.service.EventService;
-import com.grepp.spring.infra.error.exceptions.AuthApiException;
-import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import com.grepp.spring.infra.error.exceptions.event.EventAuthenticationException;
 import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.response.EventErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import javax.security.sasl.AuthenticationException;
 
 
 @RestController
@@ -32,29 +32,14 @@ public class EventController {
     @PostMapping
     @Operation(summary = "이벤트 생성", description = "그룹 이벤트 또는 일회성 이벤트를 생성합니다.")
     public ResponseEntity<ApiResponse<CreateEventResponse>> createEvent(@RequestBody @Valid CreateEventRequest request) {
-        try {
-            String currentMemberId = extractCurrentMemberId();
 
-            CreateEventResponse response = eventService.createEvent(request, currentMemberId);
+        String currentMemberId = extractCurrentMemberId();
 
-            return ResponseEntity.status(200)
-                .body(ApiResponse.success("이벤트가 성공적으로 생성되었습니다.", response));
+        CreateEventResponse response = eventService.createEvent(request, currentMemberId);
 
-        } catch (AuthApiException e) {
-            log.warn("이벤트 생성 권한 오류: {}", e.getMessage());
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, e.getMessage()));
+        return ResponseEntity.status(200)
+            .body(ApiResponse.success("이벤트가 성공적으로 생성되었습니다.", response));
 
-        } catch (NotFoundException e) {
-            log.warn("이벤트 생성 시 리소스 없음: {}", e.getMessage());
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (Exception e) {
-            log.error("이벤트 생성 중 예상치 못한 오류", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 이벤트 조회
@@ -62,22 +47,12 @@ public class EventController {
     @GetMapping("/{eventId}")
     public ResponseEntity<ApiResponse<ShowEventResponse>> getEvent(@PathVariable Long eventId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            ShowEventResponse response = eventService.getEvent(eventId, currentMemberId);
+        ShowEventResponse response = eventService.getEvent(eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success("이벤트 조회가 성공적으로 완료되었습니다.", response));
+        return ResponseEntity.ok(ApiResponse.success("이벤트 조회가 성공적으로 완료되었습니다.", response));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (Exception e) {
-            log.error("이벤트 상세 조회 중 예상치 못한 오류", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 이벤트 일정 참여
@@ -87,25 +62,12 @@ public class EventController {
         @PathVariable Long eventId,
         @PathVariable Long groupId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            eventService.joinEvent(eventId, groupId, currentMemberId);
+        eventService.joinEvent(eventId, groupId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success("이벤트에 성공적으로 참여했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("이벤트에 성공적으로 참여했습니다."));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 개인의 가능한 시간대 생성/수정
@@ -115,25 +77,12 @@ public class EventController {
         @PathVariable Long eventId,
         @RequestBody @Valid MyTimeScheduleRequest request) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            eventService.createOrUpdateMyTime(request, eventId, currentMemberId);
+        eventService.createOrUpdateMyTime(request, eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 생성/수정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 생성/수정되었습니다."));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 참여자 전원의 가능한 시간대 조회
@@ -141,25 +90,12 @@ public class EventController {
     @GetMapping("/{eventId}/all-time")
     public ResponseEntity<ApiResponse<AllTimeScheduleResponse>> getAllTimeSchedules(@PathVariable Long eventId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            AllTimeScheduleResponse response = eventService.getAllTimeSchedules(eventId, currentMemberId);
+        AllTimeScheduleResponse response = eventService.getAllTimeSchedules(eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(403)
-                .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 개인의 가능한 시간대 확정
@@ -167,25 +103,12 @@ public class EventController {
     @PostMapping("/{eventId}/complete")
     public ResponseEntity<ApiResponse<Void>> completeMyTime(@PathVariable Long eventId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            eventService.completeMyTime(eventId, currentMemberId);
+        eventService.completeMyTime(eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 확정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success("개인 일정이 성공적으로 확정되었습니다."));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 이벤트 조율 결과 생성
@@ -194,25 +117,12 @@ public class EventController {
     public ResponseEntity<ApiResponse<Void>> createScheduleResult(
         @PathVariable Long eventId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            eventService.createScheduleResult(eventId, currentMemberId);
+        eventService.createScheduleResult(eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success("일정 조율 결과가 성공적으로 생성되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success("일정 조율 결과가 성공적으로 생성되었습니다."));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
     }
 
     // 이벤트 조율 결과 조회
@@ -220,49 +130,12 @@ public class EventController {
     @GetMapping("/{eventId}/all-time/result")
     public ResponseEntity<ApiResponse<ScheduleResultResponse>> getScheduleResult(@PathVariable Long eventId) {
 
-        try {
-            String currentMemberId = extractCurrentMemberId();
+        String currentMemberId = extractCurrentMemberId();
 
-            ScheduleResultResponse response = eventService.getScheduleResult(eventId, currentMemberId);
+        ScheduleResultResponse response = eventService.getScheduleResult(eventId, currentMemberId);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
 
-        } catch (NotFoundException e) {
-            return ResponseEntity.status(404)
-                .body(ApiResponse.error(ResponseCode.NOT_FOUND, e.getMessage()));
-
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, e.getMessage()));
-
-        } catch (Exception e) {
-            log.error("이벤트 조율 결과 조회 중 예상치 못한 오류", e);
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."));
-        }
-    }
-
-    // 이벤트 삭제
-    @Operation(summary = "이벤트 삭제")
-    @DeleteMapping("/{eventId}")
-    public ResponseEntity<ApiResponse<DeleteEventResponse>> deleteEvent(@PathVariable Long eventId) {
-
-        try {
-            if (
-                eventId != 20000 && eventId != 20001 && eventId != 20002 &&
-                    eventId != 20003 && eventId != 20004 && eventId != 20005
-            ) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND, "해당 이벤트를 찾을 수 없습니다."));
-            }
-            return ResponseEntity.ok(ApiResponse.success("이벤트가 성공적으로 삭제되었습니다."));
-        } catch (Exception e) {
-            if (e instanceof AuthenticationException) {
-                return ResponseEntity.status(401).body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
     }
 
     private String extractCurrentMemberId() {
@@ -271,7 +144,8 @@ public class EventController {
         if (authentication == null ||
             !authentication.isAuthenticated() ||
             "anonymousUser".equals(authentication.getPrincipal())) {
-            return null;
+
+            throw new EventAuthenticationException(EventErrorCode.AUTHENTICATION_REQUIRED);
         }
 
         return authentication.getName();
