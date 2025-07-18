@@ -19,13 +19,8 @@ import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupSched
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.WithdrawGroupResponse;
 import com.grepp.spring.app.model.group.service.GroupCommandService;
-import com.grepp.spring.app.model.group.service.GroupQueryGroupScheduleService;
-import com.grepp.spring.app.model.group.service.GroupQueryGroupTransferCandidateService;
 import com.grepp.spring.app.model.group.service.GroupQueryService;
-import com.grepp.spring.app.model.group.service.GroupQueryStatisticsService;
-import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,32 +44,16 @@ public class GroupController {
 
     private final GroupCommandService groupCommandService;
     private final GroupQueryService groupQueryService;
-    // TODO: refactoring start
-    private final GroupQueryGroupScheduleService groupQueryGroupScheduleService;
-    private final GroupQueryStatisticsService groupQueryStatisticsService;
-    private final GroupQueryGroupTransferCandidateService groupQueryGroupTransferCandidateService;
-    // TODO: refactoring end
 
     // 현재 유저가 속한 그룹 조회
     @GetMapping
     @Operation(summary = "그룹 조회")
     public ResponseEntity<ApiResponse<ShowGroupResponse>> getGroup(
     ) {
-        try {
-            // 그룹 조회
-            ShowGroupResponse response = groupQueryService.displayGroup();
-            // 그룹 조회 성공
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (Exception e) {
-            // 권한 없음: 401
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
+        // 그룹 조회
+        ShowGroupResponse response = groupQueryService.displayGroup();
+        // 그룹 조회 성공
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 
@@ -85,7 +64,7 @@ public class GroupController {
         @PathVariable Long id
     ) {
         // 그룹 일정 조회
-        ShowGroupScheduleResponse response = groupQueryGroupScheduleService.displayGroupSchedule(
+        ShowGroupScheduleResponse response = groupQueryService.displayGroupSchedule(
             id);
         // 그룹 일정 조회 성공
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -112,7 +91,7 @@ public class GroupController {
         @PathVariable Long id
     ) {
         // 그룹 통게 조회
-        ShowGroupStatisticsResponse response = groupQueryStatisticsService.displayStatistics(
+        ShowGroupStatisticsResponse response = groupQueryService.displayStatistics(
             id);
         // 그룹 통계 조회 성공
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -126,7 +105,7 @@ public class GroupController {
         @PathVariable Long id
     ) {
         // 일회성 일정 -> 그룹 일정으로 이동
-        ShowCandidateGroupResponse response = groupQueryGroupTransferCandidateService.transferCandidateSchedule(
+        ShowCandidateGroupResponse response = groupQueryService.transferCandidateSchedule(
             id);
         // 일회성 일정 -> 그룹 일정으로 이동 성공
         return ResponseEntity.ok(ApiResponse.success(response));
