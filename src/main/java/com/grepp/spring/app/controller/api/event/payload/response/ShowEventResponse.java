@@ -20,4 +20,7 @@ public class ShowEventResponse {
 
     @Schema(description = "요청한 사용자의 역할", example = "ROLE_MASTER")
     private String role;
+
+    @Schema(description = "그룹 ID", example = "6789")
+    private Long groupId;
 }
