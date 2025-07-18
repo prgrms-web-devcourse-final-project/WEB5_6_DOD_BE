@@ -46,15 +46,15 @@ public class GroupController {
     private final GroupQueryService groupQueryService;
 
     // 현재 유저가 속한 그룹 조회
-    @GetMapping
-    @Operation(summary = "그룹 조회")
-    public ResponseEntity<ApiResponse<ShowGroupResponse>> getGroup(
-    ) {
-        // 그룹 조회
-        ShowGroupResponse response = groupQueryService.displayGroup();
-        // 그룹 조회 성공
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
+//    @GetMapping
+//    @Operation(summary = "그룹 조회")
+//    public ResponseEntity<ApiResponse<ShowGroupResponse>> getGroup(
+//    ) {
+//        // 그룹 조회
+//        ShowGroupResponse response = groupQueryService.displayGroup();
+//        // 그룹 조회 성공
+//        return ResponseEntity.ok(ApiResponse.success(response));
+//    }
 
 
     // 그룹 내 일정 조회

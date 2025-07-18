@@ -4,10 +4,12 @@ import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupRespo
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
-import com.grepp.spring.app.model.group.service.GroupQueryService;
+import com.grepp.spring.app.model.group.service.GroupQueryMainpageService;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,14 +26,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내부 일정 통합)
 
-  private final GroupQueryService groupQueryService;
+  private final GroupQueryMainpageService groupQueryMainpageService;
   private final MainPageScheduleService mainPageScheduleService;
   private final GoogleScheduleService googleScheduleService;
+  private final ScheduleMemberRepository scheduleMemberRepository;
 
   public ShowMainPageResponse getMainPageData(String memberId, LocalDate targetDate) {
 
     // 그룹 정보 가져오기
-    ShowGroupResponse groups = groupQueryService.displayGroup();
+    ShowGroupResponse groups = groupQueryMainpageService.displayGroup();
 
     // 오늘 일정 통합
     List<UnifiedScheduleDto> todaySchedules = getUnifiedSchedules(memberId, targetDate, targetDate);
@@ -80,7 +83,13 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<GroupMember> groupMembers = group.getGroupMembers();
-          return UnifiedScheduleDto.fromService(schedule, group, groupMembers);
+          ScheduleMember sm = scheduleMemberRepository
+              .findByScheduleIdAndMemberId(schedule.getId(), memberId)
+              .orElseThrow(() ->
+                  new IllegalStateException("ScheduleMember가 존재하지 않습니다. scheduleId=" + schedule.getId())
+              );
+
+          return UnifiedScheduleDto.fromService(schedule, group, sm,groupMembers);
         })
         .toList();
 
