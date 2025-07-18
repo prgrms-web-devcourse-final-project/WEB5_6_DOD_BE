@@ -18,13 +18,7 @@ import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupRespo
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupScheduleResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.WithdrawGroupResponse;
-import com.grepp.spring.app.model.group.service.GroupCommandDeleteGroupService;
-import com.grepp.spring.app.model.group.service.GroupCommandExileGroupMemberService;
-import com.grepp.spring.app.model.group.service.GroupCommandGroupTransferService;
-import com.grepp.spring.app.model.group.service.GroupCommandModifyGroupRoleService;
-import com.grepp.spring.app.model.group.service.GroupCommandModifyGroupService;
 import com.grepp.spring.app.model.group.service.GroupCommandService;
-import com.grepp.spring.app.model.group.service.GroupCommandWithdrawService;
 import com.grepp.spring.app.model.group.service.GroupQueryGroupScheduleService;
 import com.grepp.spring.app.model.group.service.GroupQueryGroupTransferCandidateService;
 import com.grepp.spring.app.model.group.service.GroupQueryService;
@@ -58,12 +52,6 @@ public class GroupController {
     // TODO: refactoring start
     private final GroupQueryGroupScheduleService groupQueryGroupScheduleService;
     private final GroupQueryStatisticsService groupQueryStatisticsService;
-    private final GroupCommandDeleteGroupService groupCommandDeleteGroupService;
-    private final GroupCommandModifyGroupService groupCommandModifyGroupService;
-    private final GroupCommandExileGroupMemberService groupCommandExileGroupMemberService;
-    private final GroupCommandModifyGroupRoleService groupCommandModifyGroupRoleService;
-    private final GroupCommandWithdrawService groupCommandWithdrawService;
-    private final GroupCommandGroupTransferService groupCommandGroupTransferService;
     private final GroupQueryGroupTransferCandidateService groupQueryGroupTransferCandidateService;
     // TODO: refactoring end
 
@@ -77,27 +65,6 @@ public class GroupController {
             ShowGroupResponse response = groupQueryService.displayGroup();
             // 그룹 조회 성공
             return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (Exception e) {
-            // 권한 없음: 401
-            if (e instanceof AuthApiException) {
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-            }
-            // 잘못된 요청: 400
-            return ResponseEntity.status(400)
-                .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-        }
-    }
-
-    // 그룹 생성
-    @Operation(summary = "그룹 생성")
-    @PostMapping("/create")
-    public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
-        @Valid @RequestBody CreateGroupRequest request
-    ) {
-        try {
-            // 그룹 생성 성공
-            return ResponseEntity.ok(ApiResponse.success(groupCommandService.registGroup(request)));
         } catch (Exception e) {
             // 권한 없음: 401
             if (e instanceof AuthApiException) {
@@ -125,19 +92,6 @@ public class GroupController {
     }
 
 
-    // 그룹 삭제
-    @Operation(summary = "그룹 삭제")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<DeleteGroupResponse>> deleteGroup(
-        @PathVariable Long id
-    ) {
-        // 그룹 삭제
-        groupCommandDeleteGroupService.deleteGroup(id);
-        // 그룹 삭제 성공
-        return ResponseEntity.ok(ApiResponse.success("그룹이 삭제되었습니다."));
-    }
-
-
     // 그룹 멤버 조회
     @Operation(summary = "그룹 멤버 조회")
     @GetMapping("/{id}/member")
@@ -148,60 +102,6 @@ public class GroupController {
         ShowGroupMemberResponse response = groupQueryService.displayGroupMember(id);
         // 그룹 멤버 조회 성공
         return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    // 그룹 멤버 추가
-    @Operation(summary = "그룹 멤버 추가")
-    @PostMapping("/{id}/member")
-    public ResponseEntity<ApiResponse<InviteGroupMemberResponse>> addGroupMembers(
-        @PathVariable Long id
-    ) {
-        // 그룹 멤버 추가
-        InviteGroupMemberResponse response = groupCommandService.addGroupMember(id);
-        // 그룹 멤버 추가 성공
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-
-    // 그룹 정보 수정
-    @Operation(summary = "그룹 정보 수정")
-    @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<ModifyGroupInfoResponse>> updateGroupInfo(
-        @PathVariable Long id,
-        @RequestBody ModifyGroupInfoRequest request
-    ) {
-        // 그룹 정보 수정
-        // 그룹 정보 수정 완료
-        return ResponseEntity.ok(
-            ApiResponse.success(groupCommandModifyGroupService.modifyGroup(id, request)));
-    }
-
-
-    // 그룹 멤버 내보내기
-    @Operation(summary = "그룹 멤버 내보내기")
-    @PatchMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<ApiResponse<DeportGroupMemberResponse>> deportGroupMember(
-        @PathVariable Long groupId,
-        @PathVariable String userId
-    ) {
-        // 그룹 멤버 내보내기
-        groupCommandExileGroupMemberService.deportMember(groupId, userId);
-        // 그룹 멤버 내보내기 성공
-        return ResponseEntity.ok(ApiResponse.success("그룹에서 해당 유저를 내보냈습니다."));
-    }
-
-
-    // 그룹 멤버 권한 관리
-    @Operation(summary = "그룹 멤버 권한 관리")
-    @PatchMapping("/{id}/members")
-    public ResponseEntity<ApiResponse<ControlGroupRoleResponse>> controlGroupRoles(
-        @PathVariable Long id,
-        @RequestBody ControlGroupRoleRequest request
-    ) {
-        // 그룹 멤버 권한 관리
-        groupCommandModifyGroupRoleService.modifyGroupRole(id, request);
-        // 그룹 멤버 권한 관리 성공
-        return ResponseEntity.ok(ApiResponse.success("해당 유저의 권한이 재설정 되었습니다."));
     }
 
 
@@ -219,16 +119,95 @@ public class GroupController {
     }
 
 
-    // 일회성 일정 -> 그룹 일정으로 이동
+    // 일회성 일정 -> 그룹 일정으로 이동 가능한 그룹 조회
     @Operation(summary = "일회성 일정을 편입시킬 수 있는 그룹 조회")
     @GetMapping("/move-schedule/{id}")
     public ResponseEntity<ApiResponse<ShowCandidateGroupResponse>> showGroupCandidate(
         @PathVariable Long id
     ) {
         // 일회성 일정 -> 그룹 일정으로 이동
-        ShowCandidateGroupResponse response = groupQueryGroupTransferCandidateService.transferCandidateSchedule(id);
+        ShowCandidateGroupResponse response = groupQueryGroupTransferCandidateService.transferCandidateSchedule(
+            id);
         // 일회성 일정 -> 그룹 일정으로 이동 성공
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    // 그룹 생성
+    @Operation(summary = "그룹 생성")
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
+        @Valid @RequestBody CreateGroupRequest request
+    ) {
+        // 그룹 생성 성공
+        return ResponseEntity.ok(ApiResponse.success(groupCommandService.registGroup(request)));
+    }
+
+
+    // 그룹 멤버 추가
+    @Operation(summary = "그룹 멤버 추가")
+    @PostMapping("/{id}/member")
+    public ResponseEntity<ApiResponse<InviteGroupMemberResponse>> addGroupMembers(
+        @PathVariable Long id
+    ) {
+        // 그룹 멤버 추가
+        InviteGroupMemberResponse response = groupCommandService.addGroupMember(id);
+        // 그룹 멤버 추가 성공
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+
+    // 그룹 삭제
+    @Operation(summary = "그룹 삭제")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<DeleteGroupResponse>> deleteGroup(
+        @PathVariable Long id
+    ) {
+        // 그룹 삭제
+        groupCommandService.deleteGroup(id);
+        // 그룹 삭제 성공
+        return ResponseEntity.ok(ApiResponse.success("그룹이 삭제되었습니다."));
+    }
+
+
+    // 그룹 정보 수정
+    @Operation(summary = "그룹 정보 수정")
+    @PatchMapping("/{id}")
+    public ResponseEntity<ApiResponse<ModifyGroupInfoResponse>> updateGroupInfo(
+        @PathVariable Long id,
+        @RequestBody ModifyGroupInfoRequest request
+    ) {
+        // 그룹 정보 수정 성공
+        return ResponseEntity.ok(
+            ApiResponse.success(groupCommandService.modifyGroup(id, request)));
+    }
+
+
+    // 그룹 멤버 내보내기
+    @Operation(summary = "그룹 멤버 내보내기")
+    @PatchMapping("/{groupId}/members/{userId}")
+    public ResponseEntity<ApiResponse<DeportGroupMemberResponse>> deportGroupMember(
+        @PathVariable Long groupId,
+        @PathVariable String userId
+    ) {
+        // 그룹 멤버 내보내기
+        groupCommandService.deportMember(groupId, userId);
+        // 그룹 멤버 내보내기 성공
+        return ResponseEntity.ok(ApiResponse.success("그룹에서 해당 유저를 내보냈습니다."));
+    }
+
+
+    // 그룹 멤버 권한 관리
+    @Operation(summary = "그룹 멤버 권한 관리")
+    @PatchMapping("/{id}/members")
+    public ResponseEntity<ApiResponse<ControlGroupRoleResponse>> controlGroupRoles(
+        @PathVariable Long id,
+        @RequestBody ControlGroupRoleRequest request
+    ) {
+        // 그룹 멤버 권한 관리
+        groupCommandService.modifyGroupRole(id, request);
+        // 그룹 멤버 권한 관리 성공
+        return ResponseEntity.ok(ApiResponse.success("해당 유저의 권한이 재설정 되었습니다."));
     }
 
 
@@ -238,7 +217,7 @@ public class GroupController {
     public ResponseEntity<ApiResponse<ScheduleToGroupResponse>> moveScheduleToGroup(
         @RequestBody ScheduleToGroupRequest request
     ) {
-        groupCommandGroupTransferService.transferSchedule(request);
+        groupCommandService.transferSchedule(request);
         // 일회성 일정 -> 그룹 일정으로 이동 성공
         return ResponseEntity.ok(ApiResponse.success("일회성 일정에서 그룹으로 바뀌었습니다."));
     }
@@ -251,7 +230,7 @@ public class GroupController {
         @PathVariable Long id
     ) {
         // 그룹 탈퇴
-        groupCommandWithdrawService.withdrawGroup(id);
+        groupCommandService.withdrawGroup(id);
         // 그룹 탈퇴 성공
         return ResponseEntity.ok(ApiResponse.success("그룹에서 탈퇴하였습니다."));
     }
