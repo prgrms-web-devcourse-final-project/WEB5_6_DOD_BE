@@ -7,6 +7,8 @@ import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.GoogleOAuthService;
 import com.grepp.spring.app.model.mypage.service.SocialAuthTokenService;
 import com.grepp.spring.infra.response.ApiResponse;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +34,8 @@ public class CalendarOAuthController {
 
   // 구글 캘린더 OAuth 콜백 (최초 인증)
   @GetMapping("/google-calendar")
-  public ResponseEntity<ApiResponse<String>> handleGoogleCalendarCallback(@RequestParam("code") String code) {
+  public void handleGoogleCalendarCallback(@RequestParam("code") String code,
+      HttpServletResponse response) throws IOException {
 
     // 로그인 사용자 정보 가져오기
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -56,7 +59,8 @@ public class CalendarOAuthController {
     // 수동 새로고침 로직 호출
     calendarSyncService.syncCalendar(memberId);
 
-    return ResponseEntity.ok(ApiResponse.success("구글 캘린더 연동 성공")); // 새로고침 API 가 따로 있으므로 단순 성공만 반환
+    String frontendUrl = "https://ittaeok.uk/mypage?google-sync=success";
+    response.sendRedirect(frontendUrl);
   }
 }
 
