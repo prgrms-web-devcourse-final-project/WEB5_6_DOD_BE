@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface GroupMemberQueryRepository extends JpaRepository<GroupMember, Long> {
 
@@ -30,4 +32,13 @@ public interface GroupMemberQueryRepository extends JpaRepository<GroupMember, L
     ArrayList<GroupMember> findByGroupAndMember(Group group, Member member);
 
     ArrayList<GroupMember> findByGroupId(Long groupId);
+
+    @Query("""
+    SELECT gm
+    FROM GroupMember gm
+    JOIN FETCH gm.group g
+    WHERE gm.member = :member
+      AND g.isGrouped = true
+""")
+    List<GroupMember> findGroupedByMember(@Param("member") Member member);
 }

@@ -11,6 +11,7 @@ import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
   private String specificLocation;
   private Boolean isGrouped;          // 그룹 일정 여부
   private String groupName;           // 그룹명 (그룹 일정일 경우)
+  private String groupMemberName;
   private Integer profileImageNumber;
   private MeetingType meetingType;    // ON/OFF
   private MeetingPlatform meetingPlatform;
@@ -50,6 +52,10 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .map(member -> member.getMember().getProfileImageNumber())
         .orElse(null);
 
+    String memberNames = groupMembers.stream()
+        .map(member -> member.getMember().getName()) // 필요하면 getName()
+        .collect(Collectors.joining(", "));
+
     return UnifiedScheduleDto.builder()
         .id(s.getId())
         .name(s.getScheduleName())
@@ -60,6 +66,7 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .specificLocation(s.getSpecificLocation())
         .isGrouped(g.getIsGrouped()) // 필요하면 s.getEvent() != null 로 변경
         .groupName(g.getName())  // 그룹 일정이면 s.getEvent().getGroup().getName()
+        .groupMemberName(memberNames)
         .profileImageNumber(leaderProfileImage)
         .meetingType(s.getEvent().getMeetingType()) // 아직 MeetingType이 없다면 null 처리
         .meetingPlatform(s.getMeetingPlatform())

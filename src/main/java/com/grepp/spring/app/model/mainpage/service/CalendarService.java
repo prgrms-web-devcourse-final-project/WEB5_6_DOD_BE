@@ -25,16 +25,16 @@ public class CalendarService {
   private final MainPageScheduleRepository mainPageScheduleRepository;
   private final GoogleScheduleRepository googleScheduleRepository;
 
-  public Map<LocalDate, List<UnifiedScheduleDto>> getMonthlySchedules(String memberId,
-      LocalDate anyDateInMonth) {
+  public Map<LocalDate, List<UnifiedScheduleDto>> getMonthlySchedules(
+      String memberId,
+      LocalDate startDate,
+      LocalDate endDate
+  ) {
     // 한 달 단위로 일정 조회하기
 
     // 1. 월 시작/끝 구하기
-    LocalDate monthStart = anyDateInMonth.withDayOfMonth(1);
-    LocalDate monthEnd = anyDateInMonth.withDayOfMonth(anyDateInMonth.lengthOfMonth());
-
-    LocalDateTime startDateTime = monthStart.atStartOfDay();
-    LocalDateTime endDateTime = monthEnd.atTime(23, 59, 59);
+    LocalDateTime startDateTime = startDate.atStartOfDay();
+    LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
     // 2. 내부 일정 + 구글 일정 조회 (겹침 조건)
     List<Schedule> schedules = mainPageScheduleRepository.findSchedulesForMainPage(memberId,

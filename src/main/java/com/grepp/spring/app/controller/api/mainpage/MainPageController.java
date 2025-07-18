@@ -61,11 +61,11 @@ public class MainPageController {
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
-  @Operation(summary = "월 단위 일정 조회 (메인페이지 확장)")
+  @Operation(summary = "날짜 범위 지정 일정 조회 (메인페이지 확장)")
   @GetMapping("/calendar")
   public ApiResponse<Map<LocalDate,List<UnifiedScheduleDto>>> getMonthlySchedules(
-      @RequestParam int year,
-      @RequestParam int month
+      @RequestParam LocalDate startDate,
+      @RequestParam LocalDate endDate
   ) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (authentication == null) {
@@ -82,12 +82,15 @@ public class MainPageController {
       throw new IllegalStateException("구글 캘린더 연동이 필요합니다.");
     }
 
-
     // 그냥 해당 월의 1일만 CalendarService에 넘기면 알아서 월간 범위 조회
-    LocalDate anyDateInMonth = LocalDate.of(year, month, 1);
+    LocalDate anyDateInMonth = LocalDate.of(
+        startDate.getYear(),
+        startDate.getMonthValue(),
+        1
+    );
 
     Map<LocalDate, List<UnifiedScheduleDto>> monthlySchedules =
-        calendarService.getMonthlySchedules(memberId, anyDateInMonth);
+        calendarService.getMonthlySchedules(memberId, startDate, endDate);
 
     return ApiResponse.success("월간 일정 조회 성공",monthlySchedules);
   }
