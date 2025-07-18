@@ -2,6 +2,7 @@ package com.grepp.spring.app.controller.api.schedules.payload.response;
 
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ShowScheduleResponse {
+    private ScheduleStatus scheduleStatus;
     private Long eventId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;

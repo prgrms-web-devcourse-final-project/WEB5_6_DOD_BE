@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.schedule.dto;
 import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.code.WorkspaceType;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
@@ -23,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Slf4j
 public class ShowScheduleDto {
+
+    private ScheduleStatus scheduleStatus;
 
     private Long id;
     private Long eventId;
@@ -50,6 +53,7 @@ public class ShowScheduleDto {
     public static ShowScheduleResponse fromDto(ShowScheduleDto dto) {
 
         return ShowScheduleResponse.builder()
+            .scheduleStatus(dto.getScheduleStatus())
             .eventId(dto.getEventId())
             .startTime(dto.getStartTime())
             .endTime(dto.getEndTime())
@@ -69,7 +73,18 @@ public class ShowScheduleDto {
     }
 
     public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule,
+
         List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
+
+        ScheduleStatus scheduleStatus;
+
+        if (schedule.getEndTime().isBefore(LocalDateTime.now())) {
+            scheduleStatus = ScheduleStatus.COMPLETE;
+            schedule.setStatus(ScheduleStatus.COMPLETE);
+        }
+        else  {
+            scheduleStatus = ScheduleStatus.FIXED;
+        }
 
         List<String> members = scheduleMembers.stream().map(ScheduleMember::getName)
             .collect(Collectors.toList());
@@ -94,6 +109,7 @@ public class ShowScheduleDto {
             .collect(Collectors.toList());
 
         return ShowScheduleDto.builder()
+            .scheduleStatus(scheduleStatus)
             .id(schedule.getId())
             .eventId(event)
             .startTime(schedule.getStartTime())
