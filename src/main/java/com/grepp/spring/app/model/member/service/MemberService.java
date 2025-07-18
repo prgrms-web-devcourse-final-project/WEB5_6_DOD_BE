@@ -1,5 +1,7 @@
 package com.grepp.spring.app.model.member.service;
 
+import com.grepp.spring.app.model.auth.code.AuthToken;
+import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
@@ -12,8 +14,11 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
+import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.error.exceptions.member.InvalidNameException;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -37,13 +43,15 @@ public class MemberService {
     private final GroupRepository groupRepository;
     private final ScheduleMemberRepository scheduleMemberRepository;
     private final ScheduleCommandRepository scheduleCommandRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     public Optional<Member> findById(String userId) {
         return memberRepository.findById(userId);
     }
 
     @Transactional
-    public void withdraw(String userId, HttpServletResponse response) {
+    public void withdraw(String userId, HttpServletResponse response, HttpServletRequest request) {
         Member member = memberRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
         // 이 사람이 그룹의 관리자인지를 체크
@@ -116,23 +124,24 @@ public class MemberService {
         memberRepository.delete(member);
         log.info("회원 탈퇴가 완료되었습니다. 회원 ID: {}, 회원명: {}", member.getId(), member.getName());
 
-        ResponseCookie deleteAccessToken = ResponseCookie.from("ACCESS_TOKEN", "")
-            .path("/")
-            .httpOnly(true)
-//            .secure(true) // HTTPS 환경이라면 true
-            .maxAge(0)
-            .build();
+        // 쿠키에서 토큰 제거
+        ResponseCookie deleteAccessTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
 
-        ResponseCookie deleteRefreshToken = ResponseCookie.from("REFRESH_TOKEN", "")
-            .path("/")
-            .httpOnly(true)
-//            .secure(true) // HTTPS 환경이라면 true
-            .maxAge(0)
-            .build();
+        ResponseCookie deleteRefreshTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
 
-        // 응답 헤더에 쿠키 삭제 정보 추가
-        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessToken.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshToken.toString());
+        ResponseCookie deleteSessionIdCookie = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteSessionIdCookie.toString());
+
+        // Redis에서 리프레시 토큰 제거
+        String accessToken = jwtTokenProvider.resolveToken(request, AuthToken.ACCESS_TOKEN);
+        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+            String atJti = jwtTokenProvider.getClaims(accessToken).getId();
+            refreshTokenService.deleteByAccessTokenId(atJti);
+        }
+
+        SecurityContextHolder.clearContext();
         log.info("탈퇴한 회원이므로 자동으로 로그아웃됩니다.");
     }
 
