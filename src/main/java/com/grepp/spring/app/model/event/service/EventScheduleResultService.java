@@ -15,7 +15,9 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
-import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
+import com.grepp.spring.infra.error.exceptions.event.InvalidEventDataException;
+import com.grepp.spring.infra.response.EventErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -79,13 +81,13 @@ public class EventScheduleResultService {
 
     private Event validateAndGetEvent(Long eventId) {
         return eventRepository.findById(eventId)
-            .orElseThrow(() -> new NotFoundException("존재하지 않는 이벤트입니다. ID: " + eventId));
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
     }
 
     private List<CandidateDate> getCandidateDates(Long eventId) {
         List<CandidateDate> candidateDates = candidateDateRepository.findAllByEventIdAndActivatedTrueOrderByDate(eventId);
         if (candidateDates.isEmpty()) {
-            throw new IllegalStateException("후보 날짜가 없습니다.");
+            throw new InvalidEventDataException(EventErrorCode.INVALID_CANDIDATE_DATES);
         }
 
         return candidateDates;
