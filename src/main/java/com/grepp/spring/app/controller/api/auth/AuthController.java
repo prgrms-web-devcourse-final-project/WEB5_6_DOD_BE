@@ -12,6 +12,8 @@ import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
 import com.grepp.spring.infra.auth.jwt.dto.RefreshTokenDto;
+import com.grepp.spring.infra.error.exceptions.AuthApiException;
+import com.grepp.spring.infra.error.exceptions.member.InvalidTokenException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.jsonwebtoken.Claims;
@@ -72,8 +74,7 @@ public class AuthController {
                 .build()));
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.INVALID_TOKEN, e.getMessage()));
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
         }
     }
 
@@ -113,8 +114,7 @@ public class AuthController {
 
         // 리프레시 토큰의 유효성 검증
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)){
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.INVALID_TOKEN, "유효하지 않은 Refresh Token 입니다."));
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
         }
 
         // 토큰에서 Claim 을 추출합시다.
@@ -128,57 +128,46 @@ public class AuthController {
 
         // 엑세스 토큰과 리프레시 토큰의 JTI 일치 여부 확인
         if (!atJtiFromAccess.equals(atJtiFromRefresh)) {
-            // 일치하지 않으면 즉시 Redis 에서 제거
+            // 일치하지 않으면 즉시 Redis에서 제거
             refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다."));
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
         }
 
-        try {
-            // Redis에 저장된 리프레시 토큰 조회 및 검증
-            RefreshToken currentRefreshToken = refreshTokenService.findByAccessTokenId(atJtiFromRefresh);
-            if (currentRefreshToken == null || !currentRefreshToken.getId().equals(refreshJti)) {
-                refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
-                return ResponseEntity.status(401)
-                    .body(ApiResponse.error(ResponseCode.INVALID_TOKEN, "유효하지 않은 토큰입니다."));
-            }
-
-            // 새로운 Access Token 생성
-            AccessTokenDto newAccessTokenDto = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
-            // 새로운 Refresh token 생성
-            RefreshTokenDto newRefreshTokenDto = jwtTokenProvider.generateRefreshToken(
-                newAccessTokenDto.getJti());
-            // 기존에 Redis에 저장된 Refresh Token 삭제 및 새로운 토큰 저장
+        // Redis에 저장된 리프레시 토큰 조회 및 검증
+        RefreshToken currentRefreshToken = refreshTokenService.findByAccessTokenId(atJtiFromRefresh);
+        if (currentRefreshToken == null || !currentRefreshToken.getId().equals(refreshJti)) {
             refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
-
-            // 새 Refresh Token을 Redis 에 저장합니다.
-            RefreshToken newRefreshToken = RefreshToken.builder()
-                .id(newRefreshTokenDto.getJti())
-                .atId(newAccessTokenDto.getJti())
-                .ttl(jwtTokenProvider.getRefreshTokenExpiration())
-                .build();
-            refreshTokenService.saveWithAtId(newRefreshToken);
-
-            // 쿠키에 토큰 저장
-            ResponseCookie newAccessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
-                newAccessTokenDto.getToken(), newAccessTokenDto.getExpires());
-            ResponseCookie newRefreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
-                newRefreshTokenDto.getToken(), newRefreshTokenDto.getExpires());
-
-            response.addHeader("Set-Cookie", newAccessTokenCookie.toString());
-            response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
-
-            log.info("갱신된 Access Token: {}", newAccessTokenDto.getToken());
-            log.info("갱신된 Refresh Token: {}", newRefreshTokenDto.getToken());
-
-            return ResponseEntity.ok(ApiResponse.success("토큰이 갱신되었습니다."));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401)
-                .body(ApiResponse.error(ResponseCode.INVALID_TOKEN, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(500)
-                .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR,
-                    ResponseCode.INTERNAL_SERVER_ERROR.message()));
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
         }
+
+        // 새로운 Access Token 생성
+        AccessTokenDto newAccessTokenDto = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
+        // 새로운 Refresh token 생성
+        RefreshTokenDto newRefreshTokenDto = jwtTokenProvider.generateRefreshToken(
+            newAccessTokenDto.getJti());
+        // 기존에 Redis에 저장된 Refresh Token 삭제 및 새로운 토큰 저장
+        refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
+
+        // 새 Refresh Token을 Redis 에 저장합니다.
+        RefreshToken newRefreshToken = RefreshToken.builder()
+            .id(newRefreshTokenDto.getJti())
+            .atId(newAccessTokenDto.getJti())
+            .ttl(jwtTokenProvider.getRefreshTokenExpiration())
+            .build();
+        refreshTokenService.saveWithAtId(newRefreshToken);
+
+        // 쿠키에 토큰 저장
+        ResponseCookie newAccessTokenCookie = TokenCookieFactory.create(AuthToken.ACCESS_TOKEN.name(),
+            newAccessTokenDto.getToken(), newAccessTokenDto.getExpires());
+        ResponseCookie newRefreshTokenCookie = TokenCookieFactory.create(AuthToken.REFRESH_TOKEN.name(),
+            newRefreshTokenDto.getToken(), newRefreshTokenDto.getExpires());
+
+        response.addHeader("Set-Cookie", newAccessTokenCookie.toString());
+        response.addHeader("Set-Cookie", newRefreshTokenCookie.toString());
+
+        log.info("갱신된 Access Token: {}", newAccessTokenDto.getToken());
+        log.info("갱신된 Refresh Token: {}", newRefreshTokenDto.getToken());
+
+        return ResponseEntity.ok(ApiResponse.success("토큰이 갱신되었습니다."));
     }
 }
