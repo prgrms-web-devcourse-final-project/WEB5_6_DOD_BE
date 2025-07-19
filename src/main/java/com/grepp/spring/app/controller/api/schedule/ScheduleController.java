@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.schedule;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
@@ -119,7 +120,8 @@ public class ScheduleController {
     @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
     @PostMapping("create-depart-location/{scheduleId}")
     public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(
-        @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request) {
+        @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request)
+        throws JsonProcessingException {
 
             scheduleQueryService.findScheduleById(scheduleId);
 

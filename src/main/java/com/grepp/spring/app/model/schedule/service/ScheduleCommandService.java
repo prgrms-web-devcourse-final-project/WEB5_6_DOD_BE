@@ -1,5 +1,8 @@
 package com.grepp.spring.app.model.schedule.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
@@ -16,16 +19,21 @@ import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
 import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.DepartLocationMetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
+import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
+import com.grepp.spring.app.model.schedule.entity.Line;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Metro;
+import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
+import com.grepp.spring.app.model.schedule.repository.LineQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.MetroQueryRepository;
@@ -39,16 +47,34 @@ import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import org.apache.poi.sl.draw.geom.GuideIf.Op;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
 public class ScheduleCommandService {
+
+    @PersistenceContext
+    private EntityManager em;
 
     @Autowired private ScheduleCommandRepository scheduleCommandRepository;
     @Autowired private ScheduleQueryRepository scheduleQueryRepository;
@@ -60,6 +86,8 @@ public class ScheduleCommandService {
     @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
 
     @Autowired private MetroTransferCommandRepository metroTransferCommandRepository;
+
+    @Autowired private LineQueryRepository lineQueryRepository;
 
     @Autowired private EventRepository eventRepository;
 
@@ -76,6 +104,9 @@ public class ScheduleCommandService {
     private LocationCommandRepository locationCommandRepository;
     @Autowired
     private MetroQueryRepository metroQueryRepository;
+
+    @Value("${kakao.middle-location.api-key}")
+    private String kakaoMiddleLocationApiKey;
 
     ////    @Transactional
 //    public ShowScheduleResponse showSchedule(Long scheduleId) {
@@ -228,7 +259,14 @@ public class ScheduleCommandService {
     }
 
     @Transactional // Transactional 내에서 수정이 되어야 자동 변경 감지된다.
-    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request) {
+    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request)
+        throws JsonProcessingException {
+
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+
+        // 출발장소 추가될때마다 매번 다른 중간장소가 나와야함. 기존의 중간장소는 모두 삭제
+        locationCommandRepository.deleteByScheduleId(scheduleId);
+        metroTransferCommandRepository.deleteByScheduleId(scheduleId);
 
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
@@ -261,9 +299,47 @@ public class ScheduleCommandService {
         }
 
         //TODO : 출발장소들을 이용하여 중간장소 계산
+        List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+
+        Double middleLatitude = 0.0;
+        Double middleLongitude = 0.0;
+        int cnt = 0;
+
+        for (ScheduleMember sc : scheduleLocations) {
+            if (sc.getLatitude() != null) {
+                cnt++;
+                middleLatitude += sc.getLatitude();        // 중간 경도 계산
+                middleLongitude += sc.getLongitude();      // 중간 위도 계산
+            }
+        }
+
+        if (middleLatitude != 0.0) {
+            middleLatitude = middleLatitude / cnt;
+            middleLongitude = middleLongitude / cnt;
+
+            List<JsonNode> subwayStation = findNearestStations(middleLatitude, middleLongitude);
+            for (JsonNode subwayStationJson : subwayStation) {
+                SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
+                Location location = SubwayStationDto.fromDto(subwayStationDto);
+                Location location1 = locationCommandRepository.save(location);
+
+                Optional<Metro> metro1 = metroQueryRepository.findByName(location1.getName());
+                List<Line> line = lineQueryRepository.findByMetroName(metro1.get().getName());
+
+                for (Line l : line) {
+                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location1, l);
+                    MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
+                    metroTransferCommandRepository.save(metroTransfer);
+                }
+            }
+        }
 
 
-//        saveLocation(dto);
+        log.info("middleLatitude = {}", middleLatitude);
+        log.info("middleLongitude = {}", middleLongitude);
+
+        em.flush();  // DB 반영
+        em.clear();  // 영속성 컨텍스트 초기화
 
     }
 
@@ -279,6 +355,56 @@ public class ScheduleCommandService {
 //
 //        locationCommandRepository.save(location);
 //    }
+
+
+    // 카카오 api 활용하여 중간장소 역 3개 추출
+    public List<JsonNode> findNearestStations(double latitude, double longitude)
+        throws JsonProcessingException {
+        String url = UriComponentsBuilder.fromHttpUrl("https://dapi.kakao.com/v2/local/search/category.json")
+            .queryParam("category_group_code", "SW8")
+            .queryParam("x", longitude) // x = 경도
+            .queryParam("y", latitude)  // y = 위도
+            .queryParam("radius", 3000)
+            .queryParam("sort", "distance")
+            .toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + kakaoMiddleLocationApiKey);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode json = mapper.readTree(response.getBody());
+
+
+        JsonNode  documents = json.get("documents");
+        List<JsonNode> result = new ArrayList<>();
+        String stationName = "";
+
+        // 3개까지만 반환
+        // ex) 강남역 2호선 , 강남역 신분당선 -> 아래는 같은역 저장 방지 로직
+        for (JsonNode doc : documents) {
+            String fullName = doc.get("place_name").asText();
+            String sn = fullName.split(" ")[0];
+
+            // 직전에 나왔던 역이 아니라면 저장
+            // 거리순으로 역이 차례대로 추출되기 때문에 같은역은 반드시 붙어서 나오게 되므로
+            // 직전 역이 같은지만 판단
+            if (!stationName.equals(sn)) {
+                stationName = sn;
+                result.add(doc);
+            }
+
+            // 3개역만 저장
+            if (result.size() >= 3) {
+                break;
+            }
+        }
+
+        return result;
+    }
 
     @Transactional
     public void voteMiddleLocation( Optional<ScheduleMember> smId , Optional<Location> lid, Schedule schedule) {
