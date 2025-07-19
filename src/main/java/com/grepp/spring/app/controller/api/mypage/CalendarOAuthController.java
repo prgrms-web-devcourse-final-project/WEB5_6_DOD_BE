@@ -6,6 +6,8 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.GoogleOAuthService;
 import com.grepp.spring.app.model.mypage.service.SocialAuthTokenService;
+import com.grepp.spring.infra.error.exceptions.mypage.GoogleAuthFailedException;
+import com.grepp.spring.infra.response.MyPageErrorCode;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -35,30 +37,37 @@ public class CalendarOAuthController {
   public void handleGoogleCalendarCallback(@RequestParam("code") String code,
       HttpServletResponse response) throws IOException {
 
-    // 로그인 사용자 정보 가져오기
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication == null || !authentication.isAuthenticated()) {
-      throw new AuthenticationCredentialsNotFoundException("로그인 필요");
+    try {
+      // 로그인 사용자 정보 가져오기
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (authentication == null || !authentication.isAuthenticated()) {
+        throw new AuthenticationCredentialsNotFoundException("로그인 필요");
+      }
+
+      String memberId = authentication.getName();
+
+      Member member = memberRepository.findById(memberId)
+          .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+
+      // code → token 교환
+      GoogleTokenResponse token = googleOAuthService.exchangeCodeForToken(code);
+      log.info("GoogleTokenResponse: access_token={}, refresh_token={}", token.getAccessToken(), token.getRefreshToken());
+
+      // refresh_token & access_token 저장
+      socialAuthTokenService.saveGoogleToken(member, token);
+
+      log.info("[CALLBACK] 구글 캘린더 토큰 저장 완료 for member={}", memberId);
+
+      // 수동 새로고침 로직 호출
+      calendarSyncService.syncCalendar(memberId);
+
+      //response.sendRedirect("http://localhost:8080/mypage/google-calendar");
+      // 프론트로 보내는 uri
+      response.sendRedirect("https://ittaeok.uk/mypage?google-sync=success");
+    } catch (GoogleAuthFailedException e) {
+      log.error("[CALLBACK] GoogleAuthFailedException 발생", e);
+      response.sendError(HttpServletResponse.SC_BAD_REQUEST, "구글 인증 실패 (code 재사용)");
     }
-
-    String memberId = authentication.getName();
-
-    Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
-
-    // code → token 교환
-    GoogleTokenResponse token = googleOAuthService.exchangeCodeForToken(code);
-
-    // refresh_token & access_token 저장
-    socialAuthTokenService.saveGoogleToken(member, token);
-
-    log.info("[CALLBACK] 구글 캘린더 토큰 저장 완료 for member={}", memberId);
-
-    // 수동 새로고침 로직 호출
-    calendarSyncService.syncCalendar(memberId);
-
-    // response.sendRedirect("http://localhost:8080/mypage/google-calendar");
-    response.sendRedirect("https://ittaeok.uk/mypage?google-sync=success");
 
   }
 }

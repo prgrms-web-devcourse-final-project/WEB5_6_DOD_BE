@@ -10,11 +10,13 @@ import com.grepp.spring.infra.error.exceptions.mypage.TokenSaveFailedException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SocialAuthTokenService {
 
   private final SocialAuthTokenRepository socialAuthTokenRepository;
@@ -46,10 +48,12 @@ public class SocialAuthTokenService {
   // - refresh_token 무효 → null 반환
 
   public String getValidAccessToken(SocialAuthToken token) {
+
     // 아직 access_token이 유효하면 그대로 반환
     if (token.getExpiresAt().isAfter(LocalDateTime.now())) {
       return token.getAccessToken();
     }
+
 
     // 토큰 만료 시 GoogleOAuthService 에서 재발급
     GoogleTokenResponse newToken = googleOAuthService.refreshAccessToken(token.getRefreshToken());

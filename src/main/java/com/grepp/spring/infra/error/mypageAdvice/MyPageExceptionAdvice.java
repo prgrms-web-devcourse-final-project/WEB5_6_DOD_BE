@@ -15,16 +15,13 @@ import com.grepp.spring.infra.error.exceptions.mypage.InvalidMemberRequestExcept
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
 import com.grepp.spring.infra.error.exceptions.mypage.TokenSaveFailedException;
 import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.ResponseCode;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "com.grepp.spring.app.controller.api")
+@RestControllerAdvice(basePackages = "com.grepp.spring.app.controller.api.mypage")
 @Slf4j
 @Order(1)
 public class MyPageExceptionAdvice {
@@ -45,8 +42,6 @@ public class MyPageExceptionAdvice {
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
   }
-
-
   // 401
   @ExceptionHandler(AuthenticationRequiredException.class) // 멤버 인증 관련
   public ResponseEntity<ApiResponse<String>> authenticationRequiredExHandler(
@@ -74,7 +69,8 @@ public class MyPageExceptionAdvice {
   }
 
   @ExceptionHandler(CalendarTokenExpiredException.class)
-  public ResponseEntity<ApiResponse<String>> handleCalendarTokenExpiredExHandler(CalendarTokenExpiredException ex) {
+  public ResponseEntity<ApiResponse<String>> handleCalendarTokenExpiredExHandler(
+      CalendarTokenExpiredException ex) {
     return ResponseEntity
         .status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode(), ex.getRedirectUrl()));
@@ -146,10 +142,4 @@ public class MyPageExceptionAdvice {
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
   }
-
-
-
-
-
-
 }

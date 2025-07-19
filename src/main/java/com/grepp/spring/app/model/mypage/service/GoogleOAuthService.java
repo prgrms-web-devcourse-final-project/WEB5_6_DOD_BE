@@ -7,6 +7,7 @@ import com.grepp.spring.infra.error.exceptions.mypage.GoogleAuthFailedException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,6 +23,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleOAuthService {
 
   @Value("${google.calendar.client-id}")
@@ -39,7 +41,7 @@ public class GoogleOAuthService {
    // 구글 OAuth 최초 연동/재인증 URL 생성
 
   public String buildReauthUrl() {
-    return UriComponentsBuilder.fromUri(URI.create("https://accounts.google.com/o/oauth2/v2/auth"))
+    String url = UriComponentsBuilder.fromUri(URI.create("https://accounts.google.com/o/oauth2/v2/auth"))
         .queryParam("client_id", clientId)
         .queryParam("redirect_uri", redirectUri)
         .queryParam("response_type", "code")
@@ -48,6 +50,9 @@ public class GoogleOAuthService {
         .queryParam("prompt", "consent")        // 매번 refresh_token 강제 발급하려면 필요
         .build()
         .toUriString();
+
+      log.info("✅ [GoogleOAuthService] Generated Google OAuth URL: {}", url);
+    return url;
   }
 
 

@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
 import com.grepp.spring.infra.error.exceptions.mypage.CalendarAuthRequiredException;
 import com.grepp.spring.infra.error.exceptions.mypage.CalendarEventSaveFailedException;
 import com.grepp.spring.infra.error.exceptions.mypage.CalendarSyncFailedException;
+import com.grepp.spring.infra.error.exceptions.mypage.CalendarTokenExpiredException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidCalendarResponseException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
@@ -19,10 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -30,6 +33,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CalendarSyncService {
 
   private final MemberRepository memberRepository;
@@ -54,6 +58,7 @@ public class CalendarSyncService {
             MyPageErrorCode.CALENDAR_AUTH_REQUIRED,
             googleOAuthService.buildReauthUrl()
         ));
+
 
     // 3) refresh_token으로 유효한 access_token 확보 (만료 시 자동 갱신)
     String accessToken = socialAuthTokenService.getValidAccessToken(token);
@@ -83,6 +88,15 @@ public class CalendarSyncService {
 
     } // Google Calendar API 호출 시에 생기는 예외 처리
     catch (HttpClientErrorException e) {
+      log.warn("Google API error: {}", e.getStatusCode());
+      if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+        // access_token이 만료되어 재인증 필요
+        log.warn("Throwing CalendarTokenExpiredException!!");
+        throw new CalendarTokenExpiredException(
+            MyPageErrorCode.CALENDAR_TOKEN_EXPIRED,
+            googleOAuthService.buildReauthUrl()
+        );
+      }
       // 구글 API 호출 실패
       throw new CalendarSyncFailedException(MyPageErrorCode.CALENDAR_SYNC_FAILED);
     } catch (DataAccessException e) {
