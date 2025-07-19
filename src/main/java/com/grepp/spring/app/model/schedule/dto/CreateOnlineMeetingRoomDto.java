@@ -15,7 +15,7 @@ public class CreateOnlineMeetingRoomDto {
 
     public static CreateOnlineMeetingRoomDto toDto(String url) {
         return CreateOnlineMeetingRoomDto.builder()
-            .meetingPlatform(MeetingPlatform.GOOGLE_MEET)
+            .meetingPlatform(MeetingPlatform.ZOOM)
             .workspaceUrl(url)
             .build();
     }

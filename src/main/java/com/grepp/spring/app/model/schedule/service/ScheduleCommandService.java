@@ -1,8 +1,9 @@
 package com.grepp.spring.app.model.schedule.service;
 
+import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
+import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
@@ -10,39 +11,27 @@ import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
-import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
-import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
-import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
-import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
-import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
-import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
-import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
-import com.grepp.spring.app.model.schedule.entity.Location;
-import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
-import com.grepp.spring.app.model.schedule.entity.Vote;
-import com.grepp.spring.app.model.schedule.entity.Workspace;
-import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.app.model.schedule.dto.*;
+import com.grepp.spring.app.model.schedule.entity.*;
+import com.grepp.spring.app.model.schedule.repository.*;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
-import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -73,7 +62,12 @@ public class ScheduleCommandService {
     @Autowired
     private LocationCommandRepository locationCommandRepository;
 
-////    @Transactional
+    @Autowired private ZoomOAuthService zoomOAuthService;
+
+    @Value("${zoom.refresh-token}") 
+    private String zoomRefreshToken;
+
+    /// /    @Transactional
 //    public ShowScheduleResponse showSchedule(Long scheduleId) {
 //        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 //
@@ -88,7 +82,6 @@ public class ScheduleCommandService {
 //
 //        return ShowScheduleDto.fromDto(dto);
 //    }
-
     public Optional<Schedule> findScheduleById(Long scheduleId) {
         return scheduleQueryRepository.findById(scheduleId);
     }
@@ -219,6 +212,7 @@ public class ScheduleCommandService {
         Workspace workspace = AddWorkspaceDto.fromDto(dto);
         workspaceCommandRepository.save(workspace);
     }
+
     public void deleteWorkspace(Long workspaceId) {
         workspaceCommandRepository.deleteById(workspaceId);
     }
@@ -302,14 +296,46 @@ public class ScheduleCommandService {
 
     }
 
+    @Transactional
     public CreateOnlineMeetingRoomResponse createOnlineMeeting(Long scheduleId) {
 
-        // TODO : 온라인 플렛폼 생성 로직 + DB에 플렛폼 url 저장
+        Schedule schedule = scheduleQueryRepository.findById(scheduleId)
+            .orElseThrow(() -> new NotFoundException("일정을 찾을 수 없습니다. (ID: " + scheduleId + ")"));
 
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+        GoogleTokenResponse tokenResponse = zoomOAuthService.refreshAccessToken(zoomRefreshToken);
+        String accessToken = tokenResponse.getAccessToken();
 
-        CreateOnlineMeetingRoomDto dto = CreateOnlineMeetingRoomDto.toDto(schedule.get().getPlatformUrl());
+        if (accessToken == null || accessToken.trim().isEmpty()) {
+            throw new IllegalStateException("Zoom 인증 토큰을 갱신하는데 실패했습니다. 리프레시 토큰을 확인하세요.");
+        }
 
+        String apiUrl = "https://api.zoom.us/v2/users/me/meetings";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String requestBody = String.format(
+            "{\"topic\":\"%s\", \"type\":2, \"start_time\":\"%s\", \"timezone\":\"Asia/Seoul\"}",
+            schedule.getScheduleName(),
+            schedule.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+        );
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<ZoomMeetingDto> responseEntity = restTemplate.postForEntity(apiUrl, requestEntity, ZoomMeetingDto.class);
+
+        if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
+            throw new RuntimeException("Zoom API를 통해 회의를 생성하는데 실패했습니다. 응답: " + responseEntity.getBody());
+        }
+
+        String meetingLink = responseEntity.getBody().getJoinUrl();
+
+        schedule.setMeetingPlatform(MeetingPlatform.ZOOM);
+        schedule.setPlatformUrl(meetingLink);
+        scheduleCommandRepository.save(schedule);
+
+        CreateOnlineMeetingRoomDto dto = CreateOnlineMeetingRoomDto.toDto(meetingLink);
         return CreateOnlineMeetingRoomDto.fromDto(dto);
     }
 }
