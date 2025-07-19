@@ -14,7 +14,6 @@ import com.grepp.spring.app.controller.api.group.payload.response.ModifyGroupInf
 import com.grepp.spring.app.controller.api.group.payload.response.ScheduleToGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowCandidateGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupMemberResponse;
-import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupScheduleResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.WithdrawGroupResponse;
@@ -44,17 +43,6 @@ public class GroupController {
 
     private final GroupCommandService groupCommandService;
     private final GroupQueryService groupQueryService;
-
-    // 현재 유저가 속한 그룹 조회
-//    @GetMapping
-//    @Operation(summary = "그룹 조회")
-//    public ResponseEntity<ApiResponse<ShowGroupResponse>> getGroup(
-//    ) {
-//        // 그룹 조회
-//        ShowGroupResponse response = groupQueryService.displayGroup();
-//        // 그룹 조회 성공
-//        return ResponseEntity.ok(ApiResponse.success(response));
-//    }
 
 
     // 그룹 내 일정 조회
@@ -118,8 +106,10 @@ public class GroupController {
     public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
         @Valid @RequestBody CreateGroupRequest request
     ) {
+        // 그룹 생성
+        CreateGroupResponse response = groupCommandService.registGroup(request);
         // 그룹 생성 성공
-        return ResponseEntity.ok(ApiResponse.success(groupCommandService.registGroup(request)));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
 
@@ -156,9 +146,11 @@ public class GroupController {
         @PathVariable Long id,
         @RequestBody ModifyGroupInfoRequest request
     ) {
+        // 그룹 정보 수정
+        ModifyGroupInfoResponse response = groupCommandService.modifyGroup(id, request);
         // 그룹 정보 수정 성공
         return ResponseEntity.ok(
-            ApiResponse.success(groupCommandService.modifyGroup(id, request)));
+            ApiResponse.success(response));
     }
 
 

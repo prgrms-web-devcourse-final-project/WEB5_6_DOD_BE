@@ -1,6 +1,7 @@
 package com.grepp.spring.infra.error.groupAdvice;
 
 
+import com.grepp.spring.infra.error.exceptions.group.GroupAuthenticationException;
 import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
@@ -27,6 +28,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @Order(1)
 public class GroupExceptionAdvice {
+
+    //401
+    @ExceptionHandler(GroupAuthenticationException.class)
+    public ResponseEntity<ApiResponse<String>> groupAuthenticationExHandler(
+        GroupAuthenticationException ex) {
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(ApiResponse.error(GroupErrorCode.AUTHENTICATION_REQUIRED));
+    }
+
 
     //403
     @ExceptionHandler(NotGroupLeaderException.class)
@@ -86,14 +97,6 @@ public class GroupExceptionAdvice {
 
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
             .body(ApiResponse.error(GroupErrorCode.SCHEDULE_NOT_FOUND));
-    }
-
-    @ExceptionHandler(UserNotInGroupException.class)
-    public ResponseEntity<ApiResponse<String>> userNotInGroupExHandler(
-        UserNotInGroupException ex) {
-
-        return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
-            .body(ApiResponse.error(GroupErrorCode.USER_NOT_IN_GROUP));
     }
 
 
