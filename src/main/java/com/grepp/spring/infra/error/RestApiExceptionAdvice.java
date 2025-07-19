@@ -1,6 +1,7 @@
 package com.grepp.spring.infra.error;
 
 import com.grepp.spring.infra.error.exceptions.CommonException;
+import com.grepp.spring.infra.error.exceptions.member.InvalidTokenException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,14 @@ public class RestApiExceptionAdvice {
         return ResponseEntity
             .internalServerError()
             .body(ApiResponse.error(ResponseCode.INTERNAL_SERVER_ERROR));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidTokenException(InvalidTokenException ex) {
+        log.info("유효하지 않은 토큰 예외");
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(ApiResponse.error(ex.getResponseCode(), ex.getMessage()));
     }
 
 
