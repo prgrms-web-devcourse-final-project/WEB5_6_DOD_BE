@@ -1,14 +1,12 @@
 package com.grepp.spring.app.model.schedule.service;
 
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.dto.MetroInfoDto;
-import com.grepp.spring.app.model.schedule.dto.MetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ShowSuggestedLocationsDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
@@ -55,19 +53,18 @@ public class ScheduleQueryService {
 
 
     @Transactional
-    public ShowScheduleResponse showSchedule(Long scheduleId) {
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-
+    public ShowScheduleResponse showSchedule(Schedule schedule) {
         // Lazy init 해결하기 위해서 Transactional 내에서 처리
-        Long eventId = schedule.get().getEvent().getId();
+        Long eventId = schedule.getEvent().getId();
 
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
-            scheduleId);
-        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
+            schedule.getId());
+        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule
+            .getId());
 
         MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
 
-        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule.orElse(null),
+        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
             scheduleMembers, workspaces);
 
         return ShowScheduleDto.fromDto(dto);
@@ -75,10 +72,11 @@ public class ScheduleQueryService {
 
     public Schedule findScheduleById(Long scheduleId) {
 
-//        if (scheduleQueryRepository.findById(scheduleId).isEmpty()) {
+//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+//        if (schedule.isEmpty()) {
 //            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
 //        }
-//        return scheduleQueryRepository.findById(scheduleId).get();
+//        return schedule.get();
 
         // orElseThrow 는 빈 배열로 반환되어서
         return scheduleQueryRepository.findById(scheduleId).orElseThrow(() -> new ScheduleNotFoundException(

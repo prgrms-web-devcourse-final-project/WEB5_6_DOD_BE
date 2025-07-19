@@ -61,6 +61,8 @@ public class ScheduleCommandService {
     @Autowired private VoteCommandRepository voteCommandRepository;
     @Autowired
     private LocationCommandRepository locationCommandRepository;
+    @Autowired
+    private MetroQueryRepository metroQueryRepository;
 
     @Autowired private ZoomOAuthService zoomOAuthService;
 
@@ -231,13 +233,27 @@ public class ScheduleCommandService {
 //        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
 //        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
-        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
 
-        scheduleMember.setDepartLocationName(dto.getDepartLocationName());
-        scheduleMember.setLongitude(dto.getLongitude());
-        scheduleMember.setLatitude(dto.getLatitude());
+        Optional<Metro> metro = metroQueryRepository.findByName(request.getDepartLocationName());
+
+        // DB에 존재하지 않는다면
+        if (metro.isEmpty()) {
+            CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
+
+            scheduleMember.setDepartLocationName(dto.getDepartLocationName());
+            scheduleMember.setLongitude(dto.getLongitude());
+            scheduleMember.setLatitude(dto.getLatitude());
+        }
+        else { // DB에 존재한다면
+            CreateDepartLocationDto dto = CreateDepartLocationDto.entityToDto(metro.get());
+
+            scheduleMember.setDepartLocationName(dto.getDepartLocationName());
+            scheduleMember.setLongitude(dto.getLongitude());
+            scheduleMember.setLatitude(dto.getLatitude());
+        }
 
         //TODO : 출발장소들을 이용하여 중간장소 계산
+
 
 //        saveLocation(dto);
 
