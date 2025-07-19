@@ -23,12 +23,14 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryReposit
 import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
+import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.ResponseCode;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -163,15 +165,14 @@ public class ScheduleController {
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
     }
 
-    // 온라인 회의장 링크 개설(줌, 구글미트)
-    @Operation(summary = "온라인 회의장 링크 개설(줌, 구글미트)", description = "온라인 회의장을 개설합니다.")
+    // 온라인 회의장 링크 개설(줌)
+    @Operation(summary = "온라인 회의장 링크 개설(줌)", description = "온라인 회의장을 개설합니다.")
     @PostMapping("/create-online-meeting/{scheduleId}")
     public ResponseEntity<ApiResponse<CreateOnlineMeetingRoomResponse>> CreateOnlineMeetingRoom(@PathVariable Long scheduleId) {
 
-            scheduleQueryService.findScheduleById(scheduleId);
-            CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(scheduleId);
+        CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(scheduleId);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 공통 워크스페이스 등록
