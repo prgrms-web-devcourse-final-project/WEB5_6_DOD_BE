@@ -1,10 +1,9 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.model.schedule.code.WorkspaceType;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
-import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
