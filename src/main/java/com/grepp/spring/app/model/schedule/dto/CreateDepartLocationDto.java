@@ -1,10 +1,7 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.model.member.entity.Member;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
+import com.grepp.spring.app.model.schedule.entity.Metro;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +25,14 @@ public class CreateDepartLocationDto {
             .departLocationName(request.getDepartLocationName())
             .longitude(request.getLongitude())
             .latitude(request.getLatitude())
+            .build();
+    }
+
+    public static CreateDepartLocationDto entityToDto(Metro metro) {
+        return CreateDepartLocationDto.builder()
+            .departLocationName(metro.getName())
+            .longitude(metro.getLongitude())
+            .latitude(metro.getLatitude())
             .build();
     }
 

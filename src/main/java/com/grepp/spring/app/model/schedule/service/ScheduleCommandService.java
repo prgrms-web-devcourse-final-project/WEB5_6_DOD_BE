@@ -1,11 +1,11 @@
 package com.grepp.spring.app.model.schedule.service;
 
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
@@ -21,12 +21,14 @@ import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
+import com.grepp.spring.app.model.schedule.entity.Metro;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
@@ -72,8 +74,10 @@ public class ScheduleCommandService {
     @Autowired private VoteCommandRepository voteCommandRepository;
     @Autowired
     private LocationCommandRepository locationCommandRepository;
+    @Autowired
+    private MetroQueryRepository metroQueryRepository;
 
-////    @Transactional
+    ////    @Transactional
 //    public ShowScheduleResponse showSchedule(Long scheduleId) {
 //        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 //
@@ -237,13 +241,27 @@ public class ScheduleCommandService {
 //        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
 //        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
-        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
 
-        scheduleMember.setDepartLocationName(dto.getDepartLocationName());
-        scheduleMember.setLongitude(dto.getLongitude());
-        scheduleMember.setLatitude(dto.getLatitude());
+        Optional<Metro> metro = metroQueryRepository.findByName(request.getDepartLocationName());
+
+        // DB에 존재하지 않는다면
+        if (metro.isEmpty()) {
+            CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
+
+            scheduleMember.setDepartLocationName(dto.getDepartLocationName());
+            scheduleMember.setLongitude(dto.getLongitude());
+            scheduleMember.setLatitude(dto.getLatitude());
+        }
+        else { // DB에 존재한다면
+            CreateDepartLocationDto dto = CreateDepartLocationDto.entityToDto(metro.get());
+
+            scheduleMember.setDepartLocationName(dto.getDepartLocationName());
+            scheduleMember.setLongitude(dto.getLongitude());
+            scheduleMember.setLatitude(dto.getLatitude());
+        }
 
         //TODO : 출발장소들을 이용하여 중간장소 계산
+
 
 //        saveLocation(dto);
 
