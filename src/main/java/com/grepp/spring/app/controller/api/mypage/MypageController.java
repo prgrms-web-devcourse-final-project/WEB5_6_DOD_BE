@@ -4,38 +4,27 @@ package com.grepp.spring.app.controller.api.mypage;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoritePlaceRequest;
-import com.grepp.spring.app.controller.api.mypage.payload.request.SetCalendarSyncRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyProfileResponse;
-import com.grepp.spring.app.controller.api.mypage.payload.response.SetCalendarSyncResponse;
-import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
-import com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto;
 import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
 import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.MypageService;
-import com.grepp.spring.infra.error.exceptions.AuthApiException;
+import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.response.MyPageErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,36 +45,17 @@ public class MypageController {
   public ResponseEntity<ApiResponse<CreateFavoritePlaceResponse>> createFavoriteLocation(
       @RequestBody @Valid CreateFavoritePlaceRequest request) {
 
-    try {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String memberId = extractCurrentMemberId();
 
-      if (authentication == null) {
-        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-      }
+    // 서비스에서 DTO 받아옴
+    FavoriteLocationDto dto = mypageService.createFavoriteLocation(memberId, request);
 
-      String memberId = authentication.getName();
+    // 응답용 DTO 로 변환
+    CreateFavoritePlaceResponse response = FavoriteLocationDto.fromDto(dto);
 
-      // 서비스에서 DTO 받아옴
-      FavoriteLocationDto dto = mypageService.createFavoriteLocation(memberId, request);
+    // API 응답 감싸서 반환
+    return ResponseEntity.ok(ApiResponse.success(response));
 
-      // 응답용 DTO 로 변환
-      CreateFavoritePlaceResponse response = FavoriteLocationDto.fromDto(dto);
-
-      // API 응답 감싸서 반환
-      return ResponseEntity.ok(ApiResponse.success(response));
-
-    } catch (IllegalStateException e) {
-      return ResponseEntity.status(409)
-          .body(ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "이미 즐겨찾기 장소를 등록했습니다."));
-
-    } catch (Exception e) {
-      if (e instanceof AuthenticationException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-    }
   }
 
   // 즐겨찾기 시간대 등록 및 수정
@@ -94,97 +64,40 @@ public class MypageController {
   public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> createOrUpdateFavoriteTime(
       @RequestBody @Valid CreateFavoriteTimeRequest request) {
 
-    try {
+    String memberId = extractCurrentMemberId();
 
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    CreateFavoriteTimeResponse response = mypageService.createOrUpdateFavoriteTimetable(memberId,
+        request);
 
-      if (authentication == null) {
-        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-      }
+    // API 응답 감싸서 반환
+    return ResponseEntity.ok(ApiResponse.success(response));
 
-      String memberId = authentication.getName();
-
-      List<FavoriteTimetableDto> dtos = mypageService.createOrUpdateFavoriteTimetable(memberId,
-          request);
-
-      // 요일 → 비트값 맵 생성
-      Map<String, String> dayToBitMap = dtos.stream()
-          .collect(Collectors.toMap(
-              FavoriteTimetableDto::getDay,
-              dto -> String.format("%012X", dto.getTimeBit())
-          ));
-
-      CreateFavoriteTimeResponse response = FavoriteTimetableDto.fromDto(dayToBitMap);
-
-      // API 응답 감싸서 반환
-      return ResponseEntity.ok(ApiResponse.success(response));
-
-    } catch (IllegalStateException e) {
-      return ResponseEntity.status(409)
-          .body(
-              ApiResponse.error(ResponseCode.CONFLICT_REGISTER, "해당 시간대는 기존에 등록된 즐겨찾기 시간대와 겹칩니다."));
-    } catch (Exception e) {
-      if (e instanceof AuthApiException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-    }
   }
+
 
   @GetMapping("/favorite-location")
   @Operation(summary = "즐겨찾기 장소 조회", description = "회원 즐겨찾기 장소 조회")
   public ResponseEntity<ApiResponse<List<FavoriteLocationDto>>> getFavoriteLocations() {
-    try {
 
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String memberId = extractCurrentMemberId();
 
-      if (authentication == null) {
-        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-      }
+    List<FavoriteLocationDto> response = mypageService.getFavoriteLocations(memberId);
 
-      String memberId = authentication.getName();
-      List<FavoriteLocationDto> result = mypageService.getFavoriteLocations(memberId);
+    // API 응답 감싸서 반환
+    return ResponseEntity.ok(ApiResponse.success(response));
 
-      // API 응답 감싸서 반환
-      return ResponseEntity.ok(ApiResponse.success(result));
-
-
-    } catch (Exception e) {
-      if (e instanceof AuthApiException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-    }
   }
 
   @GetMapping("/favorite-timetable")
   @Operation(summary = "즐겨찾기 시간대 조회", description = "회원 즐겨찾기 시간대 조회")
   public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> getFavoriteTimetables() {
-    try {
 
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String memberId = extractCurrentMemberId();
 
-      if (authentication == null) {
-        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-      }
+    CreateFavoriteTimeResponse response = mypageService.getFavoriteTimetableResponse(memberId);
 
-      String memberId = authentication.getName();
-      CreateFavoriteTimeResponse response = mypageService.getFavoriteTimetableResponse(memberId);
+    return ResponseEntity.ok(ApiResponse.success(response));
 
-      return ResponseEntity.ok(ApiResponse.success(response));
-
-    } catch (Exception e) {
-      if (e instanceof AuthApiException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "권한이 없습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "서버가 요청을 처리할 수 없습니다."));
-    }
   }
 
 
@@ -193,44 +106,42 @@ public class MypageController {
   @PatchMapping("/favorite-location")
   public ResponseEntity<ApiResponse<ModifyFavoritePlaceResponse>> modifyFavoritePlace(
       @RequestBody @Valid ModifyFavoritePlaceRequest request) {
-    try {
-      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-      if (authentication == null) {
-        throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-      }
 
-      String memberId = authentication.getName();
+    String memberId = extractCurrentMemberId();
 
-      FavoriteLocationDto dto = mypageService.modifyFavoriteLocation(memberId, request);
+    FavoriteLocationDto dto = mypageService.modifyFavoriteLocation(memberId, request);
 
-      ModifyFavoritePlaceResponse response = FavoriteLocationDto.toModifyResponse(dto);
+    ModifyFavoritePlaceResponse response = FavoriteLocationDto.toModifyResponse(dto);
 
-      return ResponseEntity.ok(ApiResponse.success(response));
+    return ResponseEntity.ok(ApiResponse.success(response));
 
 
-    } catch (Exception e) {
-      if (e instanceof AuthenticationException) {
-        return ResponseEntity.status(401)
-            .body(ApiResponse.error(ResponseCode.UNAUTHORIZED, "인증(로그인)이 되어있지 않습니다."));
-      }
-      return ResponseEntity.status(400)
-          .body(ApiResponse.error(ResponseCode.BAD_REQUEST, "필수값이 누락되었습니다."));
-    }
   }
+
 
   @Operation(summary = "캘린더 동기화 새로고침")
   @PostMapping("/calendar/sync")
   public ApiResponse<List<GoogleEventDto>> syncCalendar() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    if (authentication == null) {
-      throw new IllegalStateException("로그인된 사용자 정보를 확인할 수 없습니다.");
-    }
-
-    String memberId = authentication.getName();
+    String memberId = extractCurrentMemberId();
 
     List<GoogleEventDto> events = calendarSyncService.syncCalendar(memberId);
 
     return ApiResponse.success(events);
   }
+
+  private String extractCurrentMemberId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+    // isAuthenticated -> 로그인, 비로그인 사용자 다 true
+    // 로그인 한 사용자 토큰 : OAuth2AuthenticationToken
+    // 로그인하지 않은 사용자도 token 을 줌. 토큰이 AnonymousAuthenticationToken 인지를 확인
+    if (authentication == null ||
+        authentication instanceof AnonymousAuthenticationToken) {
+      throw new AuthenticationRequiredException(MyPageErrorCode.AUTHENTICATION_REQUIRED);
+    }
+
+    return authentication.getName();
+  }
+
 }
