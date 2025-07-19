@@ -6,14 +6,18 @@ import com.grepp.spring.app.model.member.entity.SocialAuthToken;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.member.repository.SocialAuthTokenRepository;
 import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
-import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
+import com.grepp.spring.infra.error.exceptions.mypage.CalendarAuthRequiredException;
+import com.grepp.spring.infra.error.exceptions.mypage.CalendarEventSaveFailedException;
+import com.grepp.spring.infra.error.exceptions.mypage.CalendarSyncFailedException;
+import com.grepp.spring.infra.error.exceptions.mypage.InvalidCalendarResponseException;
+import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
@@ -21,6 +25,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -29,7 +34,6 @@ public class CalendarSyncService {
 
   private final MemberRepository memberRepository;
   private final SocialAuthTokenRepository socialAuthTokenRepository;
-  private final CalendarRepository calendarRepository;
 
   private final SocialAuthTokenService socialAuthTokenService; // refresh_token → access_token 자동 갱신 담당
   private final GoogleOAuthService googleOAuthService;
@@ -42,58 +46,56 @@ public class CalendarSyncService {
 
     // 1) 회원 조회
     Member member = memberRepository.findById(memberId)
-        .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+        .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
 
     // 2) 사용자 구글 토큰 조회
-    Optional<SocialAuthToken> tokenOpt = socialAuthTokenRepository.findByMember(member);
-    if (tokenOpt.isEmpty()) {
-      // 아예 연동 안 된 상태 → 재인증 필요
-      throw new IllegalStateException("구글 캘린더 연동이 필요합니다. 재인증 URL: "
-                                      + googleOAuthService.buildReauthUrl());
-    }
-
-    SocialAuthToken token = tokenOpt.get();
+    SocialAuthToken token = socialAuthTokenRepository.findByMember(member)
+        .orElseThrow(() -> new CalendarAuthRequiredException(
+            MyPageErrorCode.CALENDAR_AUTH_REQUIRED,
+            googleOAuthService.buildReauthUrl()
+        ));
 
     // 3) refresh_token으로 유효한 access_token 확보 (만료 시 자동 갱신)
     String accessToken = socialAuthTokenService.getValidAccessToken(token);
-    if (accessToken == null) {
-      // refresh_token 무효 → 재인증 필요
-      throw new IllegalStateException("구글 토큰이 만료되었습니다. 재인증 URL: "
-                                      + googleOAuthService.buildReauthUrl());
-    }
-
-    // 4) 구글 캘린더 API 직접 호출
-    HttpHeaders headers = new HttpHeaders();
-    headers.setBearerAuth(accessToken);
-
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-
-    ResponseEntity<Map> response = restTemplate.exchange(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-        HttpMethod.GET,
-        entity,
-        Map.class
-    );
-
-    // 5) 구글 응답 → DTO 변환
-    List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("items");
-    List<GoogleEventDto> events = convertToDto(items);
-
-
 
     try {
-      // 6) DB 저장 (새로운 일정만 저장하거나 업데이트)
+      // 4) 구글 캘린더 API 호출
+      HttpHeaders headers = new HttpHeaders();
+      headers.setBearerAuth(accessToken);
+      HttpEntity<String> entity = new HttpEntity<>(headers);
+
+      ResponseEntity<Map> response = restTemplate.exchange(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+          HttpMethod.GET,
+          entity,
+          Map.class
+      );
+
+      // 5) 구글 응답 → DTO 변환
+      List<Map<String, Object>> items = (List<Map<String, Object>>) response.getBody().get("items");
+      List<GoogleEventDto> events = convertToDto(items);
+
+      // 6) DB 저장
       googleScheduleService.syncGoogleEvents(member, events);
+
+      // 최신 이벤트 반환
+      return events;
+
+    } // Google Calendar API 호출 시에 생기는 예외 처리
+    catch (HttpClientErrorException e) {
+      // 구글 API 호출 실패
+      throw new CalendarSyncFailedException(MyPageErrorCode.CALENDAR_SYNC_FAILED);
     } catch (DataAccessException e) {
-      throw new IllegalStateException("구글 일정 저장 중 오류가 발생했습니다.", e);
+      // DB 저장 실패
+      throw new CalendarEventSaveFailedException(MyPageErrorCode.CALENDAR_SYNC_FAILED);
+    } catch (Exception e) {
+      // JSON 파싱 실패
+      throw new InvalidCalendarResponseException(MyPageErrorCode.INVALID_CALENDAR_RESPONSE);
     }
-
-
-    // 최신 이벤트 반환
-    return events;
   }
 
-  // Google JSON → DTO 변환
+  // Google JSON 응답 → 내부 DTO 변환
+  // 구글 api 에서 내려주는 event(일정) 의 start/end 필드 파싱
   private List<GoogleEventDto> convertToDto(List<Map<String, Object>> items) {
     List<GoogleEventDto> events = new ArrayList<>();
 
@@ -106,7 +108,7 @@ public class CalendarSyncService {
         Map<String, String> startMap = (Map<String, String>) item.get("start");
         Map<String, String> endMap = (Map<String, String>) item.get("end");
 
-        // dateTime 우선, 없으면 date 사용
+        // dateTime 필드 있으면 시간 기반 일정, 없으면 종일 일정(시간 없이 날짜만 date(start,date)만)
         String startDateTime = startMap.get("dateTime");
         String endDateTime = endMap.get("dateTime");
 
@@ -115,11 +117,13 @@ public class CalendarSyncService {
         boolean allDay = false; // 초기값 false
 
         if (startDateTime != null) {
+          // 시간 기반 일정
           start = LocalDateTime.parse(startDateTime, DateTimeFormatter.ISO_DATE_TIME);
         } else {
-          // 종일 이벤트 → date(YYYY-MM-DD)를 LocalDateTime으로 변환
-          start = LocalDate.parse(startMap.get("date"), DateTimeFormatter.ISO_DATE).atStartOfDay();
-          allDay = true; // 종일 일정
+          // 종일 일정 → date(YYYY-MM-DD)를 LocalDateTime으로 변환
+          start = LocalDate.parse(startMap.get("date"), DateTimeFormatter.ISO_DATE)
+              .atStartOfDay(); // 00:00:00 붙여서 LocalDateTime 으로 변환. 내부에서는 시간 정보 있어야 저장 가능
+          allDay = true; // 종일 일정, 시간 표시 안함
         }
 
         if (endDateTime != null) {
@@ -128,6 +132,7 @@ public class CalendarSyncService {
           end = LocalDate.parse(endMap.get("date"), DateTimeFormatter.ISO_DATE).atStartOfDay();
         }
 
+        // dto 생성
         events.add(
             GoogleEventDto.builder()
                 .googleEventId(id)

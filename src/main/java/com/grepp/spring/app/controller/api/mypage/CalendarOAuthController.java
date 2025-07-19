@@ -6,12 +6,10 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.GoogleOAuthService;
 import com.grepp.spring.app.model.mypage.service.SocialAuthTokenService;
-import com.grepp.spring.infra.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,8 +57,9 @@ public class CalendarOAuthController {
     // 수동 새로고침 로직 호출
     calendarSyncService.syncCalendar(memberId);
 
-    String frontendUrl = "https://ittaeok.uk/mypage?google-sync=success";
-    response.sendRedirect(frontendUrl);
+    // response.sendRedirect("http://localhost:8080/mypage/google-calendar");
+    response.sendRedirect("https://ittaeok.uk/mypage?google-sync=success");
+
   }
 }
 

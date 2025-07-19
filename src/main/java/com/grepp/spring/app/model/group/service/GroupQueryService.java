@@ -69,6 +69,7 @@ public class GroupQueryService {
         Member member = memberRepository.findById(user.getUsername()).orElseThrow();
         // TODO: member가 없다면 throw 예외(회원이 아닙니다: 401)
 
+
         Optional<Group> groupOptional = groupQueryRepository.findById(groupId);
         // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
         if (groupOptional.isEmpty()) {
@@ -83,6 +84,20 @@ public class GroupQueryService {
         if (groupMemberOptional.isEmpty()) {
             throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
         }
+
+        // TODO: groupMembers.length()가 0이면 throw 예외(속한 그룹이 없습니다.)
+
+        List<GroupMember> groupMembers = groupMemberQueryRepository.findGroupedByMember(member);
+
+        // 일단 구현은 뭐 어케 하긴 했는데, QueryDSL을 나중에 꼭 도입하자.. 정신건강에 너무너무 해롭다.
+        List<GroupDetailDto> groups = groupMembers.stream()
+            .map(gm -> new GroupDetailDto(
+                gm.getGroup().getId(),
+                gm.getGroup().getName(),
+                gm.getGroup().getDescription(),
+                0 // 일단 0으로 초기화
+            ))
+            .toList();
 
         //## 그룹 일정 조회
         // 그룹 정보 및 http 요청한 멤버의 그룹권한 조회
