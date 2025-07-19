@@ -1,6 +1,6 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;

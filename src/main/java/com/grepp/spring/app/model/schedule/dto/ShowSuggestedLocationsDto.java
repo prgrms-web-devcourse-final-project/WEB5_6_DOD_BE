@@ -1,6 +1,6 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
