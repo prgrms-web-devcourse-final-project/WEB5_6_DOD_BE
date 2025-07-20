@@ -61,8 +61,6 @@ public class EventService {
     public CreateEventResponse createEvent(CreateEventRequest webRequest, String currentMemberId) {
         CreateEventDto serviceRequest = CreateEventDto.toDto(webRequest, currentMemberId);
 
-        validate(serviceRequest);
-
         Event event = null;
         Group group = null;
 
@@ -122,20 +120,6 @@ public class EventService {
         List<CandidateDate> entities = CandidateDateDto.toEntityList(candidateDates, event);
         candidateDateRepository.saveAll(entities);
         log.debug("후보 날짜 생성 완료 - 개수: {}", entities.size());
-    }
-
-    private void validate(CreateEventDto serviceRequest) {
-        if (!serviceRequest.isValid()) {
-            throw new InvalidEventDataException(EventErrorCode.INVALID_EVENT_DATA);
-        }
-
-        validateCandidateDates(serviceRequest.getCandidateDates());
-    }
-
-    private void validateCandidateDates(List<CandidateDateDto> candidateDates) {
-        if (candidateDates == null || candidateDates.isEmpty()) {
-            throw new InvalidEventDataException(EventErrorCode.INVALID_CANDIDATE_DATES);
-        }
     }
 
     @Transactional
