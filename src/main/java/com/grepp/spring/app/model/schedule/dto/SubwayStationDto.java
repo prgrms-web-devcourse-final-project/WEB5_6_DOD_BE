@@ -27,8 +27,8 @@ public class SubwayStationDto {
         return SubwayStationDto.builder()
             .schedule(schedule)
             .name(jsonNode.get("place_name").asText().split(" ")[0])
-            .latitude(jsonNode.get("x").asDouble())
-            .longitude(jsonNode.get("y").asDouble())
+            .latitude(jsonNode.get("y").asDouble())
+            .longitude(jsonNode.get("x").asDouble())
             .status(VoteStatus.DEFAULT)
             .voteCount(0)
             .build();
