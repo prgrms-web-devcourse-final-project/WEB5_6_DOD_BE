@@ -146,8 +146,8 @@ public class ScheduleController {
             return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 중간장소 직접 입력받기
-    @Operation(summary = "중간장소 직접 입력받기", description = "중간장소를 직접 입력받습니다.")
+    // 투표 전 중간장소 직접 입력받기
+    @Operation(summary = "투표 전 중간장소 직접 입력받기", description = "투표 전 중간장소를 직접 입력받습니다.")
     @PostMapping("/write-suggested-location/{scheduleId}")
     public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation( @PathVariable Long scheduleId, @RequestBody WriteSuggestedLocationRequest request) {
 
