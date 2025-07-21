@@ -247,8 +247,8 @@ public class ScheduleCommandService {
         Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
         // 출발장소 추가될때마다 매번 다른 중간장소가 나와야함. 기존의 중간장소는 모두 삭제
+        metroTransferCommandRepository.deleteByScheduleId(scheduleId);
         locationCommandRepository.deleteLocation(scheduleId);
-//        metroTransferCommandRepository.deleteByScheduleId(scheduleId);
 
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
@@ -307,16 +307,16 @@ public class ScheduleCommandService {
             for (JsonNode subwayStationJson : subwayStation) {
                 SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
                 Location location = SubwayStationDto.fromDto(subwayStationDto);
-                Location location1 = locationCommandRepository.save(location);
+                location = locationCommandRepository.save(location);
 
                 log.info("location = {}", location);
-                log.info("location1 = {}", location1);
+//                log.info("location1 = {}", location1);
 
-                Optional<Metro> metro1 = metroQueryRepository.findByName(location1.getName());
-                List<Line> line = lineQueryRepository.findByMetroName(metro1.get().getName());
+                metro = metroQueryRepository.findByName(location.getName());
+                List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
 
                 for (Line l : line) {
-                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location1, l);
+                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location, l);
                     MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
                     metroTransferCommandRepository.save(metroTransfer);
                 }
@@ -485,16 +485,26 @@ public class ScheduleCommandService {
         Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
 //        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findById(scheduleId).get();
 
+        Location location;
         // DB에 존재하지 않는다면
         if (metro.isEmpty()) {
             WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
 
-            Location location = WriteSuggestedLocationDto.fromDto(dto);
-            locationCommandRepository.save(location);
+            location = WriteSuggestedLocationDto.fromDto(dto);
+            location = locationCommandRepository.save(location);
         }
         else { // DB에 존재한다면
-            Location location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
-            locationCommandRepository.save(location);
+            location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
+            location = locationCommandRepository.save(location);
+        }
+
+        metro = metroQueryRepository.findByName(location.getName());
+        List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+
+        for (Line l : line) {
+            WriteSuggestedMetroTransferDto dto =  WriteSuggestedMetroTransferDto.toDto(schedule,location,l);
+            MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
+            metroTransferCommandRepository.save(metroTransfer);
         }
 
     }

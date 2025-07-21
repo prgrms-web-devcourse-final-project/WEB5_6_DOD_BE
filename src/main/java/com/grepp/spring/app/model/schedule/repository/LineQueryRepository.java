@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface LineQueryRepository extends JpaRepository<Line, Long> {
 
-    @Query("select l from Line l where l.lineName = :name")
-    List<Line> findByMetroName(@Param("name") String name);
+    @Query("select l from Line l where l.metro.id = :id")
+    List<Line> findByMetroId(@Param("id") Long id);
 }
