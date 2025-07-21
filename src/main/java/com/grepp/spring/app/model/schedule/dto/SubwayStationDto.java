@@ -21,6 +21,7 @@ public class SubwayStationDto {
     private double longitude;
     private double latitude;
     private VoteStatus status;
+    private int voteCount;
 
     public static SubwayStationDto toDto(JsonNode jsonNode, Schedule schedule) {
         return SubwayStationDto.builder()
@@ -29,6 +30,7 @@ public class SubwayStationDto {
             .latitude(jsonNode.get("x").asDouble())
             .longitude(jsonNode.get("y").asDouble())
             .status(VoteStatus.DEFAULT)
+            .voteCount(0)
             .build();
     }
 
@@ -39,6 +41,7 @@ public class SubwayStationDto {
             .latitude(subwayStationDto.getLatitude())
             .longitude(subwayStationDto.getLongitude())
             .status(subwayStationDto.getStatus())
+            .voteCount(subwayStationDto.getVoteCount())
             .build();
     }
 }
