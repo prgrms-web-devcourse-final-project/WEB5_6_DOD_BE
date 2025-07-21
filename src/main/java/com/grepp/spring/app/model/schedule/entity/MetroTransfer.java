@@ -34,6 +34,9 @@ public class MetroTransfer {
     @Column
     private String color;
 
+    @Column
+    private Boolean isMemberSuggested;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
