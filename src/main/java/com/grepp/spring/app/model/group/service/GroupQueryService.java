@@ -2,16 +2,13 @@ package com.grepp.spring.app.model.group.service;
 
 import com.grepp.spring.app.controller.api.group.payload.response.ShowCandidateGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupMemberResponse;
-import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupScheduleResponse;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupStatisticsResponse;
-import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventQueryRepository;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.dto.GroupCandidateDto;
-import com.grepp.spring.app.model.group.dto.GroupDetailDto;
 import com.grepp.spring.app.model.group.dto.GroupSchedule;
 import com.grepp.spring.app.model.group.dto.GroupUser;
 import com.grepp.spring.app.model.group.dto.GroupUserDetail;
@@ -27,6 +24,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.infra.error.exceptions.group.GroupAuthenticationException;
 import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
@@ -38,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -63,49 +60,21 @@ public class GroupQueryService {
 
     // 그룹 일정 조회
     public ShowGroupScheduleResponse displayGroupSchedule(Long groupId) {
-        // http 요청 사용자 조회
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) authentication.getPrincipal();
-        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
-        // TODO: member가 없다면 throw 예외(회원이 아닙니다: 401)
+        // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
+        Member member = extractCurrentMember();
+        // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
+        Group group = extractGroup(groupId);
+        // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
+        GroupMember groupMember = extractGroupMember(groupId, member.getId());
 
-
-        Optional<Group> groupOptional = groupQueryRepository.findById(groupId);
-        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
-        if (groupOptional.isEmpty()) {
-            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
-        }
-        Group group = groupOptional.get();
-
-        Optional<GroupMember> groupMemberOptional = groupMemberQueryRepository.findByGroupIdAndMemberId(
-            groupId,
-            member.getId());
-        // 예외 발생: http 메서드를 요청한 유저가 해당 그룹의 그룹원이 아님 - 403 NOT_GROUP_MEMBER
-        if (groupMemberOptional.isEmpty()) {
-            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
-        }
-
-        // TODO: groupMembers.length()가 0이면 throw 예외(속한 그룹이 없습니다.)
-
-        List<GroupMember> groupMembers = groupMemberQueryRepository.findGroupedByMember(member);
-
-        // 일단 구현은 뭐 어케 하긴 했는데, QueryDSL을 나중에 꼭 도입하자.. 정신건강에 너무너무 해롭다.
-        List<GroupDetailDto> groups = groupMembers.stream()
-            .map(gm -> new GroupDetailDto(
-                gm.getGroup().getId(),
-                gm.getGroup().getName(),
-                gm.getGroup().getDescription(),
-                0 // 일단 0으로 초기화
-            ))
-            .toList();
-
+        // 로직 시작
         //## 그룹 일정 조회
         // 그룹 정보 및 http 요청한 멤버의 그룹권한 조회
         String groupName = group.getName();
         String groupDescription = group.getDescription();
         Long groupMemberNumber = (long) groupMemberQueryRepository.findByGroupId(groupId).size();
 
-        GroupRole groupRole = groupMemberOptional.get().getRole();
+        GroupRole groupRole = groupMember.getRole();
 
         ArrayList<ScheduleDetails> scheduleDetails = new ArrayList<>();
         // 해당 그룹의 일정들 조회
@@ -141,44 +110,29 @@ public class GroupQueryService {
 
     // 그룹 멤버 조회
     public ShowGroupMemberResponse displayGroupMember(Long groupId) {
-        // http 요청 사용자 조회
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) authentication.getPrincipal();
-        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
-        // TODO: member가 없다면 throw 예외(회원이 아닙니다.)
+        // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
+        Member member = extractCurrentMember();
+        // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
+        Group group = extractGroup(groupId);
+        // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
+        GroupMember groupMember = extractGroupMember(groupId, member.getId());
 
-        Optional<Group> group = groupQueryRepository.findById(groupId);
-        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
-        if (group.isEmpty()) {
-            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
-        }
-
+        // 로직 시작
         //## 그룹 멤버 조회
-        // checking이 false 그대로면, group에 속하지 않은 멤버가 group에 있는 멤버를 조회하는 메서드 요청(예외처리 함)
-        boolean checking = false;
         ShowGroupMemberResponse response = new ShowGroupMemberResponse();
-
         // http요청으로 요청된 group의 group-member들 조회
-        List<GroupMember> groupMembers = groupMemberQueryRepository.findByGroup(group.get());
+        List<GroupMember> groupMembers = groupMemberQueryRepository.findByGroup(group);
         // response의 필드인 groupUser 리스트 초기화
         ArrayList<GroupUser> groupUsers = response.getGroupUser();
-
         // groupMember들을 순회하면서 그룹별 멤버Id/이름/권한을 저장
-        for (GroupMember groupMember : groupMembers) {
-            String memberId = groupMember.getMember().getId();
+        for (GroupMember groupMember1 : groupMembers) {
+            String memberId = groupMember1.getMember().getId();
             String memberName = memberRepository.findById(memberId).get().getName();
-            Integer profileImageNumber = memberRepository.findById(memberId).get().getProfileImageNumber();
-            GroupRole groupRole = groupMember.getRole();
+            Integer profileImageNumber = memberRepository.findById(memberId).get()
+                .getProfileImageNumber();
+            GroupRole groupRole = groupMember1.getRole();
             // 멤버Id, 이름, 권한으로 GroupUser 리스트에 추가
             groupUsers.add(new GroupUser(memberId, memberName, profileImageNumber, groupRole));
-            // http요청을 날린 멤버의 Id가 현재 탐색중인 member의 Id가 같다면, group에 해당 member 포함됨.
-            if (memberId.equals(member.getId())) {
-                checking = true;
-            }
-        }
-        // 예외 발생: http요청을 한 member가 속하지 않은 groupId를 탐색하려 하는 경우 - NOT GROUP MEMBER
-        if (!checking) {
-            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
         }
 
         return response;
@@ -188,32 +142,16 @@ public class GroupQueryService {
     // 그룹 통계 조회
     @Transactional(readOnly = true)
     public ShowGroupStatisticsResponse displayStatistics(Long groupId) {
-        // http 요청 사용자 조회
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) authentication.getPrincipal();
-        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
-        // TODO: member가 없다면 throw 예외(회원이 아닙니다: 401)
+        // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
+        Member member = extractCurrentMember();
+        // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
+        Group group = extractGroup(groupId);
+        // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
+        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
+        checkRoleGroupLeader(groupMember);
 
-        Optional<Group> groupOptional = groupQueryRepository.findById(groupId);
-        // 예외 발생: 해당 group은 존재하지 않음 - 404 GROUP_NOT_FOUND
-        if (groupOptional.isEmpty()) {
-            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
-        }
-
-        Optional<GroupMember> groupMemberOptional = groupMemberQueryRepository.findByGroupIdAndMemberId(
-            groupId,
-            member.getId());
-        // 예외 발생: http 메서드를 요청한 유저가 해당 그룹의 그룹원이 아님 - 403 NOT_GROUP_MEMBER
-        if (groupMemberOptional.isEmpty()) {
-            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
-        }
-        GroupMember groupMember = groupMemberOptional.get();
-
-        // 예외 발생: http 메서드를 요청한 유저가 해당 그룹의 그룹장이 아님 - 403 NOT_GROUP_LEADER
-        if (!groupMember.getRole().equals(GroupRole.GROUP_LEADER)) {
-            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
-        }
-
+        // 로직 시작
         //## 그룹 통계 조회
         long scheduleNum = 0L;
         HashMap<String, Long> locationMap = new HashMap<>();
@@ -285,27 +223,19 @@ public class GroupQueryService {
     //## 일회성 일정이 들어갈 수 있는 후보 그룹 조회
     @Transactional(readOnly = true)
     public ShowCandidateGroupResponse transferCandidateSchedule(Long id) {
+        // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
+        Member member = extractCurrentMember();
+        // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
+        Schedule schedule = extractSchedule(id);
 
-        // http 요청 사용자 조회
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) authentication.getPrincipal();
-        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
-        // TODO: member가 없다면 throw 예외(회원이 아닙니다: 401)
-
-        Optional<Schedule> scheduleOptional = scheduleQueryRepository.findById(id);
-        // 예외 발생: 해당 schedule이 db에 없음: 404 SCHEDULE_NOT_FOUND
-        if (scheduleOptional.isEmpty()) {
-            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
-        }
-
-        Schedule schedule = scheduleOptional.get();
         Event event = schedule.getEvent();
         Group group = event.getGroup();
-        // 예외 발생: 일회성 일정이 아님: 409 SCHEDULE_ALREADY_IN_GROUP
+        // 일정 일회성 조회 - 409 SCHEDULE_ALREADY_IN_GROUP
         if (group.getIsGrouped()) {
             throw new ScheduleAlreadyInGroupException(GroupErrorCode.SCHEDULE_ALREADY_IN_GROUP);
         }
 
+        // 로직 시작
         //## 후보 그룹 조회
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(id);
         boolean temp = true;
@@ -328,7 +258,7 @@ public class GroupQueryService {
 
         ArrayList<GroupCandidateDto> groupCandidateDtos = new ArrayList<>();
         for (Long groupId : hashSet) {
-            Group group1 = groupQueryRepository.findById(groupId).get();
+            Group group1 = extractGroup(groupId);
             if (group1.getIsGrouped()) {
                 groupCandidateDtos.add(
                     new GroupCandidateDto(groupId, group1.getName(), group1.getDescription()));
@@ -339,5 +269,65 @@ public class GroupQueryService {
             .candidateGroups(groupCandidateDtos)
             .build();
     }
+
+
+    /// 범용적인 예외처리 메서드
+    // http 메서드 요청한 member 조회 - 401 AUTHENTICATION_REQUIRED 예외 처리
+    private Member extractCurrentMember() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null ||
+            !authentication.isAuthenticated() ||
+            "anonymousUser".equals(authentication.getPrincipal())) {
+
+            throw new GroupAuthenticationException(GroupErrorCode.AUTHENTICATION_REQUIRED);
+        }
+        Optional<Member> memberOptional = memberRepository.findById(authentication.getName());
+        if (memberOptional.isPresent()) {
+            return memberOptional.get();
+        }
+        throw new GroupAuthenticationException(GroupErrorCode.AUTHENTICATION_REQUIRED);
+    }
+
+
+    // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
+    private Group extractGroup(Long groupId) {
+        Optional<Group> groupOptional = groupQueryRepository.findById(groupId);
+        if (groupOptional.isEmpty()) {
+            throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
+        }
+        return groupOptional.get();
+    }
+
+
+    // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
+    private Schedule extractSchedule(Long scheduleId) {
+        Optional<Schedule> scheduleOptional = scheduleQueryRepository.findById(
+            scheduleId);
+        if (scheduleOptional.isEmpty()) {
+            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
+        }
+        return scheduleOptional.get();
+    }
+
+
+    // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
+    private GroupMember extractGroupMember(Long groupId, String id) {
+        Optional<GroupMember> groupMemberOptional = groupMemberQueryRepository.findByGroupIdAndMemberId(
+            groupId, id);
+        if (groupMemberOptional.isEmpty()) {
+            throw new NotGroupUserException(GroupErrorCode.NOT_GROUP_MEMBER);
+        }
+        return groupMemberOptional.get();
+    }
+
+
+    // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
+    private void checkRoleGroupLeader(GroupMember groupMember) {
+        if (!groupMember.getRole().equals(GroupRole.GROUP_LEADER)) {
+            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+        }
+    }
+
 
 }
