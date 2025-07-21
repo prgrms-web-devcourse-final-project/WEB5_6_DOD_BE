@@ -3,13 +3,15 @@ package com.grepp.spring.app.model.schedule.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedulesRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
+import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.request.AddWorkspaceRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.request.ModifySchedulesRequest;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateOnlineMeetingRoomResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
@@ -24,20 +26,17 @@ import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
-import org.apache.poi.sl.draw.geom.GuideIf.Op;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -300,11 +299,18 @@ public class ScheduleCommandService {
             middleLatitude = middleLatitude / cnt;
             middleLongitude = middleLongitude / cnt;
 
+            // 3개의 지하철역 정보를 가져옴
             List<JsonNode> subwayStation = findNearestStations(middleLatitude, middleLongitude);
+
+            log.info("subwayStation size = {}", subwayStation.size());
+
             for (JsonNode subwayStationJson : subwayStation) {
                 SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
                 Location location = SubwayStationDto.fromDto(subwayStationDto);
                 Location location1 = locationCommandRepository.save(location);
+
+                log.info("location = {}", location);
+                log.info("location1 = {}", location1);
 
                 Optional<Metro> metro1 = metroQueryRepository.findByName(location1.getName());
                 List<Line> line = lineQueryRepository.findByMetroName(metro1.get().getName());
@@ -360,7 +366,6 @@ public class ScheduleCommandService {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode json = mapper.readTree(response.getBody());
-
 
         JsonNode  documents = json.get("documents");
         List<JsonNode> result = new ArrayList<>();
@@ -470,5 +475,27 @@ public class ScheduleCommandService {
 
         CreateOnlineMeetingRoomDto dto = CreateOnlineMeetingRoomDto.toDto(meetingLink);
         return CreateOnlineMeetingRoomDto.fromDto(dto);
+    }
+
+    @Transactional
+    public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Principal user = (Principal) auth.getPrincipal();
+        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+        Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
+//        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findById(scheduleId).get();
+
+        // DB에 존재하지 않는다면
+        if (metro.isEmpty()) {
+            WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
+
+            Location location = WriteSuggestedLocationDto.fromDto(dto);
+            locationCommandRepository.save(location);
+        }
+        else { // DB에 존재한다면
+            Location location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
+            locationCommandRepository.save(location);
+        }
+
     }
 }

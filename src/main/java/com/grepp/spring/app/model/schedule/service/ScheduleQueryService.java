@@ -59,8 +59,8 @@ public class ScheduleQueryService {
 
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
             schedule.getId());
-        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule
-            .getId());
+
+        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule.getId());
 
         MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
 

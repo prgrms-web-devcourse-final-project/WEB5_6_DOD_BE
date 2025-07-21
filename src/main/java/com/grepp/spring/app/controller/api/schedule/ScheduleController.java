@@ -15,6 +15,7 @@ import com.grepp.spring.app.controller.api.schedule.payload.response.DeleteWorkS
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.VoteMiddleLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -128,7 +129,6 @@ public class ScheduleController {
 
             scheduleQueryService.findScheduleById(scheduleId);
 
-
             scheduleCommandService.createDepartLocation(scheduleId, request);
 
             return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
@@ -144,6 +144,17 @@ public class ScheduleController {
             ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(scheduleId);
 
             return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // 중간장소 직접 입력받기
+    @Operation(summary = "중간장소 직접 입력받기", description = "중간장소를 직접 입력받습니다.")
+    @PostMapping("/write-suggested-location/{scheduleId}")
+    public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation( @PathVariable Long scheduleId, @RequestBody WriteSuggestedLocationRequest request) {
+
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        scheduleCommandService.WriteSuggestedLocation(schedule, request);
+
+        return ResponseEntity.ok(ApiResponse.success("중간장소를 등록했습니다."));
     }
 
     // 중간장소 투표하기
