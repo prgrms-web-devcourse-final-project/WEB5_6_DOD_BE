@@ -17,6 +17,7 @@ import lombok.Setter;
 @Table(name = "Metro")
 @Getter
 @Setter
+
 public class Metro {
     @Id
     @Column(nullable = false)
