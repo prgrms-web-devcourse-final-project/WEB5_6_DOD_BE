@@ -24,6 +24,7 @@ public class WriteSuggestedLocationDto {
     private VoteStatus status;
     private Schedule schedule;
     private String memberId;
+    private int voteCount;
 
 
 public static WriteSuggestedLocationDto requestToDto(WriteSuggestedLocationRequest request, Schedule schedule, Member member) {
@@ -34,6 +35,7 @@ public static WriteSuggestedLocationDto requestToDto(WriteSuggestedLocationReque
             .status(VoteStatus.DEFAULT)
             .schedule(schedule)
             .memberId(member.getId())
+            .voteCount(0)
             .build();
     }
 
@@ -45,6 +47,7 @@ public static WriteSuggestedLocationDto requestToDto(WriteSuggestedLocationReque
             .status(dto.getStatus())
             .schedule(dto.schedule)
             .suggestedMemberId(dto.memberId)
+            .voteCount(dto.getVoteCount())
             .build();
     }
 
@@ -52,10 +55,11 @@ public static WriteSuggestedLocationDto requestToDto(WriteSuggestedLocationReque
         return Location.builder()
             .latitude(metro.getLatitude())
             .longitude(metro.getLongitude())
-            .name(member.getName())
+            .name(metro.getName())
             .status(VoteStatus.DEFAULT)
             .schedule(schedule)
             .suggestedMemberId(member.getId())
+            .voteCount(0)
             .build();
     }
 }

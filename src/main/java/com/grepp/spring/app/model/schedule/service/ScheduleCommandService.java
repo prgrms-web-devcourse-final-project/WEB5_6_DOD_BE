@@ -265,8 +265,8 @@ public class ScheduleCommandService {
         Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
         // 출발장소 추가될때마다 매번 다른 중간장소가 나와야함. 기존의 중간장소는 모두 삭제
-        locationCommandRepository.deleteByScheduleId(scheduleId);
-        metroTransferCommandRepository.deleteByScheduleId(scheduleId);
+        locationCommandRepository.deleteLocation(scheduleId);
+//        metroTransferCommandRepository.deleteByScheduleId(scheduleId);
 
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        String memberId = authentication.getName();
