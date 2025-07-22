@@ -1,10 +1,7 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.model.member.entity.Member;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
+import com.grepp.spring.app.model.schedule.entity.Metro;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,8 +11,8 @@ import lombok.Setter;
 @Builder
 public class CreateDepartLocationDto {
     private String departLocationName; // 출발장소 명
-    private Double longitude;   // 위도
-    private Double latitude;    // 경도
+    private Double latitude;    // 위도
+    private Double longitude;   // 경도
 
 //
 //    private Schedule scheduleId;
@@ -26,8 +23,16 @@ public class CreateDepartLocationDto {
     public static CreateDepartLocationDto toDto(CreateDepartLocationRequest request) {
         return CreateDepartLocationDto.builder()
             .departLocationName(request.getDepartLocationName())
-            .longitude(request.getLongitude())
             .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .build();
+    }
+
+    public static CreateDepartLocationDto entityToDto(Metro metro) {
+        return CreateDepartLocationDto.builder()
+            .departLocationName(metro.getName())
+            .latitude(metro.getLatitude())
+            .longitude(metro.getLongitude())
             .build();
     }
 

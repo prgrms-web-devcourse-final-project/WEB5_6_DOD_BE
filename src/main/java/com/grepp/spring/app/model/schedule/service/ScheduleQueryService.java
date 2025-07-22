@@ -1,20 +1,22 @@
 package com.grepp.spring.app.model.schedule.service;
 
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowScheduleResponse;
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowVoteMembersResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
+import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
-import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.dto.MetroInfoDto;
-import com.grepp.spring.app.model.schedule.dto.MetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ShowSuggestedLocationsDto;
+import com.grepp.spring.app.model.schedule.dto.VoteMemberDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.MetroTransferQueryRepository;
@@ -22,7 +24,9 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryReposit
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
+import com.grepp.spring.infra.response.EventErrorCode;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,19 +59,18 @@ public class ScheduleQueryService {
 
 
     @Transactional
-    public ShowScheduleResponse showSchedule(Long scheduleId) {
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-
+    public ShowScheduleResponse showSchedule(Schedule schedule) {
         // Lazy init 해결하기 위해서 Transactional 내에서 처리
-        Long eventId = schedule.get().getEvent().getId();
+        Long eventId = schedule.getEvent().getId();
 
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
-            scheduleId);
-        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
+            schedule.getId());
+
+        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule.getId());
 
         MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
 
-        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule.orElse(null),
+        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
             scheduleMembers, workspaces);
 
         return ShowScheduleDto.fromDto(dto);
@@ -75,18 +78,13 @@ public class ScheduleQueryService {
 
     public Schedule findScheduleById(Long scheduleId) {
 
-//        if (scheduleQueryRepository.findById(scheduleId).isEmpty()) {
-//            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
-//        }
-//        return scheduleQueryRepository.findById(scheduleId).get();
-
-        // orElseThrow 는 빈 배열로 반환되어서
         return scheduleQueryRepository.findById(scheduleId).orElseThrow(() -> new ScheduleNotFoundException(
             GroupErrorCode.SCHEDULE_NOT_FOUND));
     }
 
-    public Optional<Event> findEventById(Long eventId) {
-        return eventRepository.findById(eventId);
+    public Event findEventById(Long eventId) {
+        return eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
+            EventErrorCode.EVENT_NOT_FOUND));
     }
 
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
@@ -125,4 +123,22 @@ public class ScheduleQueryService {
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }
 
+    public ShowVoteMembersResponse findVoteMembers(Long scheduleId) {
+
+        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+
+        List<VoteMemberDto> voteMemberList = new ArrayList<>();
+
+        for(ScheduleMember sm : scheduleMembers){
+            Vote vote = voteQueryRepository.findByScheduleMemberId(sm.getId());
+            if (vote != null) {
+                VoteMemberDto voteMemberDto = VoteMemberDto.toDto(sm.getMember());
+                voteMemberList.add(voteMemberDto);
+            }
+        }
+
+        ShowVoteMembersResponse response = VoteMemberDto.fromDto(voteMemberList);
+
+        return response;
+    }
 }

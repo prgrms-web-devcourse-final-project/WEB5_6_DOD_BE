@@ -1,10 +1,8 @@
 package com.grepp.spring.app.model.schedule.dto;
 
-import com.grepp.spring.app.controller.api.schedules.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

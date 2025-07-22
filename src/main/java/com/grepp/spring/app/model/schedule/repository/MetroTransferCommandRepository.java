@@ -9,6 +9,6 @@ import org.springframework.data.repository.query.Param;
 public interface MetroTransferCommandRepository extends JpaRepository<MetroTransfer, Long> {
 
     @Modifying
-    @Query("delete from MetroTransfer mt where mt.schedule.id = :scheduleId")
+    @Query("delete from MetroTransfer mt where mt.schedule.id = :scheduleId and mt.isMemberSuggested = false")
     void deleteByScheduleId(@Param("scheduleId") Long scheduleId);
 }

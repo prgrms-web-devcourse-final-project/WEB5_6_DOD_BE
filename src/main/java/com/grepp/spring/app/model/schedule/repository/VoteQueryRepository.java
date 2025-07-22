@@ -10,4 +10,7 @@ public interface VoteQueryRepository extends JpaRepository<Vote, Long> {
 
     @Query("SELECT v from Vote v where v.schedule.id = :scheduleId")
     List<Vote> findByScheduleId(@Param("scheduleId") Long scheduleId);
+
+    @Query("select v from Vote v where v.scheduleMember.id = :scheduleMemberId")
+    Vote findByScheduleMemberId(@Param("scheduleMemberId") Long scheduleMemberId);
 }

@@ -9,7 +9,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface LocationCommandRepository extends JpaRepository<Location,Long> {
 
+//    @Modifying
+//    @Query("delete from Location l where l.schedule.id = :scheduleId")
+//    void deleteByScheduleId(@Param("scheduleId") Long scheduleId);
+
     @Modifying
-    @Query("delete from Location l where l.schedule.id = :scheduleId")
-    void deleteByScheduleId(@Param("scheduleId") Long scheduleId);
+    @Query("delete from Location l where l.schedule.id = :scheduleId and l.suggestedMemberId is null")
+    void deleteLocation(@Param("scheduleId") Long scheduleId);
 }
