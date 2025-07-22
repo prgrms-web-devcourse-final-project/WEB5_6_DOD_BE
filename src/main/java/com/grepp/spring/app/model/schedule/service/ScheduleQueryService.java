@@ -6,7 +6,6 @@ import com.grepp.spring.app.controller.api.schedule.payload.response.ShowVoteMem
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
-import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.dto.MetroInfoDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
@@ -26,11 +25,14 @@ import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.ScheduleMemberNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.WorkSpaceNotFoundException;
 import com.grepp.spring.infra.response.EventErrorCode;
 import com.grepp.spring.infra.response.GroupErrorCode;
+import com.grepp.spring.infra.response.ScheduleErrorCode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,7 +62,7 @@ public class ScheduleQueryService {
 
     @Transactional
     public ShowScheduleResponse showSchedule(Schedule schedule) {
-        // Lazy init 해결하기 위해서 Transactional 내에서 처리
+
         Long eventId = schedule.getEvent().getId();
 
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
@@ -140,5 +142,19 @@ public class ScheduleQueryService {
         ShowVoteMembersResponse response = VoteMemberDto.fromDto(voteMemberList);
 
         return response;
+    }
+
+    public Location findLocationById(Long locationId) {
+        return locationQueryRepository.findById(locationId).orElseThrow(() -> new LocationNotFoundException(
+            ScheduleErrorCode.LOCATION_NOT_FOUND));
+    }
+
+    public ScheduleMember findScheduleMemberById(Long scheduleMemberId) {
+        return scheduleMemberQueryRepository.findById(scheduleMemberId).orElseThrow(() -> new ScheduleMemberNotFoundException(
+            ScheduleErrorCode.LOCATION_NOT_FOUND));
+    }
+
+    public Workspace findWorkspaceById(Long workspaceId) {
+        return workspaceQueryRepository.findById(workspaceId).orElseThrow(() -> new WorkSpaceNotFoundException(ScheduleErrorCode.WORKSPACE_NOT_FOUND));
     }
 }
