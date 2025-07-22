@@ -14,6 +14,7 @@ import com.grepp.spring.app.controller.api.schedule.payload.response.DeleteSched
 import com.grepp.spring.app.controller.api.schedule.payload.response.DeleteWorkSpaceResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowVoteMembersResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.VoteMiddleLocationsResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.model.event.entity.Event;
@@ -169,6 +170,19 @@ public class ScheduleController {
             scheduleCommandService.voteMiddleLocation(smId, lId, sId);
 
             return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
+    }
+
+    // 스케줄에 대해 투표한 인원의 아이디 확인
+    @Operation(summary = "투표한 인원의 아이디를 확인합니다.", description = "투표한 인원의 아이디를 확인합니다.")
+    @GetMapping("/show-vote-members/{scheduleId}")
+    public  ResponseEntity<ApiResponse<ShowVoteMembersResponse>> showVoteMembers(@PathVariable Long scheduleId) {
+
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+
+        ShowVoteMembersResponse response = scheduleQueryService.findVoteMembers(schedule.getId());
+
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 온라인 회의장 링크 개설(줌)

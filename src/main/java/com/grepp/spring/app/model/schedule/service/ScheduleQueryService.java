@@ -2,17 +2,21 @@ package com.grepp.spring.app.model.schedule.service;
 
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.response.ShowVoteMembersResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
+import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.dto.MetroInfoDto;
 import com.grepp.spring.app.model.schedule.dto.ShowScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ShowSuggestedLocationsDto;
+import com.grepp.spring.app.model.schedule.dto.VoteMemberDto;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.entity.Vote;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.MetroTransferQueryRepository;
@@ -119,4 +123,22 @@ public class ScheduleQueryService {
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }
 
+    public ShowVoteMembersResponse findVoteMembers(Long scheduleId) {
+
+        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+
+        List<VoteMemberDto> voteMemberList = new ArrayList<>();
+
+        for(ScheduleMember sm : scheduleMembers){
+            Vote vote = voteQueryRepository.findByScheduleMemberId(sm.getId());
+            if (vote != null) {
+                VoteMemberDto voteMemberDto = VoteMemberDto.toDto(sm.getMember());
+                voteMemberList.add(voteMemberDto);
+            }
+        }
+
+        ShowVoteMembersResponse response = VoteMemberDto.fromDto(voteMemberList);
+
+        return response;
+    }
 }

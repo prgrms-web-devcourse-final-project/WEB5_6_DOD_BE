@@ -4,7 +4,6 @@ import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Vote;
-import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,24 +12,23 @@ import lombok.Setter;
 @Setter
 @Builder
 public class VoteMiddleLocationDto {
-    private ScheduleMember scheduleMemberId;
-    private Location locationId;
-    private Schedule scheduleId;
+    private ScheduleMember scheduleMember;
+    private Location location;
+    private Schedule schedule;
 
-    public static VoteMiddleLocationDto toDto(
-        Optional<ScheduleMember> scheduleMemberId, Optional<Location> lId, Schedule sId) {
+    public static VoteMiddleLocationDto toDto(ScheduleMember scheduleMember, Location location, Schedule schedule) {
         return VoteMiddleLocationDto.builder()
-            .scheduleMemberId(scheduleMemberId.orElse(null))
-            .locationId(lId.orElse(null))
-            .scheduleId(sId)
+            .scheduleMember(scheduleMember)
+            .location(location)
+            .schedule(schedule)
             .build();
     }
 
     public static Vote fromDto(VoteMiddleLocationDto dto) {
         return Vote.builder()
-            .scheduleMember(dto.getScheduleMemberId())
-            .location(dto.getLocationId())
-            .schedule(dto.getScheduleId())
+            .scheduleMember(dto.getScheduleMember())
+            .location(dto.getLocation())
+            .schedule(dto.getSchedule())
             .build();
     }
 }
