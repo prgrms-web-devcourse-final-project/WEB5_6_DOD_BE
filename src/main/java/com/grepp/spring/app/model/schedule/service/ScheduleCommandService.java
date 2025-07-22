@@ -23,6 +23,8 @@ import com.grepp.spring.app.model.schedule.dto.*;
 import com.grepp.spring.app.model.schedule.entity.*;
 import com.grepp.spring.app.model.schedule.repository.*;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMasterException;
+import com.grepp.spring.infra.response.ScheduleErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
@@ -123,11 +125,26 @@ public class ScheduleCommandService {
     @Transactional // JPA 영속성 컨텍스트 변경 감지. setter를 사용해서 값 바꾸면 자동으로 변경
     public void modifySchedule(ModifySchedulesRequest request, Long scheduleId) {
 
-        ModifyScheduleDto dto = ModifyScheduleDto.toDto(request);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        modifyScheduleEntity(scheduleId, dto);
+        Principal user = (Principal) authentication.getPrincipal();
 
-        modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), scheduleId);
+
+        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
+
+            ModifyScheduleDto dto = ModifyScheduleDto.toDto(request);
+
+            modifyScheduleEntity(scheduleId, dto);
+
+            modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
+        }
+        else {
+            // ROLE_MASWER 아닐 시 예외처리
+            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
+        }
+
+
     }
 
     private void modifyScheduleEntity(Long scheduleId, ModifyScheduleDto dto) {
@@ -199,7 +216,21 @@ public class ScheduleCommandService {
 
     @Transactional
     public void deleteSchedule(Long scheduleId) {
-        scheduleCommandRepository.deleteById(scheduleId); // 스케줄 삭제
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        Principal user = (Principal) authentication.getPrincipal();
+
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), scheduleId);
+
+        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
+            scheduleCommandRepository.deleteById(scheduleId); // 스케줄 삭제
+        }
+
+        else {
+            // ROLE_MASWER 아닐 시 예외처리
+            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
+        }
+
     }
 
     public void AddWorkspace(Schedule scheduleId, AddWorkspaceRequest request) {
@@ -424,29 +455,37 @@ public class ScheduleCommandService {
     public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Principal user = (Principal) auth.getPrincipal();
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), schedule.getId());
         Member member = memberRepository.findById(user.getUsername()).orElseThrow();
         Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
 
-        Location location;
-        // DB에 존재하지 않는다면
-        if (metro.isEmpty()) {
-            WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
+        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
+            Location location;
+            // DB에 존재하지 않는다면
+            if (metro.isEmpty()) {
+                WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
 
-            location = WriteSuggestedLocationDto.fromDto(dto);
-            location = locationCommandRepository.save(location);
+                location = WriteSuggestedLocationDto.fromDto(dto);
+                location = locationCommandRepository.save(location);
+            }
+            else { // DB에 존재한다면
+                location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
+                location = locationCommandRepository.save(location);
+            }
+
+            metro = metroQueryRepository.findByName(location.getName());
+            List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+
+            for (Line l : line) {
+                WriteSuggestedMetroTransferDto dto =  WriteSuggestedMetroTransferDto.toDto(schedule,location,l);
+                MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
+                metroTransferCommandRepository.save(metroTransfer);
+            }
         }
-        else { // DB에 존재한다면
-            location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
-            location = locationCommandRepository.save(location);
-        }
 
-        metro = metroQueryRepository.findByName(location.getName());
-        List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
-
-        for (Line l : line) {
-            WriteSuggestedMetroTransferDto dto =  WriteSuggestedMetroTransferDto.toDto(schedule,location,l);
-            MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
-            metroTransferCommandRepository.save(metroTransfer);
+        else {
+            // ROLE_MASWER 아닐 시 예외처리
+            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
 
     }

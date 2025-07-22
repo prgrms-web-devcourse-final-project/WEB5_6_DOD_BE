@@ -3,6 +3,7 @@ package com.grepp.spring.app.controller.api.schedule.payload.response;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
+import com.grepp.spring.app.model.schedule.dto.ScheduleMembersDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,7 +38,7 @@ public class ShowScheduleResponse {
     private String platformName;
     private String platformUrl;
 
-    private List<String> members;
+    private List<ScheduleMembersDto> members;
     private List<WorkspaceDto> workspaces;
 
 }

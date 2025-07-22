@@ -4,10 +4,12 @@ package com.grepp.spring.infra.error.scheduleAdvuce;
 import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMasterException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.EventErrorCode;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ResponseCode;
+import com.grepp.spring.infra.response.ScheduleErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
@@ -85,6 +87,14 @@ public class ScheduleExceptionAdvice {
     ) {
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status()).
             body(ApiResponse.error(EventErrorCode.EVENT_NOT_FOUND));
+    }
+
+    @ExceptionHandler(NotScheduleMasterException.class)
+    public ResponseEntity<ApiResponse<String>> notScheduleMasterHandler(
+        NotScheduleMasterException ex
+    ) {
+        return ResponseEntity.status(ResponseCode.NOT_FOUND.status()).
+        body(ApiResponse.error(ScheduleErrorCode.NOT_SCHEDULE_MASTER));
     }
 //
 //    @ExceptionHandler(UserNotInGroupException.class)

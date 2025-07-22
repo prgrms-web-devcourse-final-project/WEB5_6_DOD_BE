@@ -47,7 +47,7 @@ public class ShowScheduleDto {
     private String platformName;
     private String platformUrl;
 
-    private List<String> members;
+    private List<ScheduleMembersDto> members;
     private List<WorkspaceDto> workspaces;
 
     public static ShowScheduleResponse fromDto(ShowScheduleDto dto) {
@@ -72,9 +72,7 @@ public class ShowScheduleDto {
             .build();
     }
 
-    public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule,
-
-        List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
+    public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule, List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
 
         ScheduleStatus scheduleStatus;
 
@@ -86,7 +84,11 @@ public class ShowScheduleDto {
             scheduleStatus = ScheduleStatus.FIXED;
         }
 
-        List<String> members = scheduleMembers.stream().map(ScheduleMember::getName)
+        List<ScheduleMembersDto> members = IntStream.range(0, scheduleMembers.size())
+            .mapToObj(i-> new ScheduleMembersDto(
+                scheduleMembers.get(i).getName(),
+                scheduleMembers.get(i).getRole()
+            ))
             .collect(Collectors.toList());
 
 
