@@ -12,10 +12,12 @@ import com.grepp.spring.app.model.event.entity.CandidateDate;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
 import com.grepp.spring.app.model.event.entity.TempSchedule;
+import com.grepp.spring.app.model.event.factory.EventCreationStrategyFactory;
 import com.grepp.spring.app.model.event.repository.CandidateDateRepository;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.event.repository.TempScheduleRepository;
+import com.grepp.spring.app.model.event.strategy.EventCreationStrategy;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
@@ -57,36 +59,20 @@ public class EventService {
     private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
+    private final EventCreationStrategyFactory strategyFactory;
+
     @Transactional
     public CreateEventResponse createEvent(CreateEventRequest webRequest, String currentMemberId) {
         CreateEventDto serviceRequest = CreateEventDto.toDto(webRequest, currentMemberId);
 
-        Event event = null;
-        Group group = null;
+        EventCreationStrategy strategy = strategyFactory.getStrategy(serviceRequest.getGroupId());
+        Event event = strategy.createEvent(serviceRequest, currentMemberId);
 
-        if (serviceRequest.getGroupId() != null) {
-            group = groupRepository.findById(serviceRequest.getGroupId())
-                .orElseThrow(() -> new EventNotFoundException(EventErrorCode.GROUP_NOT_FOUND));
-
-            GroupMember groupMember = groupMemberRepository.findByGroupIdAndMemberId(serviceRequest.getGroupId(), currentMemberId)
-                .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_GROUP_MEMBER));
-
-            event = CreateEventDto.toEntity(serviceRequest, group);
-        } else {
-            group = createTempGroupForSingleEvent(serviceRequest.getTitle(), serviceRequest.getDescription());
-            event = CreateEventDto.toEntity(serviceRequest, group);
-            addUserToGroup(group.getId(), currentMemberId);
-        }
-
-        event = eventRepository.save(event);
-        EventMemberDto masterDto = EventMemberDto.toDto(event.getId(), currentMemberId, Role.ROLE_MASTER);
-        createEventMember(masterDto);
-        createCandidateDates(event, serviceRequest.getCandidateDates());
-
-        CreateEventResponse response = new CreateEventResponse();
-        response.setEventId(event.getId());
-        response.setTitle(event.getTitle());
-        response.setGroupId(group.getId());
+        CreateEventResponse response = new CreateEventResponse(
+            event.getId(),
+            event.getTitle(),
+            event.getGroup().getId()
+        );
 
         return response;
     }
@@ -107,19 +93,6 @@ public class EventService {
         response.setGroupId(event.getGroup().getId());
 
         return response;
-    }
-
-    private Group createTempGroupForSingleEvent(String eventTitle, String eventDescription) {
-        TempGroupCreateDto tempGroupDto = TempGroupCreateDto.forSingleEvent(eventTitle, eventDescription);
-        Group tempGroup = TempGroupCreateDto.toEntity(tempGroupDto);
-
-        return groupRepository.save(tempGroup);
-    }
-
-    private void createCandidateDates(Event event, List<CandidateDateDto> candidateDates) {
-        List<CandidateDate> entities = CandidateDateDto.toEntityList(candidateDates, event);
-        candidateDateRepository.saveAll(entities);
-        log.debug("후보 날짜 생성 완료 - 개수: {}", entities.size());
     }
 
     @Transactional
