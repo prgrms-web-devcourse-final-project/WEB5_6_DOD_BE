@@ -22,6 +22,10 @@ public interface ScheduleMemberRepository extends JpaRepository<ScheduleMember, 
     // 특정 멤버를 ScheduleMember 에서 삭제
     void deleteByMember(Member member);
 
+    // 특정 일정에 특정 멤버가 참여 중인지 확인 + 그 멤버의 참여 상태 가져오기
     Optional<ScheduleMember> findByScheduleIdAndMemberId(Long scheduleId, String memberId);
+
+    // 일정에 참여하는 멤버 조회 (나 포함)
+    List<ScheduleMember> findAllBySchedule(Schedule schedule);
 
 }

@@ -3,6 +3,7 @@ package com.grepp.spring.app.model.group.service;
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.group.dto.GroupDetailDto;
+import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupMemberQueryRepository;
 import com.grepp.spring.app.model.group.repository.GroupRepository;
@@ -15,9 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class GroupQueryMainpageService {
 
   private final MemberRepository memberRepository;
@@ -32,39 +35,18 @@ public class GroupQueryMainpageService {
     // TODO: member가 없다면 throw 예외(회원이 아닙니다.)
 
     List<GroupMember> groupMembers = groupMemberQueryRepository.findGroupedByMember(member);
-
-    //## 그룹 조회
-    // 일단 구현은 뭐 어케 하긴 했는데, QueryDSL을 나중에 꼭 도입하자.. 정신건강에 너무너무 해롭다.
-    List<GroupDetailDto> groups = groupMembers.stream()
-        .map(gm -> new GroupDetailDto(
-            gm.getGroup().getId(),
-            gm.getGroup().getName(),
-            gm.getGroup().getDescription(),
-            0 // 일단 0으로 초기화
-        ))
+    List<Group> myGroups = groupMembers.stream()
+        .map(GroupMember::getGroup)
         .toList();
 
-    // groupId들 추출
-    List<Long> groupIds = groups.stream()
-        .map(GroupDetailDto::getGroupId)
+    // 내가 속한 모든 그룹들의 멤버를 한 번에 조회?
+    List<Long> groupIds = myGroups.stream().map(Group::getId).toList();
+    List<GroupMember> allGroupMembers = groupMemberQueryRepository.findByGroupIdIn(groupIds);
+
+    // DTO 변환 (멤버 수 + 그룹장 이미지 자동 세팅)
+    List<GroupDetailDto> groups = myGroups.stream()
+        .map(group -> GroupDetailDto.from(group, allGroupMembers))
         .toList();
-
-    // 추출한 groupId들을 가지고 있는 GroupMember들 추출
-    List<GroupMember> all = groupMemberQueryRepository.findByGroupIdIn(groupIds);
-
-    // 각 groupId가 나올 때마다 해당 groupId의 갯수 카운팅(+1)
-    Map<Long, Long> countMap = all.stream()
-        .collect(Collectors.groupingBy(
-            gm -> gm.getGroup().getId(),
-            Collectors.counting()
-        ));
-
-    // 0으로 초기화 했던 groups에 counting한 수 최신화
-    groups.forEach(dto ->
-        dto.setGroupMemberNum(
-            countMap.getOrDefault(dto.getGroupId(), 0L).intValue()
-        )
-    );
 
     return new ShowGroupResponse(groups);
   }

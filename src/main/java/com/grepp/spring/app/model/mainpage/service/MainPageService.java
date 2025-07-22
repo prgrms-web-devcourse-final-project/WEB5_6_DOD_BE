@@ -7,9 +7,14 @@ import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.service.GroupQueryMainpageService;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
+import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.infra.error.exceptions.mypage.InvalidFavoriteRequestException;
+import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,18 +25,31 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내부 일정 통합)
 
   private final GroupQueryMainpageService groupQueryMainpageService;
   private final MainPageScheduleService mainPageScheduleService;
   private final GoogleScheduleService googleScheduleService;
+
   private final ScheduleMemberRepository scheduleMemberRepository;
+  private final MemberRepository memberRepository;
 
   public ShowMainPageResponse getMainPageData(String memberId, LocalDate targetDate) {
+
+    if (memberId == null || memberId.trim().isEmpty()) {
+      throw new MemberNotFoundException(MyPageErrorCode.INVALID_MEMBER_REQUEST);
+    }
+
+    // 회원 존재 여부 예외 처리
+    if (!memberRepository.existsById(memberId)) {
+      throw new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND);
+    }
 
     // 그룹 정보 가져오기
     ShowGroupResponse groups = groupQueryMainpageService.displayGroup();
@@ -82,14 +100,13 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     List<UnifiedScheduleDto> internalDtos = schedules.stream()
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
-          List<GroupMember> groupMembers = group.getGroupMembers();
+          // 6List<GroupMember> groupMembers = group.getGroupMembers();
+          List<ScheduleMember> participants = scheduleMemberRepository.findAllBySchedule(schedule);
           ScheduleMember sm = scheduleMemberRepository
               .findByScheduleIdAndMemberId(schedule.getId(), memberId)
-              .orElseThrow(() ->
-                  new IllegalStateException("ScheduleMember가 존재하지 않습니다. scheduleId=" + schedule.getId())
-              );
+              .orElse(null); // 참여하지 않는 일정이면 없음 처리
 
-          return UnifiedScheduleDto.fromService(schedule, group, sm,groupMembers);
+          return UnifiedScheduleDto.fromService(schedule, group, sm, participants);
         })
         .toList();
 

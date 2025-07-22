@@ -21,7 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "com.grepp.spring.app.controller.api.mypage")
+@RestControllerAdvice(basePackages = {
+    "com.grepp.spring.app.controller.api.mypage",
+    "com.grepp.spring.app.controller.api.mainpage"
+})
 @Slf4j
 @Order(1)
 public class MyPageExceptionAdvice {

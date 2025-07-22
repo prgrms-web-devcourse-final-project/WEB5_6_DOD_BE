@@ -16,6 +16,10 @@ VALUES (10002, '헬스 친구', '운동 같이 하는 모임', true, NOW(), NOW(
 INSERT INTO groups (id, name, description, is_grouped, created_at, modified_at)
 VALUES (10003, '비활성 모임', '아직 정식 그룹 아님', false, NOW(), NOW());
 
+-- 그룹 5
+INSERT INTO groups (id, name, description, is_grouped, created_at, modified_at)
+VALUES (10005, '무슨모임인고임', '아아', true, NOW(), NOW());
+
 -- 해당 그룹에 자걸이 추가
 INSERT INTO group_members(id, activated, role, created_at, group_id, modified_at, member_id, group_admin)
 VALUES (10004, true, 'GROUP_MEMBER', NOW(), 10003, NOW(), 'GOOGLE_115434652372556552718', false);
@@ -30,6 +34,9 @@ values (10002, true, 'GROUP_MEMBER', '2025-07-15 00:47:03.635538', 10002, '2025-
 
 insert into group_members(id, role, member_id, group_id, group_admin)
 values (10003, 'GROUP_LEADER', 'GOOGLE_1234', 10001, true);
+
+insert into group_members(id, activated, role, created_at, group_id, modified_at, member_id, group_admin)
+values (10005, true, 'GROUP_LEADER', '2025-07-15 00:47:03.635538', 10005, '2025-07-15 00:47:03.635538', 'GOOGLE_115434652372556552718', true);
 
 -- 그룹 1 일정 이벤트
 insert into events(id, description, max_member, meeting_type, title, group_id, activated)

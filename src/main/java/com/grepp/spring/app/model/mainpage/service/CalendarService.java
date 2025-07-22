@@ -28,7 +28,7 @@ public class CalendarService {
   private final GoogleScheduleRepository googleScheduleRepository;
   private final ScheduleMemberRepository scheduleMemberRepository;
 
-  public Map<LocalDate, List<UnifiedScheduleDto>> getMonthlySchedules(
+  public Map<LocalDate, List<UnifiedScheduleDto>> getSchedulesInRange(
       String memberId,
       LocalDate startDate,
       LocalDate endDate
@@ -50,12 +50,13 @@ public class CalendarService {
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<GroupMember> groupMembers = group.getGroupMembers();
+          List<ScheduleMember> participants = scheduleMemberRepository.findAllBySchedule(schedule);
           ScheduleMember sm = scheduleMemberRepository
               .findByScheduleIdAndMemberId(schedule.getId(), memberId)
               .orElseThrow(() ->
                   new IllegalStateException("해당 일정에 대한 ScheduleMember가 존재하지 않습니다. scheduleId=" + schedule.getId())
               );
-          return UnifiedScheduleDto.fromService(schedule, group, sm ,groupMembers);
+          return UnifiedScheduleDto.fromService(schedule, group, sm , participants);
         })
         .toList();
 
