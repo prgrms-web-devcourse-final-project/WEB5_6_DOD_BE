@@ -69,7 +69,7 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .location(s.getLocation())
         .specificLocation(s.getSpecificLocation())
         .isGrouped(g.getIsGrouped()) // 필요하면 s.getEvent() != null 로 변경
-        .groupName(g.getName())  // 그룹 일정이면 s.getEvent().getGroup().getName()
+        .groupName(g.getIsGrouped() ? g.getName() : null)  // 그룹 일정이면 s.getEvent().getGroup().getName()
 //      .groupMemberName(memberNames)
         .participantNames(participantNames)
         .meetingType(s.getEvent().getMeetingType()) // 아직 MeetingType이 없다면 null 처리

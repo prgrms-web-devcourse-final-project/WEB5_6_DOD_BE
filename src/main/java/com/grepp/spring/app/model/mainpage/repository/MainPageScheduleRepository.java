@@ -19,7 +19,7 @@ public interface MainPageScheduleRepository extends JpaRepository<Schedule, Long
     FROM Schedule s
     JOIN s.scheduleMembers sm
     JOIN FETCH s.event e
-    JOIN FETCH e.group g
+    LEFT JOIN FETCH e.group g
     LEFT JOIN FETCH g.groupMembers gm
     LEFT JOIN FETCH gm.member m
     WHERE sm.member.id = :memberId
