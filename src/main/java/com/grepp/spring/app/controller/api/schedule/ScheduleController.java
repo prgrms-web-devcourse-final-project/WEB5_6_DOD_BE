@@ -59,7 +59,7 @@ public class ScheduleController {
     @Autowired
     private LocationQueryRepository locationQueryRepository;
 
-    // 일정 조회
+    // 일정 조회 ㅇ
     @Operation(summary = "일정 조회", description = "일정을 조회합니다.")
     @GetMapping("/show/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(
@@ -77,16 +77,9 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
         @RequestBody CreateSchedulesRequest request) {
 
+            Event event = scheduleQueryService.findEventById(request.getEventId());
 
-            Optional<Event> eId = scheduleQueryService.findEventById(request.getEventId());
-
-            if (eId.isEmpty()) {
-                return ResponseEntity.status(404)
-                    .body(ApiResponse.error(ResponseCode.NOT_FOUND,
-                        "해당 이벤트를 찾을 수 없습니다. eventId를 확인해주세요."));
-            }
-
-            CreateSchedulesResponse response = scheduleCommandService.createSchedule(request);
+            CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event);
 
             return ResponseEntity.ok(ApiResponse.success(response));
 

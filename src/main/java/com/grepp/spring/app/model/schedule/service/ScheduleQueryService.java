@@ -20,7 +20,9 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryReposit
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
+import com.grepp.spring.infra.response.EventErrorCode;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,19 +74,13 @@ public class ScheduleQueryService {
 
     public Schedule findScheduleById(Long scheduleId) {
 
-//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-//        if (schedule.isEmpty()) {
-//            throw new ScheduleNotFoundException(GroupErrorCode.SCHEDULE_NOT_FOUND);
-//        }
-//        return schedule.get();
-
-        // orElseThrow 는 빈 배열로 반환되어서
         return scheduleQueryRepository.findById(scheduleId).orElseThrow(() -> new ScheduleNotFoundException(
             GroupErrorCode.SCHEDULE_NOT_FOUND));
     }
 
-    public Optional<Event> findEventById(Long eventId) {
-        return eventRepository.findById(eventId);
+    public Event findEventById(Long eventId) {
+        return eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
+            EventErrorCode.EVENT_NOT_FOUND));
     }
 
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {

@@ -91,32 +91,12 @@ public class ScheduleCommandService {
     @Value("${zoom.refresh-token}") 
     private String zoomRefreshToken;
 
-    /// /    @Transactional
-//    public ShowScheduleResponse showSchedule(Long scheduleId) {
-//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-//
-//        // Lazy init 해결하기 위해서 Transactional 내에서 처리
-//        Long eventId = schedule.get().getEvent().getId();
-//
-//        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
-//        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(scheduleId);
-//
-//        ShowScheduleDto dto = ShowScheduleDto.fromEntity(eventId, schedule.orElse(null), scheduleMembers, workspaces);
-//
-//
-//        return ShowScheduleDto.fromDto(dto);
-//    }
-    public Optional<Schedule> findScheduleById(Long scheduleId) {
-        return scheduleQueryRepository.findById(scheduleId);
-    }
-
     @Transactional
-    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request) {
-        Optional<Event> eid = eventRepository.findById(request.getEventId());
+    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, Event event) {
 
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
 
-        Schedule schedule = CreateScheduleDto.fromDto(dto, eid.orElse(null));
+        Schedule schedule = CreateScheduleDto.fromDto(dto, event);
 
         scheduleCommandRepository.save(schedule);
 
@@ -217,17 +197,8 @@ public class ScheduleCommandService {
         }
     }
 
-
     @Transactional
     public void deleteSchedule(Long scheduleId) {
-
-        // workspace, metroTransfer, vote, location, scheduleMember, schedule 순서로 삭제
-
-//        workspaceCommandRepository.deleteByScheduleId(scheduleId); // 워크스페이스 삭제x
-//        metroTransferCommandRepository.deleteByScheduleId(scheduleId); // 환승정보 삭제x
-//        voteCommandRepository.deleteByScheduleId(scheduleId); // 투표정보 삭제x
-//        locationCommandRepository.deleteByScheduleId(scheduleId); // 장소정보 삭제x
-//        scheduleMemberCommandRepository.deleteAllByScheduleId(scheduleId); // 스케줄멤버 삭제x
         scheduleCommandRepository.deleteById(scheduleId); // 스케줄 삭제
     }
 
@@ -251,17 +222,9 @@ public class ScheduleCommandService {
         metroTransferCommandRepository.deleteByScheduleId(scheduleId);
         locationCommandRepository.deleteLocation(scheduleId);
 
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        String memberId = authentication.getName();
-//        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findByMemberId(memberId, scheduleId);
-//
         //임시
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
             request.getMemberId(), scheduleId);
-
-//        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
-
-//        CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request, schedule.get(), request.getMemberId());
 
         Optional<Metro> metro = metroQueryRepository.findByName(request.getDepartLocationName());
 
@@ -311,7 +274,6 @@ public class ScheduleCommandService {
                 location = locationCommandRepository.save(location);
 
                 log.info("location = {}", location);
-//                log.info("location1 = {}", location1);
 
                 metro = metroQueryRepository.findByName(location.getName());
                 List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
@@ -332,20 +294,6 @@ public class ScheduleCommandService {
         em.clear();  // 영속성 컨텍스트 초기화
 
     }
-
-//    private void saveLocation(CreateDepartLocationDto dto) {
-//        Location location = Location.builder()
-//            .latitude(dto.getLatitude())
-//            .longitude(dto.getLongitude())
-//            .name(dto.getDepartLocationName())
-//            .suggestedMemberId(dto.getSuggestedMemberId())
-//            .status(dto.getStatus())
-//            .schedule(dto.getScheduleId())
-//            .build();
-//
-//        locationCommandRepository.save(location);
-//    }
-
 
     // 카카오 api 활용하여 중간장소 역 3개 추출
     public List<JsonNode> findNearestStations(double latitude, double longitude)
@@ -409,11 +357,7 @@ public class ScheduleCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Location ID 없음")))
             .orElseThrow(() -> new IllegalArgumentException("해당 Location 없음"));
 
-//        if (location.getVoteCount() != null) {
             location.setVoteCount(location.getVoteCount() + 1);
-//        } else if (location.getVoteCount() == null) {
-//            location.setVoteCount(1);
-//        }
 
         List<Location> location2 = locationQueryRepository.findByScheduleId(schedule.getId());
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
@@ -484,7 +428,6 @@ public class ScheduleCommandService {
         Principal user = (Principal) auth.getPrincipal();
         Member member = memberRepository.findById(user.getUsername()).orElseThrow();
         Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
-//        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findById(scheduleId).get();
 
         Location location;
         // DB에 존재하지 않는다면
