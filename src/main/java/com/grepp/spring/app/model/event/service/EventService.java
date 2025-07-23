@@ -376,7 +376,7 @@ public class EventService {
             throw new InvalidEventDataException(EventErrorCode.CANNOT_COMPLETE_EMPTY_SCHEDULE);
         }
 
-        eventMember.confirm();
+        eventMember.confirmScheduleOrThrow();
         eventMemberRepository.save(eventMember);
     }
 
