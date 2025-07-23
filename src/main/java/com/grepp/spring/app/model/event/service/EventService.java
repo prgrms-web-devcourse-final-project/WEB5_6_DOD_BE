@@ -111,7 +111,7 @@ public class EventService {
         }
 
         Long currentMemberCount = eventMemberRepository.countByEventId(dto.getEventId());
-        validateEventCapacity(event, currentMemberCount);
+        event.validateCapacity(currentMemberCount);
 
         addUserToGroup(groupId, dto.getMemberId());
 
@@ -147,12 +147,6 @@ public class EventService {
             throw e;
         } catch (Exception e) {
             throw new InvalidEventDataException(EventErrorCode.INVALID_EVENT_DATA);
-        }
-    }
-
-    private void validateEventCapacity(Event event, Long currentMemberCount) {
-        if (event.getMaxMember() != null && currentMemberCount >= event.getMaxMember()) {
-            throw new InvalidEventDataException(EventErrorCode.EVENT_MEMBER_LIMIT_EXCEEDED);
         }
     }
 
@@ -382,11 +376,7 @@ public class EventService {
             throw new InvalidEventDataException(EventErrorCode.CANNOT_COMPLETE_EMPTY_SCHEDULE);
         }
 
-        if (eventMember.getConfirmed()) {
-            throw new AlreadyCompletedScheduleException(EventErrorCode.ALREADY_COMPLETED_SCHEDULE);
-        }
-
-        eventMember.setConfirmed(true);
+        eventMember.confirm();
         eventMemberRepository.save(eventMember);
     }
 
