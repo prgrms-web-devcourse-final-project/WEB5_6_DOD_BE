@@ -46,6 +46,9 @@ dependencies {
     runtimeOnly('org.postgresql:postgresql')
     implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:4.6.0')
 
+    // AWS
+    implementation("io.awspring.cloud:spring-cloud-starter-aws-secrets-manager-config:2.4.4")
+
     // Swagger
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
 
