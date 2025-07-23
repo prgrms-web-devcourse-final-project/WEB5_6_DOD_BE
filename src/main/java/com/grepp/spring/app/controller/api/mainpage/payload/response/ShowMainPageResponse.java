@@ -21,6 +21,8 @@ public class ShowMainPageResponse {
   private List<UnifiedScheduleDto> schedules; // 오늘/선택 날짜 일정 (구글+내부 통합)
   private List<WeeklyScheduleDto> weeklySchedules; // 주간 통합 일정 (google + service)
 
+  private boolean googleCalendarFetchSuccess; // 구글 캘린더 조회 성공 여부 (실패했을 때 프론트에서 띄우게)
+
 
 
   // 주간 일정을 담는 내부 클래스
