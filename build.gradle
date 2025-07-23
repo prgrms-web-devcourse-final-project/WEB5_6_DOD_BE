@@ -22,16 +22,14 @@ repositories {
     mavenCentral()
 }
 
-// Spring Cloud GCP 및 Spring Cloud Dependencies 버전 관리
+// Spring Cloud Dependencies 버전 관리
 ext {
     set('springCloudVersion', '2024.0.1')
-    set('springCloudGcpVersion', '6.2.2')
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-        mavenBom "com.google.cloud:spring-cloud-gcp-dependencies:${springCloudGcpVersion}"
     }
 }
 
@@ -48,12 +46,6 @@ dependencies {
 
     // Swagger
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6')
-
-    // Google Cloud Storage
-    implementation('com.google.cloud:google-cloud-storage')
-    // Google Cloud Secret Manager
-    implementation('com.google.cloud:spring-cloud-gcp-starter-secretmanager')
-    implementation('com.google.cloud:spring-cloud-gcp-dependencies:6.2.2')
 
     // OAuth2
     implementation('org.springframework.security:spring-security-oauth2-client')
@@ -80,33 +72,18 @@ dependencies {
 
     // Apache POI로 엑셀파일 읽는 모듈
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
-
-//    // json 라이브러리
-//    implementation 'org.json:json:20240303'
 }
-
-//node {
-//    download.set(true)
-//    version.set('22.16.0')
-//}
-//
-//tasks.register('npmRunBuild', NpmTask) {
-//    args = ['run', 'build']
-//    dependsOn npmInstall
-//
-//    inputs.files(fileTree('node_modules'))
-//    inputs.files(fileTree('src/main/webapp'))
-//    inputs.file('.env')
-//    inputs.file('package.json')
-//    inputs.file('tsconfig.json')
-//    inputs.file('webpack.config.js')
-//    outputs.dir(layout.buildDirectory.dir('resources/main/static'))
-//}
-//
-//processResources {
-//    dependsOn npmRunBuild
-//}
 
 tasks.withType(Test) {
     useJUnitPlatform()
+}
+
+ext.profile = (!project.hasProperty('profile') || !profile) ? 'local' : profile
+
+sourceSets {
+    main {
+        resources {
+            srcDirs "src/main/resources/${profile}"
+        }
+    }
 }
