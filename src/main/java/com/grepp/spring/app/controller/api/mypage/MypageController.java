@@ -10,7 +10,6 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavorit
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.PublicCalendarIdResponse;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
-import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
 import com.grepp.spring.app.model.mypage.service.MypageService;
 import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
@@ -120,7 +119,7 @@ public class MypageController {
 
 
   }
-  
+
 
   @Operation(summary = "공개 캘린더 ID 입력받기")
   @PostMapping("/calendar/public-id")

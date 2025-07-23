@@ -1,7 +1,5 @@
 package com.grepp.spring.app.model.mainpage.service;
 
-import static com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto.parseDateOrDateTime;
-
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
 import com.grepp.spring.app.model.group.entity.Group;
@@ -18,6 +16,7 @@ import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.Comparator;
 import java.util.List;
@@ -154,7 +153,11 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
 
       // 구글 일정(calendar_detail) → DTO 변환 호출
       List<UnifiedScheduleDto> publicGoogleDtos = publicEvents.stream()
-          .map(UnifiedScheduleDto::fromPublicCalendar)
+          .map(e -> UnifiedScheduleDto.fromPublicCalendar( //
+              e,
+              parseDateOrDateTime(e.getStart()),
+              parseDateOrDateTime(e.getEnd())
+          ))
           .toList();
 
       List<UnifiedScheduleDto> merged = Stream.concat(internalDtos.stream(), publicGoogleDtos.stream())
@@ -166,5 +169,12 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
       log.warn("구글 공개 캘린더 조회 실패! memberId={}, publicCalendarId={}", memberId, publicCalendarId, ex);
       return new UnifiedScheduleResult(internalDtos, false); // 실패 시에도 내부 일정만 보여주도록 처리 + success 여부 false 로 처리
     }
+
+  }
+  public static LocalDateTime parseDateOrDateTime(String dateOrDateTime) {
+    if (dateOrDateTime == null) return null;
+    return (dateOrDateTime.length() == 10) // -> 종일 일정 포맷 길이가 10 (yyyy-mm-dd)
+        ? LocalDate.parse(dateOrDateTime).atStartOfDay() // 23일 종일 일정 잡으면 23-24일로 뜸. 시작일(+시간)로만 설정
+        : LocalDateTime.parse(dateOrDateTime, DateTimeFormatter.ISO_DATE_TIME);
   }
 }

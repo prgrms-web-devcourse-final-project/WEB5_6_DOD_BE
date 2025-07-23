@@ -1,19 +1,16 @@
 package com.grepp.spring.app.model.mainpage.dto;
 
+import static com.grepp.spring.app.model.mainpage.service.MainPageService.parseDateOrDateTime;
+
 import com.grepp.spring.app.model.event.code.MeetingType;
-import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
-import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.mainpage.code.ScheduleSource;
-import com.grepp.spring.app.model.mainpage.entity.CalendarDetail;
 import com.grepp.spring.app.model.mypage.dto.PublicCalendarEventDto;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -88,14 +85,17 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
   }
 
   // 구글 일정 → DTO
-  public static UnifiedScheduleDto fromPublicCalendar(PublicCalendarEventDto e) {
+  public static UnifiedScheduleDto fromPublicCalendar(
+      PublicCalendarEventDto e,
+      LocalDateTime startTime,
+      LocalDateTime endTime) {
     return UnifiedScheduleDto.builder()
         .id(null)
         .googleEventId(e.getEventId())
         .name(e.getTitle()) // 구글 일정 제목
         .description(null)
-        .startTime(parseDateOrDateTime(e.getStart()))
-        .endTime(parseDateOrDateTime(e.getEnd()))
+        .startTime(startTime)
+        .endTime(endTime)
         .allDay(e.isAllDay())
         .location(null)
         .isGrouped(null) // 구글 일정엔 그룹 개념 없음
@@ -108,10 +108,5 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .build();
   }
 
-  public static LocalDateTime parseDateOrDateTime(String dateOrDateTime) {
-    if (dateOrDateTime == null) return null;
-    return (dateOrDateTime.length() == 10) // -> 종일 일정 포맷 길이가 10 (yyyy-mm-dd)
-        ? LocalDate.parse(dateOrDateTime).atStartOfDay() // 23일 종일 일정 잡으면 23-24일로 뜸. 시작일(+시간)로만 설정
-        : LocalDateTime.parse(dateOrDateTime, DateTimeFormatter.ISO_DATE_TIME);
-  }
+
 }
