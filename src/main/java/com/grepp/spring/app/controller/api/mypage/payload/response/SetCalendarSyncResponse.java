@@ -1,7 +1,6 @@
 package com.grepp.spring.app.controller.api.mypage.payload.response;
 
 import java.time.LocalDateTime;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
