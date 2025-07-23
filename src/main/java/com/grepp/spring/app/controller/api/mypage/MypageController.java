@@ -4,13 +4,15 @@ package com.grepp.spring.app.controller.api.mypage;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoriteTimeRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoritePlaceRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.request.PublicCalendarIdRequest;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
+import com.grepp.spring.app.controller.api.mypage.payload.response.PublicCalendarIdResponse;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
 import com.grepp.spring.app.model.mypage.dto.GoogleEventDto;
-import com.grepp.spring.app.model.mypage.service.CalendarSyncService;
 import com.grepp.spring.app.model.mypage.service.MypageService;
+import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.MyPageErrorCode;
@@ -37,7 +39,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class MypageController {
 
   private final MypageService mypageService;
-  private final CalendarSyncService calendarSyncService;
+  private final PublicCalendarIdService publicCalendarIdService;
+
 
   // 즐겨찾기 장소 등록
   @PostMapping("/favorite-location")
@@ -118,17 +121,26 @@ public class MypageController {
 
   }
 
-
-  @Operation(summary = "캘린더 동기화 새로고침")
-  @PostMapping("/calendar/sync")
-  public ApiResponse<List<GoogleEventDto>> syncCalendar() {
+  @Operation(summary = "공개 캘린더 ID 입력받기")
+  @PostMapping("/calendar/public-id")
+  public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> savePublicCalendarId(
+      @RequestBody PublicCalendarIdRequest request
+  ) {
+    String publicCalendarId = request.getPublicCalendarId();
 
     String memberId = extractCurrentMemberId();
 
-    List<GoogleEventDto> events = calendarSyncService.syncCalendar(memberId);
+    // DB 에 저장하기
+    publicCalendarIdService.savePublicCalendarId(memberId, publicCalendarId);
 
-    return ApiResponse.success(events);
+    PublicCalendarIdResponse response = PublicCalendarIdResponse.builder()
+        .calendarId(publicCalendarId)
+        .build();
+
+    return ResponseEntity.ok(ApiResponse.success(response));
+
   }
+
 
   private String extractCurrentMemberId() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
