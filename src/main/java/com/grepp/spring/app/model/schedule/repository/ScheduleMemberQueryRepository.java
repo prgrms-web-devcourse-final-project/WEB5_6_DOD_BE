@@ -22,5 +22,4 @@ public interface ScheduleMemberQueryRepository extends JpaRepository<ScheduleMem
         @Param("scheduleId") Long scheduleId);
 
     ArrayList<ScheduleMember> findBySchedule(Schedule schedule);
-
 }

@@ -69,4 +69,12 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> error(MyPageErrorCode code, T data) {
         return new ApiResponse<>(code.code(), code.message(), data);
     }
+
+    public static <T> ApiResponse<T> error(ScheduleErrorCode code) {
+        return new ApiResponse<>(code.code(), code.message(), null);
+    }
+
+    public static <T> ApiResponse<T> error(ScheduleErrorCode code, T data) {
+        return new ApiResponse<>(code.code(), code.message(), data);
+    }
 }

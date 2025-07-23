@@ -19,7 +19,6 @@ public class ModifySchedulesRequest {
     private Double specificLatitude; // 추가
     private Double specificLongitude;  // 추가
     private MeetingPlatform meetingPlatform;
-    private String platformName;
     private String platformURL;
     private ScheduleStatus status;
 
