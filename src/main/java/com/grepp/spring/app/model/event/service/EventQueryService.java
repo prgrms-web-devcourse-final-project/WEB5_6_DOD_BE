@@ -52,14 +52,13 @@ public class EventQueryService {
         EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
             .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
 
-        ShowEventResponse response = new ShowEventResponse();
-        response.setEventId(event.getId());
-        response.setTitle(event.getTitle());
-        response.setDescription(event.getDescription());
-        response.setRole(eventMember.getRole().name());
-        response.setGroupId(event.getGroup().getId());
-
-        return response;
+        return ShowEventResponse.builder()
+            .eventId(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .role(eventMember.getRole().name())
+            .groupId(event.getGroup().getId())
+            .build();
     }
 
     public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {

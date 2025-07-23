@@ -2,7 +2,7 @@ package com.grepp.spring.app.model.event.dto;
 
 import com.grepp.spring.app.model.event.entity.CandidateDate;
 import com.grepp.spring.app.model.event.entity.Event;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public class CandidateDateDto {
 
     private final LocalDate date;

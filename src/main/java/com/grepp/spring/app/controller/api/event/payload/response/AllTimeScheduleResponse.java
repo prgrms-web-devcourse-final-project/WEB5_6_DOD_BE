@@ -1,52 +1,52 @@
 package com.grepp.spring.app.controller.api.event.payload.response;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 import java.util.Map;
 
 @Getter
-@Setter
+@Builder
 public class AllTimeScheduleResponse {
-    private Long eventId;
-    private String eventTitle;
-    private String description;
-    private TimeTable timeTable;
-    private List<MemberSchedule> memberSchedules;
-    private Integer totalMembers;
-    private Integer confirmedMembers;
-    private Map<String, List<Integer>> participantCounts;
+    private final Long eventId;
+    private final String eventTitle;
+    private final String description;
+    private final TimeTable timeTable;
+    private final List<MemberSchedule> memberSchedules;
+    private final Integer totalMembers;
+    private final Integer confirmedMembers;
+    private final Map<String, List<Integer>> participantCounts;
 
     @Getter
-    @Setter
+    @Builder
     public static class TimeTable {
-        private List<DateInfo> dates;
-        private String startTime;
-        private String endTime;
+        private final List<DateInfo> dates;
+        private final String startTime;
+        private final String endTime;
     }
 
     @Getter
-    @Setter
+    @Builder
     public static class DateInfo {
-        private String date;
-        private String dayOfWeek;
-        private String displayDate;
+        private final String date;
+        private final String dayOfWeek;
+        private final String displayDate;
     }
 
     @Getter
-    @Setter
+    @Builder
     public static class MemberSchedule {
-        private String eventMemberId;
-        private String memberName;
-        private List<DailyTimeSlot> dailyTimeSlots;
-        private Boolean isConfirmed;
+        private final String eventMemberId;
+        private final String memberName;
+        private final List<DailyTimeSlot> dailyTimeSlots;
+        private final Boolean isConfirmed;
     }
 
     @Getter
-    @Setter
+    @Builder
     public static class DailyTimeSlot {
-        private String date;
-        private String timeBit;
+        private final String date;
+        private final String timeBit;
     }
 }

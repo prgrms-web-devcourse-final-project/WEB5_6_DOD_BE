@@ -4,22 +4,18 @@ import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
 import com.grepp.spring.app.model.member.entity.Member;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public class EventMemberDto {
     private final Long eventId;
     private final String memberId;
     private final Role role;
 
     public static EventMemberDto toDto(Long eventId, String memberId, Role role) {
-        return EventMemberDto.builder()
-            .eventId(eventId)
-            .memberId(memberId)
-            .role(role)
-            .build();
+        return new EventMemberDto(eventId, memberId, role);
     }
 
     public static EventMember toEntity(EventMemberDto dto, Event event, Member member) {

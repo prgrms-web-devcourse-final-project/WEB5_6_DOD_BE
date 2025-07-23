@@ -41,58 +41,50 @@ public class ScheduleResultDto {
     }
 
     public static ScheduleResultResponse fromDto(ScheduleResultDto dto) {
-        ScheduleResultResponse response = new ScheduleResultResponse();
-
-        response.setEventTitle(dto.getEventTitle());
-        response.setTotalParticipants(dto.getTotalParticipants());
-
+        ScheduleResultResponse.Recommendation recommendation = null;
         if (dto.getRecommendation() != null) {
-            ScheduleResultResponse.Recommendation recommendation = new ScheduleResultResponse.Recommendation();
-
-            if (dto.getRecommendation().getLongestMeetingTimes() != null) {
-                List<ScheduleResultResponse.TimeSlotDetail> longestTimes = dto.getRecommendation().getLongestMeetingTimes().stream()
-                    .map(ScheduleResultDto::convertToTimeSlotDetail)
-                    .collect(Collectors.toList());
-                recommendation.setLongestMeetingTimes(longestTimes);
-            }
-
-            if (dto.getRecommendation().getEarliestMeetingTimes() != null) {
-                List<ScheduleResultResponse.TimeSlotDetail> earliestTimes = dto.getRecommendation().getEarliestMeetingTimes().stream()
-                    .map(ScheduleResultDto::convertToTimeSlotDetail)
-                    .collect(Collectors.toList());
-                recommendation.setEarliestMeetingTimes(earliestTimes);
-            }
-
-            response.setRecommendation(recommendation);
+            List<ScheduleResultResponse.TimeSlotDetail> longestTimes = dto.getRecommendation().getLongestMeetingTimes().stream()
+                .map(ScheduleResultDto::convertToTimeSlotDetail)
+                .collect(Collectors.toList());
+            List<ScheduleResultResponse.TimeSlotDetail> earliestTimes = dto.getRecommendation().getEarliestMeetingTimes().stream()
+                .map(ScheduleResultDto::convertToTimeSlotDetail)
+                .collect(Collectors.toList());
+            recommendation = ScheduleResultResponse.Recommendation.builder()
+                .longestMeetingTimes(longestTimes)
+                .earliestMeetingTimes(earliestTimes)
+                .build();
         }
 
-        return response;
+        return ScheduleResultResponse.builder()
+            .eventTitle(dto.getEventTitle())
+            .totalParticipants(dto.getTotalParticipants())
+            .recommendation(recommendation)
+            .build();
     }
 
     private static ScheduleResultResponse.TimeSlotDetail convertToTimeSlotDetail(TimeSlotDetailDto dto) {
-        ScheduleResultResponse.TimeSlotDetail timeSlotDetail = new ScheduleResultResponse.TimeSlotDetail();
-
-        timeSlotDetail.setStartTime(dto.getStartTime());
-        timeSlotDetail.setEndTime(dto.getEndTime());
-        timeSlotDetail.setParticipantCount(dto.getParticipantCount());
-        timeSlotDetail.setIsSelected(dto.getIsSelected());
-        timeSlotDetail.setTimeSlotId(dto.getTimeSlotId());
-
+        List<ScheduleResultResponse.Participant> participants = null;
         if (dto.getParticipants() != null) {
-            List<ScheduleResultResponse.Participant> participants = dto.getParticipants().stream()
+            participants = dto.getParticipants().stream()
                 .map(ScheduleResultDto::convertToParticipant)
                 .collect(Collectors.toList());
-            timeSlotDetail.setParticipants(participants);
         }
 
-        return timeSlotDetail;
+        return ScheduleResultResponse.TimeSlotDetail.builder()
+            .startTime(dto.getStartTime())
+            .endTime(dto.getEndTime())
+            .participantCount(dto.getParticipantCount())
+            .participants(participants)
+            .isSelected(dto.getIsSelected())
+            .timeSlotId(dto.getTimeSlotId())
+            .build();
     }
 
     private static ScheduleResultResponse.Participant convertToParticipant(ParticipantDto dto) {
-        ScheduleResultResponse.Participant participant = new ScheduleResultResponse.Participant();
-        participant.setMemberId(dto.getMemberId());
-        participant.setMemberName(dto.getMemberName());
-        return participant;
+        return ScheduleResultResponse.Participant.builder()
+            .memberId(dto.getMemberId())
+            .memberName(dto.getMemberName())
+            .build();
     }
 
 }
