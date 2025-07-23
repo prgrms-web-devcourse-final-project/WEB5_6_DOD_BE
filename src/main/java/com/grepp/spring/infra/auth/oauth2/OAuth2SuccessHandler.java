@@ -60,8 +60,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 인증 과정에서 사용한 임시 쿠키를 제거합니다. (redirect_uri 쿠키)
         cookieAuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
 
-        targetUrl = "https://localhost:3000/auth/callback";
-
         getRedirectStrategy().sendRedirect(request,response,targetUrl);
     }
 
