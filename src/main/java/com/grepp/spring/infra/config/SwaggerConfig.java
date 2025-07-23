@@ -12,6 +12,7 @@ import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,7 +63,9 @@ public class SwaggerConfig {
                             .description(
                                 "JWT 토큰을 입력하세요. Bearer 는 생략하세요")
                     ))
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+            .addServersItem(new Server().url("https://ittaeok.uk"))
+            .addServersItem(new Server().url("https://www.ittaeok.uk"));
 
     }
 
