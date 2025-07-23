@@ -57,4 +57,7 @@ public class Calendar extends BaseEntity {
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CalendarDetail> calendarDetails = new ArrayList<>();
 
+    @Column
+    private String publicCalendarId;
+
 }
