@@ -33,43 +33,43 @@ values (2, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOO
 
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('1a', 'google', 'GOOGLE', 'ROLE_USER', 'a@mail.com','이서준', 1, '010-1111-1111');
+values ('1a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'a@gmail.com','이서준', 1, '010-1111-1111');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('2a', 'google', 'GOOGLE', 'ROLE_USER', 'x@mail.com','이강현', 1, '010-1111-1112');
+values ('2a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'x@gmail.com','이강현', 1, '010-1111-1112');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('3a', 'google', 'GOOGLE', 'ROLE_USER', 'b@mail.com','안준희', 1, '010-1111-1113');
+values ('3a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'b@gmail.com','안준희', 1, '010-1111-1113');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('4a', 'google', 'GOOGLE', 'ROLE_USER', 'c@mail.com','정서윤', 1, '010-1111-1114');
+values ('4a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'c@gmail.com','정서윤', 1, '010-1111-1114');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('5a', 'google', 'GOOGLE', 'ROLE_USER', 'd@mail.com','최동준', 1, '010-1111-1115');
+values ('5a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'd@gmail.com','최동준', 1, '010-1111-1115');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('6a', 'google', 'GOOGLE', 'ROLE_USER', 'e@mail.com','박상윤', 1, '010-1111-1116');
+values ('6a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'e@gmail.com','박상윤', 1, '010-1111-1116');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('7a', 'google', 'GOOGLE', 'ROLE_USER', 'f@mail.com','박은서', 1, '010-1111-1117');
+values ('7a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'f@gmail.com','박은서', 1, '010-1111-1117');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('8a', 'google', 'GOOGLE', 'ROLE_USER', 'g@mail.com','박준규', 1, '010-1111-1118');
+values ('8a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'g@gmail.com','박준규', 1, '010-1111-1118');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('9a', 'google', 'GOOGLE', 'ROLE_USER', 'h@mail.com','현혜주', 1, '010-1111-1119');
+values ('9a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'h@gmail.com','현혜주', 1, '010-1111-1119');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('10a', 'google', 'GOOGLE', 'ROLE_USER', 'i@mail.com','황수지', 1, '010-1111-1121');
+values ('10a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'i@gmail.com','황수지', 1, '010-1111-1121');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('11a', 'google', 'GOOGLE', 'ROLE_USER', 'j@mail.com','홍길동', 1, '010-1111-1131');
+values ('11a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'j@gmail.com','홍길동', 1, '010-1111-1131');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('12a', 'google', 'GOOGLE', 'ROLE_USER', 'k@mail.com','길동이', 1, '010-1111-1141');
+values ('12a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'k@gmail.com','길동이', 1, '010-1111-1141');
 
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
-values ('13a', 'google', 'GOOGLE', 'ROLE_USER', 'z@mail.com','해리포터', 1, '010-1111-5111');
+values ('13a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'z@gmail.com','해리포터', 1, '010-1111-5111');
 
 -- schedule_member 테이블 생성
 insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)

@@ -35,7 +35,6 @@ public class ShowScheduleResponse {
     private MeetingType meetingType; // 온오프라인여부
 
     private MeetingPlatform meetingPlatform; // ZOOM | GOOGLE_MEET | NONE
-    private String platformName;
     private String platformUrl;
 
     private List<ScheduleMembersDto> members;

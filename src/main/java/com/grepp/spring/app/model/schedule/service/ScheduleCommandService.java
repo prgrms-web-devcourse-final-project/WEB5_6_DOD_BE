@@ -189,9 +189,9 @@ public class ScheduleCommandService {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
 
-        if (dto.getPlatformURL() != null) {
+//        if (dto.getPlatformURL() != null) {
             schedule.get().setPlatformUrl(dto.getPlatformURL());
-        }
+//        }
     }
 
     private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {

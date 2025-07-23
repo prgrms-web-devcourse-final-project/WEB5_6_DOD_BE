@@ -41,10 +41,7 @@ public class ShowScheduleDto {
     private String scheduleName;
     private String description;
 
-
-
     private MeetingPlatform meetingPlatform; // ZOOM | GOOGLE_MEET | NONE
-    private String platformName;
     private String platformUrl;
 
     private List<ScheduleMembersDto> members;
@@ -65,7 +62,6 @@ public class ShowScheduleDto {
             .scheduleName(dto.getScheduleName())
             .description(dto.getDescription())
             .meetingPlatform(dto.getMeetingPlatform())
-            .platformName(dto.getPlatformName())
             .platformUrl(dto.getPlatformUrl())
             .members(dto.getMembers())
             .workspaces(dto.getWorkspaces())

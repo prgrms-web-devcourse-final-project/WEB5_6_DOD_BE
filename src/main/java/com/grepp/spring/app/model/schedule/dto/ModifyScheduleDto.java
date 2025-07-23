@@ -26,7 +26,6 @@ public class ModifyScheduleDto {
     private Double specificLongitude;  // 추가
 
     private MeetingPlatform meetingPlatform;
-    private String platformName;
     private String platformURL;
     private ScheduleStatus status;
 
@@ -35,6 +34,9 @@ public class ModifyScheduleDto {
     private List<WorkspaceDto> workspaces;
 
     public static ModifyScheduleDto toDto(ModifySchedulesRequest request) {
+        String url = request.getMeetingPlatform().equals(MeetingPlatform.NONE)
+            ? null : request.getPlatformURL();
+
         return ModifyScheduleDto.builder()
             .startTime(request.getStartTime())
             .endTime(request.getEndTime())
@@ -45,8 +47,7 @@ public class ModifyScheduleDto {
             .specificLatitude(request.getSpecificLatitude()) // 추가
             .specificLongitude(request.getSpecificLongitude()) // 추가
             .meetingPlatform(request.getMeetingPlatform())
-            .platformName(request.getPlatformName())
-            .platformURL(request.getPlatformURL())
+            .platformURL(url)
             .status(request.getStatus())
             .workspaceId(request.getWorkspaceId())
             .workspaces(request.getWorkspaces())

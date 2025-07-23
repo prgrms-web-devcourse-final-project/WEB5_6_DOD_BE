@@ -86,7 +86,6 @@ public class ScheduleController {
             return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
     }
 
-
     // 일정 삭제
     @Operation(summary = "일정 삭제", description = "일정을 삭제합니다.")
     @DeleteMapping("/delete/{scheduleId}")

@@ -96,7 +96,7 @@ public class ScheduleQueryService {
 
         int departLocationCount = 0;
         for (ScheduleMember scheduleMember : scheduleMembers) {
-            if (scheduleMember.getDepartLocationName() != null) {
+            if (scheduleMember.getLatitude() != null) {
                 departLocationCount++;
             }
         }
