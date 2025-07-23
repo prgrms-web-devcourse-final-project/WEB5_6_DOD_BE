@@ -61,7 +61,8 @@ public class CalendarOAuthController {
       // 수동 새로고침 로직 호출
       calendarSyncService.syncCalendar(memberId);
 
-      //response.sendRedirect("http://localhost:8080/mypage/google-calendar");
+      // 로컬
+      // response.sendRedirect("http://localhost:8080/mypage/google-calendar");
       // 프론트로 보내는 uri
       response.sendRedirect("https://ittaeok.uk/mypage?google-sync=success");
     } catch (GoogleAuthFailedException e) {

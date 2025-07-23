@@ -48,6 +48,7 @@ public class GoogleOAuthService {
         .queryParam("scope", "https://www.googleapis.com/auth/calendar.readonly")
         .queryParam("access_type", "offline")   // refresh_token 받기 위해 필요
         .queryParam("prompt", "consent")        // 매번 refresh_token 강제 발급하려면 필요
+        .encode()
         .build()
         .toUriString();
 

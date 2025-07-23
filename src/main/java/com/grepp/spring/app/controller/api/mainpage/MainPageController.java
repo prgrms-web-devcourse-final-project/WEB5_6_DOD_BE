@@ -90,7 +90,7 @@ public class MainPageController {
     );
 
     Map<LocalDate, List<UnifiedScheduleDto>> monthlySchedules =
-        calendarService.getMonthlySchedules(memberId, startDate, endDate);
+        calendarService.getSchedulesInRange(memberId, startDate, endDate);
 
     return ApiResponse.success("월간 일정 조회 성공",monthlySchedules);
   }

@@ -34,8 +34,8 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
   private String specificLocation;
   private Boolean isGrouped;          // 그룹 일정 여부
   private String groupName;           // 그룹명 (그룹 일정일 경우)
-  private String groupMemberName;
-  private Integer profileImageNumber;
+//private String groupMemberName;
+  private String participantNames;
   private MeetingType meetingType;    // ON/OFF
   private MeetingPlatform meetingPlatform;
   private ScheduleStatus scheduleStatus; // recommend, fixed, complete
@@ -48,17 +48,16 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
       Schedule s,
       Group g,
       ScheduleMember sm ,
-      List<GroupMember> groupMembers) {
+//    List<GroupMember> groupMembers,
+      List<ScheduleMember> scheduleMembers
+  ) {
 
-    // 그룹원 리스트 중 그룹장만 찾아서 프로필 이미지 번호 가져오기
-    Integer leaderProfileImage = groupMembers.stream()
-        .filter(member -> member.getRole() == GroupRole.GROUP_LEADER)
-        .findFirst()
-        .map(member -> member.getMember().getProfileImageNumber())
-        .orElse(null);
+//    String memberNames = groupMembers.stream()
+//        .map(member -> member.getMember().getName())
+//        .collect(Collectors.joining(", "));
 
-    String memberNames = groupMembers.stream()
-        .map(member -> member.getMember().getName()) // 필요하면 getName()
+    String participantNames = scheduleMembers.stream()
+        .map(m -> m.getMember().getName()) // Member 엔티티에서 이름 꺼내기
         .collect(Collectors.joining(", "));
 
     return UnifiedScheduleDto.builder()
@@ -70,9 +69,9 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .location(s.getLocation())
         .specificLocation(s.getSpecificLocation())
         .isGrouped(g.getIsGrouped()) // 필요하면 s.getEvent() != null 로 변경
-        .groupName(g.getName())  // 그룹 일정이면 s.getEvent().getGroup().getName()
-        .groupMemberName(memberNames)
-        .profileImageNumber(leaderProfileImage)
+        .groupName(g.getIsGrouped() ? g.getName() : null)  // 그룹 일정이면 s.getEvent().getGroup().getName()
+//      .groupMemberName(memberNames)
+        .participantNames(participantNames)
         .meetingType(s.getEvent().getMeetingType()) // 아직 MeetingType이 없다면 null 처리
         .meetingPlatform(s.getMeetingPlatform())
         .scheduleStatus(s.getStatus())

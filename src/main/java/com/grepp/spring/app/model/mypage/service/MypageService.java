@@ -47,10 +47,6 @@ public class MypageService {
   public FavoriteLocationDto createFavoriteLocation(
       String memberId, CreateFavoritePlaceRequest request) {
 
-    if (memberId == null || memberId.trim().isEmpty()) {
-      throw new MemberNotFoundException(MyPageErrorCode.INVALID_MEMBER_REQUEST);
-    }
-
     // INVALID_FAVORITE_REQUEST, 400  잘못된 즐겨찾기 요청 예외 처리
     if (request == null) {
       throw new InvalidFavoriteRequestException(MyPageErrorCode.INVALID_FAVORITE_REQUEST);
@@ -157,7 +153,8 @@ public class MypageService {
     Map<String, String> dayToBitMap = resultList.stream()
         .collect(Collectors.toMap(
             FavoriteTimetableDto::getDay,
-            dto -> String.format("%012X", dto.getTimeBit())
+            dto -> String.format("%012X", dto.getTimeBit()),
+            (existing, replacement) -> replacement // 중복되면 마지막 값으로 덮어쓰기 (중복 key 에러 방지)
         ));
 
     return FavoriteTimetableDto.fromDto(dayToBitMap);
