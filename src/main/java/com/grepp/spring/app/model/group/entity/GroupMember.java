@@ -18,6 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -25,6 +26,7 @@ import lombok.Setter;
 @Table(name = "GroupMembers")
 @Getter
 @Setter
+@NoArgsConstructor
 public class GroupMember extends BaseEntity {
 
     @Id
