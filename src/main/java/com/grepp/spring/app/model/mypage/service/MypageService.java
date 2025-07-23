@@ -153,7 +153,8 @@ public class MypageService {
     Map<String, String> dayToBitMap = resultList.stream()
         .collect(Collectors.toMap(
             FavoriteTimetableDto::getDay,
-            dto -> String.format("%012X", dto.getTimeBit())
+            dto -> String.format("%012X", dto.getTimeBit()),
+            (existing, replacement) -> replacement // 중복되면 마지막 값으로 덮어쓰기 (중복 key 에러 방지)
         ));
 
     return FavoriteTimetableDto.fromDto(dayToBitMap);
