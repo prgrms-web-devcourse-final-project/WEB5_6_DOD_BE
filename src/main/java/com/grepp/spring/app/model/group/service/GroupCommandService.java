@@ -11,8 +11,6 @@ import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.group.code.GroupRole;
-import com.grepp.spring.app.model.group.dto.GroupCreateDto;
-import com.grepp.spring.app.model.group.dto.GroupMemberCreateDto;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupCommandRepository;
@@ -26,13 +24,10 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.infra.error.exceptions.group.GroupAuthenticationException;
 import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
-import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
 import com.grepp.spring.infra.error.exceptions.group.OnlyOneGroupLeaderException;
-import com.grepp.spring.infra.error.exceptions.group.ScheduleAlreadyInGroupException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserAlreadyInGroupException;
-import com.grepp.spring.infra.error.exceptions.group.UserGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import java.util.ArrayList;
@@ -66,22 +61,17 @@ public class GroupCommandService {
     @Transactional
     public CreateGroupResponse registGroup(CreateGroupRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
 
         // 로직 시작
         //## 그룹 생성
-        GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
-        Group group = GroupCreateDto.toEntity(groupCreateDto);
+        Group group = Group.createGroup(request);
         groupCommandRepository.save(group);
         // 그룹-멤버 생성 (중간 테이블)
-        GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
+        GroupMember groupMember = GroupMember.createGroupMemberLeader(group, member);
         groupMemberCommandRepository.save(groupMember);
         // 그룹 생성 후 정보 반환
-        return CreateGroupResponse.builder()
-            .groupId(group.getId())
-            .groupName(group.getName())
-            .description(group.getDescription())
-            .build();
+        return CreateGroupResponse.createCreateGroupResponse(group);
     }
 
 
@@ -89,32 +79,19 @@ public class GroupCommandService {
     @Transactional
     public InviteGroupMemberResponse addGroupMember(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
-
+        Group group = findGroupOrThrow(groupId);
         // 그룹 멤버 조회 - 409 USER_ALREADY_IN_GROUP 예외 처리
-        Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
-            groupId,
-            member.getId());
-        if (groupMemberOptional.isPresent()) {
-            throw new UserAlreadyInGroupException(GroupErrorCode.USER_ALREADY_IN_GROUP);
-        }
+        isMemberInGroupThenThrow(groupId, member.getId());
 
         // 로직 시작
         //## 그룹에 멤버 추가
         // 그룹-멤버 생성 (중간 테이블)
-        GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
-        groupMember.setGroupAdmin(false);
-        groupMember.setRole(GroupRole.GROUP_MEMBER);
+        GroupMember groupMember = GroupMember.createGroupMemberMember(group, member);
         groupMemberCommandRepository.save(groupMember);
-        log.info("그룹-멤버 생성 CommandService");
         // 그룹 수정 후 정보 반환
-        return InviteGroupMemberResponse.builder()
-            .memberId(member.getId())
-            .memberName(member.getName())
-            .groupId(groupId)
-            .build();
+        return InviteGroupMemberResponse.createInviteGroupMemberResponse(member, groupId);
     }
 
 
@@ -122,13 +99,13 @@ public class GroupCommandService {
     @Transactional
     public void deleteGroup(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## 그룹 삭제 진행, cascade 삭제 진행
@@ -140,30 +117,20 @@ public class GroupCommandService {
     @Transactional
     public ModifyGroupInfoResponse modifyGroup(Long groupId, ModifyGroupInfoRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## patch 메서드 진행
-        if (!request.getGroupName().isEmpty()) {
-            group.setName(request.getGroupName());
-        }
-        if (!request.getDescription().isEmpty()) {
-            group.setDescription(request.getDescription());
-        }
+        group.update(request);
         // 수정 사항 저장
         groupCommandRepository.save(group);
-
-        return ModifyGroupInfoResponse.builder()
-            .groupId(group.getId())
-            .groupName(group.getName())
-            .description(group.getDescription())
-            .build();
+        return ModifyGroupInfoResponse.createModifyGroupInfoResponse(group);
     }
 
 
@@ -171,22 +138,19 @@ public class GroupCommandService {
     @Transactional
     public void deportMember(Long groupId, String userId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리 (추방하려는 대상)
-        Member targetMember = extractMember(userId);
+        Member targetMember = findMemberOrThrow(userId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리 (추방하려는 대상)
-        GroupMember targetGroupMember = extractGroupMember(groupId, targetMember.getId());
+        GroupMember targetGroupMember = findGroupMemberOrThrow(groupId, targetMember.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
-
+        groupMember.isGroupLeaderOrThrow();
         // 그룹멤버 리더 권한 조회 - 409 USER_GROUP_LEADER 예외 처리 (추방하려는 대상)
-        if (!targetGroupMember.getRole().equals(GroupRole.GROUP_MEMBER)) {
-            throw new UserGroupLeaderException(GroupErrorCode.USER_GROUP_LEADER);
-        }
+        targetGroupMember.isNotGroupLeaderOrThrow();
 
         // 로직 시작
         //## 내보내기 진행
@@ -194,43 +158,7 @@ public class GroupCommandService {
         groupMemberCommandRepository.deleteByGroupAndMemberId(group,
             targetGroupMember.getMember().getId());
         // 그룹 내 이벤트에 대한 처리
-        for (Event event : eventRepository.findByGroupId(groupId)) {
-            // eventMember 삭제
-            eventMemberRepository.deleteByEventAndMemberId(event,
-                targetGroupMember.getMember().getId());
-            // 이벤트 내 일정에 대한 처리
-            for (Schedule schedule : scheduleCommandRepository.findByEvent(event)) {
-                // scheduleMember 삭제
-                // 일정에 본인이 일정 팀장인 경우 isRoleMaster를 true로 설정
-                boolean isRoleMaster = false;
-                if (scheduleMemberCommandRepository
-                    .findByScheduleAndMemberId(schedule, targetGroupMember.getMember().getId())
-                    .getRole()
-                    .equals(ScheduleRole.ROLE_MASTER)) {
-                    isRoleMaster = true;
-                }
-                scheduleMemberCommandRepository.deleteByScheduleAndMemberId(schedule,
-                    targetGroupMember.getMember().getId());
-                // 일정에 본인만 포함된 경우 -> schedule 삭제
-                if (scheduleMemberCommandRepository.findBySchedule(schedule).isEmpty()) {
-                    scheduleCommandRepository.delete(schedule);
-                }
-                // 일정에 본인이 일정 팀장인 경우 -> 팀장 권한 랜덤으로 넘기기
-                else if (isRoleMaster) {
-                    ArrayList<ScheduleMember> scheduleMembers = scheduleMemberCommandRepository.findBySchedule(
-                        schedule);
-                    // 일정 팀장 권한 한 번 전달 후 반복문 탈출
-                    for (ScheduleMember scheduleMember1 : scheduleMembers) {
-                        scheduleMember1.setRole(ScheduleRole.ROLE_MASTER);
-                        break;
-                    }
-                }
-            }
-            // 이벤트에 본인만 포함된 경우 -> Event 삭제
-            if (eventMemberRepository.findByEvent(event).isEmpty()) {
-                eventRepository.delete(event);
-            }
-        }
+        deportMemberInEvent(targetGroupMember, groupId);
     }
 
 
@@ -238,27 +166,23 @@ public class GroupCommandService {
     @Transactional
     public void modifyGroupRole(Long groupId, ControlGroupRoleRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리 (권한 수정 대상)
-        Member targetMember = extractMember(request.getUserId());
+        Member targetMember = findMemberOrThrow(request.getUserId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리 (권한 수정 대상)
-        GroupMember targetGroupMember = extractGroupMember(groupId, targetMember.getId());
+        GroupMember targetGroupMember = findGroupMemberOrThrow(groupId, targetMember.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## 권한 최신화
+        targetGroupMember.updateGroupRole(request);
         // 만약 슈퍼방장이 강등된다면, 강등시킨 방장에게 슈퍼방장을 주자.
-        targetGroupMember.setRole(request.getGroupRole());
-        if (request.getGroupRole().equals(GroupRole.GROUP_MEMBER)
-            && targetGroupMember.getGroupAdmin()) {
-            targetGroupMember.setGroupAdmin(false);
-            groupMember.setGroupAdmin(true);
-        }
+        targetGroupMember.delegateAdmin(groupMember);
         groupMemberCommandRepository.save(groupMember);
         groupMemberCommandRepository.save(targetGroupMember);
     }
@@ -268,40 +192,23 @@ public class GroupCommandService {
     @Transactional
     public void transferSchedule(ScheduleToGroupRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(request.getGroupId());
+        Group group = findGroupOrThrow(request.getGroupId());
         // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
-        Schedule schedule = extractSchedule(request.getScheduleId());
+        Schedule schedule = findScheduleOrThrow(request.getScheduleId());
 
         Event event = schedule.getEvent();
         Group group1 = event.getGroup();
         // 일정 일회성 조회 - 409 SCHEDULE_ALREADY_IN_GROUP
-        if (group1.getIsGrouped()) {
-            throw new ScheduleAlreadyInGroupException(GroupErrorCode.SCHEDULE_ALREADY_IN_GROUP);
-        }
+        group1.isNotInGroupOrThrow();
 
-        List<ScheduleMember> scheduleMembers = scheduleMemberCommandRepository.findByScheduleId(
-            request.getScheduleId());
-        for (ScheduleMember scheduleMember : scheduleMembers) {
-            Member member1 = scheduleMember.getMember();
-            // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-            GroupMember groupMember = extractGroupMember(request.getGroupId(), member1.getId());
-        }
+        // 스케쥴 멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
+        findScheduleMembersOrThrow(request);
 
         // 로직 시작
         //## 편입
-        List<GroupMember> groupMembers = groupMemberCommandRepository.findByGroup(group);
-        for (GroupMember groupMember : groupMembers) {
-            groupMemberCommandRepository.deleteByGroupAndMemberId(group1,
-                groupMember.getMember().getId());
-        }
-        event.getGroup().getEvents().remove(event); // 역방향에서도 제거
-        event.setGroup(null);                      // 주인 쪽에서도 제거
-        // 2. 새 group과 연결
-        event.setGroup(group);
-        group.getEvents().add(event);
-        groupCommandRepository.delete(group1);
+        transferScheduleToGroup(group1, group, event);
     }
 
 
@@ -309,78 +216,22 @@ public class GroupCommandService {
     @Transactional
     public void withdrawGroup(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
-
-        ArrayList<GroupMember> groupLeaders = groupMemberCommandRepository.findByGroupAndRole(group,
-            GroupRole.GROUP_LEADER);
-        ArrayList<GroupMember> groupMembers = groupMemberCommandRepository.findByGroupAndRole(group,
-            GroupRole.GROUP_MEMBER);
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 권한 조회 - 409 ONE_GROUP_LEADER
-        if (groupMember.getRole().equals(GroupRole.GROUP_LEADER)
-            && groupLeaders.size() == 1
-            && !groupMembers.isEmpty()) {
-            throw new OnlyOneGroupLeaderException(GroupErrorCode.ONE_GROUP_LEADER);
-        }
+        isNotOnlyGroupLeaderWithGroupMembersOrThrow(group, groupMember);
 
         // 로직 시작
         //## 삭제 진행
         // 해당 그룹의 슈퍼 리더 이면서 그룹 내에 리더가 여러 명일 경우 -> 슈퍼 리더를 랜덤하게 타 groupLeader에게 이양
-        if (groupMember.getRole().equals(GroupRole.GROUP_LEADER)
-            && groupMember.getGroupAdmin()
-            && groupLeaders.size() > 1) {
-            // 그룹 슈퍼 리더 한 번 전달 후 반복문 탈출
-            for (GroupMember groupLeader1 : groupLeaders) {
-                if (groupLeader1.equals(groupMember)) {
-                    continue;
-                }
-                groupLeader1.setGroupAdmin(true);
-                break;
-            }
-        }
-
+        delegateAdmin(group, groupMember);
         // groupMember 삭제
         groupMemberCommandRepository.deleteByGroupAndMemberId(group, member.getId());
         // 그룹 내 이벤트에 대한 처리
-        for (Event event : eventRepository.findByGroupId(groupId)) {
-            // eventMember 삭제
-            eventMemberRepository.deleteByEventAndMemberId(event, member.getId());
-            // 이벤트 내 일정에 대한 처리
-            for (Schedule schedule : scheduleCommandRepository.findByEvent(event)) {
-                // scheduleMember 삭제
-                // 일정에 본인이 일정 팀장인 경우 isRoleMaster를 true로 설정
-                boolean isRoleMaster = false;
-                if (scheduleMemberCommandRepository
-                    .findByScheduleAndMemberId(schedule, member.getId())
-                    .getRole()
-                    .equals(ScheduleRole.ROLE_MASTER)) {
-                    isRoleMaster = true;
-                }
-                scheduleMemberCommandRepository.deleteByScheduleAndMemberId(schedule,
-                    member.getId());
-                // 일정에 본인만 포함된 경우 -> schedule 삭제
-                if (scheduleMemberCommandRepository.findBySchedule(schedule).isEmpty()) {
-                    scheduleCommandRepository.delete(schedule);
-                }
-                // 일정에 본인이 일정 팀장인 경우 -> 팀장 권한 랜덤으로 넘기기
-                else if (isRoleMaster) {
-                    ArrayList<ScheduleMember> scheduleMembers = scheduleMemberCommandRepository.findBySchedule(
-                        schedule);
-                    // 일정 팀장 권한 한 번 전달 후 반복문 탈출
-                    for (ScheduleMember scheduleMember1 : scheduleMembers) {
-                        scheduleMember1.setRole(ScheduleRole.ROLE_MASTER);
-                        break;
-                    }
-                }
-            }
-            // 이벤트에 본인만 포함된 경우 -> Event 삭제
-            if (eventMemberRepository.findByEvent(event).isEmpty()) {
-                eventRepository.delete(event);
-            }
-        }
+        deportMemberInEvent(groupMember, groupId);
         // 그룹에 본인만 포함된 경우 -> group 삭제
         if (groupMemberCommandRepository.findByGroup(group).isEmpty()) {
             groupCommandRepository.delete(group);
@@ -390,7 +241,7 @@ public class GroupCommandService {
 
     /// 범용적인 예외처리 메서드
     // http 메서드 요청한 member 조회 - 401 AUTHENTICATION_REQUIRED 예외 처리
-    private Member extractCurrentMember() {
+    private Member findHttpRequestMemberOrThrow() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
@@ -408,7 +259,7 @@ public class GroupCommandService {
 
 
     // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리
-    private Member extractMember(String userId) {
+    private Member findMemberOrThrow(String userId) {
         Optional<Member> memberOptional = memberRepository.findById(userId);
         if (memberOptional.isEmpty()) {
             throw new UserNotFoundException(GroupErrorCode.USER_NOT_FOUND);
@@ -418,7 +269,7 @@ public class GroupCommandService {
 
 
     // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-    private Group extractGroup(Long groupId) {
+    private Group findGroupOrThrow(Long groupId) {
         Optional<Group> groupOptional = groupCommandRepository.findById(groupId);
         if (groupOptional.isEmpty()) {
             throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
@@ -428,7 +279,7 @@ public class GroupCommandService {
 
 
     // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
-    private Schedule extractSchedule(Long scheduleId) {
+    private Schedule findScheduleOrThrow(Long scheduleId) {
         Optional<Schedule> scheduleOptional = scheduleCommandRepository.findById(
             scheduleId);
         if (scheduleOptional.isEmpty()) {
@@ -439,7 +290,7 @@ public class GroupCommandService {
 
 
     // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-    private GroupMember extractGroupMember(Long groupId, String id) {
+    private GroupMember findGroupMemberOrThrow(Long groupId, String id) {
         Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
             groupId, id);
         if (groupMemberOptional.isEmpty()) {
@@ -449,12 +300,126 @@ public class GroupCommandService {
     }
 
 
-    // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-    private void checkRoleGroupLeader(GroupMember groupMember) {
-        if (!groupMember.getRole().equals(GroupRole.GROUP_LEADER)) {
-            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+    // 그룹 멤버 조회 - 409 USER_ALREADY_IN_GROUP 예외 처리
+    private void isMemberInGroupThenThrow(Long groupId, String id) {
+        Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
+            groupId, id);
+        if (groupMemberOptional.isPresent()) {
+            throw new UserAlreadyInGroupException(GroupErrorCode.USER_ALREADY_IN_GROUP);
         }
     }
 
+
+    // 그룹멤버 권한 조회 - 409 ONE_GROUP_LEADER
+    private void isNotOnlyGroupLeaderWithGroupMembersOrThrow(Group group, GroupMember groupMember) {
+        long groupLeaderNum = groupMemberCommandRepository.findByGroupAndRole(group,
+            GroupRole.GROUP_LEADER).size();
+        long groupMemberNum = groupMemberCommandRepository.findByGroupAndRole(group,
+            GroupRole.GROUP_MEMBER).size();
+        if (groupMember.isGroupLeader()
+            && groupLeaderNum == 1
+            && groupMemberNum != 0) {
+            throw new OnlyOneGroupLeaderException(GroupErrorCode.ONE_GROUP_LEADER);
+        }
+    }
+
+
+    ///  일반적인 Group Service 내용
+    // group1에 속했던 event를 group으로 편입 및 group1은 삭제
+    private void transferScheduleToGroup(Group group1, Group group, Event event) {
+        for (GroupMember groupMember : groupMemberCommandRepository.findByGroup(group1)) {
+            groupMember.setGroup(group);
+        }
+        group.getEvents().add(event);
+        groupCommandRepository.delete(group1);
+        // TODO: event 객체의 책임으로 위임해야 함
+        changeGroup(event, group);
+    }
+
+    private void changeGroup(Event event, Group group) {
+        event.getGroup().getEvents().remove(event); // 역방향에서도 제거
+        event.setGroup(null);                      // 주인 쪽에서도 제거
+        // 2. 새 group과 연결
+        event.setGroup(group);
+    }
+
+
+    // 만약 탈퇴하려는 자의 groupAdmin이 true인 경우 groupAdmin 위임
+    private void delegateAdmin(Group group, GroupMember groupMember) {
+        ArrayList<GroupMember> groupLeaders = groupMemberCommandRepository.findByGroupAndRole(group,
+            GroupRole.GROUP_LEADER);
+        if (groupMember.isGroupLeader()) {
+            for (GroupMember groupLeader1 : groupLeaders) {
+                if (groupLeader1.equals(groupMember)) {
+                    continue;
+                }
+                groupMember.delegateAdmin(groupLeader1);
+                break;
+            }
+        }
+    }
+
+
+    /// Event Service 내용
+    // event에서 추방
+    private void deportMemberInEvent(GroupMember targetGroupMember, Long groupId) {
+        for (Event event : eventRepository.findByGroupId(groupId)) {
+            // eventMember 삭제
+            eventMemberRepository.deleteByEventAndMemberId(event,
+                targetGroupMember.getMember().getId());
+            // schedule에서 추방
+            deportMemberInSchedule(targetGroupMember, event);
+            // 이벤트에 본인만 포함된 경우 -> Event 삭제
+            if (eventMemberRepository.findByEvent(event).isEmpty()) {
+                eventRepository.delete(event);
+            }
+        }
+    }
+
+
+    /// Schedule Service 내용
+    // schedule에서 추방
+    private void deportMemberInSchedule(GroupMember targetGroupMember, Event event) {
+        // 이벤트 내 일정에 대한 처리
+        for (Schedule schedule : scheduleCommandRepository.findByEvent(event)) {
+            // scheduleMember 삭제
+            // 일정에 본인이 일정 팀장인 경우 isRoleMaster를 true로 설정
+            boolean isRoleMaster = false;
+            if (scheduleMemberCommandRepository
+                .findByScheduleAndMemberId(schedule, targetGroupMember.getMember().getId())
+                .getRole()
+                .equals(ScheduleRole.ROLE_MASTER)) {
+                isRoleMaster = true;
+            }
+            scheduleMemberCommandRepository.deleteByScheduleAndMemberId(schedule,
+                targetGroupMember.getMember().getId());
+            // 일정에 본인만 포함된 경우 -> schedule 삭제
+            if (scheduleMemberCommandRepository.findBySchedule(schedule).isEmpty()) {
+                scheduleCommandRepository.delete(schedule);
+            }
+            // 일정에 본인이 일정 팀장인 경우 -> 팀장 권한 랜덤으로 넘기기
+            else if (isRoleMaster) {
+                ArrayList<ScheduleMember> scheduleMembers = scheduleMemberCommandRepository.findBySchedule(
+                    schedule);
+                // 일정 팀장 권한 한 번 전달 후 반복문 탈출
+                for (ScheduleMember scheduleMember1 : scheduleMembers) {
+                    scheduleMember1.setRole(ScheduleRole.ROLE_MASTER);
+                    break;
+                }
+            }
+        }
+    }
+
+
+    // 스케줄멤버들의 조회
+    private void findScheduleMembersOrThrow(ScheduleToGroupRequest request) {
+        List<ScheduleMember> scheduleMembers = scheduleMemberCommandRepository.findByScheduleId(
+            request.getScheduleId());
+        for (ScheduleMember scheduleMember : scheduleMembers) {
+            Member member1 = scheduleMember.getMember();
+            // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
+            GroupMember groupMember = findGroupMemberOrThrow(request.getGroupId(), member1.getId());
+        }
+    }
 
 }
