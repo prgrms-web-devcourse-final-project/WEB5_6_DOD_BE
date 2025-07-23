@@ -1,9 +1,11 @@
 package com.grepp.spring.app.model.group.entity;
 
+import com.grepp.spring.app.controller.api.group.payload.request.ControlGroupRoleRequest;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
+import com.grepp.spring.infra.error.exceptions.group.UserGroupLeaderException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -79,8 +81,26 @@ public class GroupMember extends BaseEntity {
     }
 
     public void isGroupLeaderOrThrow() {
-        if(isGroupLeader()){
+        if(!isGroupLeader()){
             throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+        }
+    }
+
+    public void isNotGroupLeaderOrThrow(){
+        if(isGroupLeader()){
+            throw new UserGroupLeaderException(GroupErrorCode.USER_GROUP_LEADER);
+        }
+    }
+
+    public void updateGroupRole(ControlGroupRoleRequest request) {
+        this.role = request.getGroupRole();
+    }
+
+
+    public void delegateAdmin(GroupMember groupMember) {
+        if(this.groupAdmin){
+            this.groupAdmin = false;
+            groupMember.groupAdmin = true;
         }
     }
 }

@@ -1,8 +1,11 @@
 package com.grepp.spring.app.model.group.entity;
 
 import com.grepp.spring.app.controller.api.group.payload.request.CreateGroupRequest;
+import com.grepp.spring.app.controller.api.group.payload.request.ModifyGroupInfoRequest;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.infra.entity.BaseEntity;
+import com.grepp.spring.infra.error.exceptions.group.ScheduleAlreadyInGroupException;
+import com.grepp.spring.infra.response.GroupErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -66,5 +69,21 @@ public class Group extends BaseEntity {
 
     public static Group createGroup(CreateGroupRequest request) {
         return new Group(request.getGroupName(), request.getDescription());
+    }
+
+    public void update(ModifyGroupInfoRequest request) {
+        if (!request.getGroupName().isEmpty()) {
+            this.name = request.getGroupName();
+        }
+        if (!request.getDescription().isEmpty()) {
+            this.description =  request.getDescription();
+        }
+    }
+
+    public void isNotInGroupOrThrow() {
+        if (this.isGrouped) {
+            throw new ScheduleAlreadyInGroupException(GroupErrorCode.SCHEDULE_ALREADY_IN_GROUP);
+        }
+
     }
 }
