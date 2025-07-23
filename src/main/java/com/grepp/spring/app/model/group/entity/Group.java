@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.group.entity;
 
+import com.grepp.spring.app.controller.api.group.payload.request.CreateGroupRequest;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.CascadeType;
@@ -14,6 +15,7 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
@@ -21,6 +23,7 @@ import lombok.Setter;
 @Table(name = "Groups")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Group extends BaseEntity {
 
     @Id
@@ -53,4 +56,15 @@ public class Group extends BaseEntity {
     // 연관된 groupMember 삭제
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GroupMember> groupMembers = new ArrayList<>();
+
+
+    public Group(String name, String description) {
+        this.name = name;
+        this.description = description;
+        this.isGrouped = true;
+    }
+
+    public static Group createGroup(CreateGroupRequest request) {
+        return new Group(request.getGroupName(), request.getDescription());
+    }
 }

@@ -3,6 +3,8 @@ package com.grepp.spring.app.model.group.entity;
 import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
+import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
+import com.grepp.spring.infra.response.GroupErrorCode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -52,4 +54,31 @@ public class GroupMember extends BaseEntity {
     private Group group;
 
     private Boolean groupAdmin;
+
+
+    public GroupMember(Member member, Group group, GroupRole groupRole, boolean isAdmin) {
+        this.role =groupRole;
+        this.member = member;
+        this.group = group;
+        this.groupAdmin = isAdmin;
+    }
+
+    public static GroupMember createGroupMemberLeader(Group group, Member member) {
+        return new GroupMember(member,group, GroupRole.GROUP_LEADER, true);
+    }
+
+    public static GroupMember createGroupMemberMember(Group group, Member member) {
+        return new GroupMember(member,group, GroupRole.GROUP_MEMBER, false);
+    }
+
+
+    public boolean isGroupLeader() {
+        return role.isGroupLeader();
+    }
+
+    public void isGroupLeaderOrThrow() {
+        if(isGroupLeader()){
+            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+        }
+    }
 }

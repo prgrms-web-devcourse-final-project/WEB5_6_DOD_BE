@@ -11,7 +11,6 @@ import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.group.code.GroupRole;
-import com.grepp.spring.app.model.group.dto.GroupCreateDto;
 import com.grepp.spring.app.model.group.dto.GroupMemberCreateDto;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
@@ -26,7 +25,6 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
 import com.grepp.spring.infra.error.exceptions.group.GroupAuthenticationException;
 import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
-import com.grepp.spring.infra.error.exceptions.group.NotGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
 import com.grepp.spring.infra.error.exceptions.group.OnlyOneGroupLeaderException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleAlreadyInGroupException;
@@ -66,22 +64,20 @@ public class GroupCommandService {
     @Transactional
     public CreateGroupResponse registGroup(CreateGroupRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
 
         // 로직 시작
         //## 그룹 생성
-        GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
-        Group group = GroupCreateDto.toEntity(groupCreateDto);
+        Group group =  Group.createGroup(request);
+        // GroupCreateDto groupCreateDto = GroupCreateDto.toDto(request);
+        // Group group = GroupCreateDto.toEntity(groupCreateDto);
         groupCommandRepository.save(group);
         // 그룹-멤버 생성 (중간 테이블)
-        GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
+        GroupMember groupMember = GroupMember.createGroupMemberLeader(group, member);
+        //GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
         groupMemberCommandRepository.save(groupMember);
         // 그룹 생성 후 정보 반환
-        return CreateGroupResponse.builder()
-            .groupId(group.getId())
-            .groupName(group.getName())
-            .description(group.getDescription())
-            .build();
+        return CreateGroupResponse.createCreateGroupResponse(group);
     }
 
 
@@ -89,32 +85,22 @@ public class GroupCommandService {
     @Transactional
     public InviteGroupMemberResponse addGroupMember(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
-
+        Group group = findGroupOrThrow(groupId);
         // 그룹 멤버 조회 - 409 USER_ALREADY_IN_GROUP 예외 처리
-        Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
-            groupId,
-            member.getId());
-        if (groupMemberOptional.isPresent()) {
-            throw new UserAlreadyInGroupException(GroupErrorCode.USER_ALREADY_IN_GROUP);
-        }
+        isMemberInGroup(groupId, member.getId());
 
         // 로직 시작
         //## 그룹에 멤버 추가
         // 그룹-멤버 생성 (중간 테이블)
-        GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
-        groupMember.setGroupAdmin(false);
-        groupMember.setRole(GroupRole.GROUP_MEMBER);
+        GroupMember groupMember = GroupMember.createGroupMemberMember(group, member);
+        //GroupMember groupMember = GroupMemberCreateDto.toEntity(group, member);
+        //groupMember.setGroupAdmin(false);
+        //groupMember.setRole(GroupRole.GROUP_MEMBER);
         groupMemberCommandRepository.save(groupMember);
-        log.info("그룹-멤버 생성 CommandService");
         // 그룹 수정 후 정보 반환
-        return InviteGroupMemberResponse.builder()
-            .memberId(member.getId())
-            .memberName(member.getName())
-            .groupId(groupId)
-            .build();
+        return InviteGroupMemberResponse.createInviteGroupMemberResponse(member, groupId);
     }
 
 
@@ -122,13 +108,13 @@ public class GroupCommandService {
     @Transactional
     public void deleteGroup(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## 그룹 삭제 진행, cascade 삭제 진행
@@ -140,13 +126,13 @@ public class GroupCommandService {
     @Transactional
     public ModifyGroupInfoResponse modifyGroup(Long groupId, ModifyGroupInfoRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## patch 메서드 진행
@@ -171,17 +157,17 @@ public class GroupCommandService {
     @Transactional
     public void deportMember(Long groupId, String userId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리 (추방하려는 대상)
-        Member targetMember = extractMember(userId);
+        Member targetMember = findMemberOrThrow(userId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리 (추방하려는 대상)
-        GroupMember targetGroupMember = extractGroupMember(groupId, targetMember.getId());
+        GroupMember targetGroupMember = findGroupMemberOrThrow(groupId, targetMember.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 그룹멤버 리더 권한 조회 - 409 USER_GROUP_LEADER 예외 처리 (추방하려는 대상)
         if (!targetGroupMember.getRole().equals(GroupRole.GROUP_MEMBER)) {
@@ -238,17 +224,17 @@ public class GroupCommandService {
     @Transactional
     public void modifyGroupRole(Long groupId, ControlGroupRoleRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리 (권한 수정 대상)
-        Member targetMember = extractMember(request.getUserId());
+        Member targetMember = findMemberOrThrow(request.getUserId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리 (권한 수정 대상)
-        GroupMember targetGroupMember = extractGroupMember(groupId, targetMember.getId());
+        GroupMember targetGroupMember = findGroupMemberOrThrow(groupId, targetMember.getId());
         // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-        checkRoleGroupLeader(groupMember);
+        groupMember.isGroupLeaderOrThrow();
 
         // 로직 시작
         //## 권한 최신화
@@ -268,11 +254,11 @@ public class GroupCommandService {
     @Transactional
     public void transferSchedule(ScheduleToGroupRequest request) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(request.getGroupId());
+        Group group = findGroupOrThrow(request.getGroupId());
         // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
-        Schedule schedule = extractSchedule(request.getScheduleId());
+        Schedule schedule = findScheduleOrThrow(request.getScheduleId());
 
         Event event = schedule.getEvent();
         Group group1 = event.getGroup();
@@ -286,7 +272,7 @@ public class GroupCommandService {
         for (ScheduleMember scheduleMember : scheduleMembers) {
             Member member1 = scheduleMember.getMember();
             // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-            GroupMember groupMember = extractGroupMember(request.getGroupId(), member1.getId());
+            GroupMember groupMember = findGroupMemberOrThrow(request.getGroupId(), member1.getId());
         }
 
         // 로직 시작
@@ -309,11 +295,11 @@ public class GroupCommandService {
     @Transactional
     public void withdrawGroup(Long groupId) {
         // http 요청 사용자 조회 - 401 AUTHENTICATED_REQUIRED 예외 처리
-        Member member = extractCurrentMember();
+        Member member = findHttpRequestMemberOrThrow();
         // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-        Group group = extractGroup(groupId);
+        Group group = findGroupOrThrow(groupId);
         // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-        GroupMember groupMember = extractGroupMember(groupId, member.getId());
+        GroupMember groupMember = findGroupMemberOrThrow(groupId, member.getId());
 
         ArrayList<GroupMember> groupLeaders = groupMemberCommandRepository.findByGroupAndRole(group,
             GroupRole.GROUP_LEADER);
@@ -390,7 +376,7 @@ public class GroupCommandService {
 
     /// 범용적인 예외처리 메서드
     // http 메서드 요청한 member 조회 - 401 AUTHENTICATION_REQUIRED 예외 처리
-    private Member extractCurrentMember() {
+    private Member findHttpRequestMemberOrThrow() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
@@ -408,7 +394,7 @@ public class GroupCommandService {
 
 
     // 멤버 조회 - 404 USER_NOT_FOUND 예외 처리
-    private Member extractMember(String userId) {
+    private Member findMemberOrThrow(String userId) {
         Optional<Member> memberOptional = memberRepository.findById(userId);
         if (memberOptional.isEmpty()) {
             throw new UserNotFoundException(GroupErrorCode.USER_NOT_FOUND);
@@ -418,7 +404,7 @@ public class GroupCommandService {
 
 
     // 그룹 조회 - 404 GROUP_NOT_FOUND 예외 처리
-    private Group extractGroup(Long groupId) {
+    private Group findGroupOrThrow(Long groupId) {
         Optional<Group> groupOptional = groupCommandRepository.findById(groupId);
         if (groupOptional.isEmpty()) {
             throw new GroupNotFoundException(GroupErrorCode.GROUP_NOT_FOUND);
@@ -428,7 +414,7 @@ public class GroupCommandService {
 
 
     // 일정 조회 - 404 SCHEDULE_NOT_FOUND 예외 처리
-    private Schedule extractSchedule(Long scheduleId) {
+    private Schedule findScheduleOrThrow(Long scheduleId) {
         Optional<Schedule> scheduleOptional = scheduleCommandRepository.findById(
             scheduleId);
         if (scheduleOptional.isEmpty()) {
@@ -439,7 +425,7 @@ public class GroupCommandService {
 
 
     // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
-    private GroupMember extractGroupMember(Long groupId, String id) {
+    private GroupMember findGroupMemberOrThrow(Long groupId, String id) {
         Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
             groupId, id);
         if (groupMemberOptional.isEmpty()) {
@@ -449,12 +435,15 @@ public class GroupCommandService {
     }
 
 
-    // 그룹멤버 리더 권한 조회 - 403 NOT_GROUP_LEADER 예외 처리
-    private void checkRoleGroupLeader(GroupMember groupMember) {
-        if (!groupMember.getRole().equals(GroupRole.GROUP_LEADER)) {
-            throw new NotGroupLeaderException(GroupErrorCode.NOT_GROUP_LEADER);
+    // 그룹 멤버 조회 - 409 USER_ALREADY_IN_GROUP 예외 처리
+    private void isMemberInGroup(Long groupId, String id) {
+        Optional<GroupMember> groupMemberOptional = groupMemberCommandRepository.findByGroupIdAndMemberId(
+            groupId, id);
+        if (groupMemberOptional.isPresent()) {
+            throw new UserAlreadyInGroupException(GroupErrorCode.USER_ALREADY_IN_GROUP);
         }
     }
+
 
 
 }
