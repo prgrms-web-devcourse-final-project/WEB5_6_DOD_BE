@@ -120,6 +120,7 @@ public class MypageController {
 
 
   }
+  
 
   @Operation(summary = "공개 캘린더 ID 입력받기")
   @PostMapping("/calendar/public-id")
