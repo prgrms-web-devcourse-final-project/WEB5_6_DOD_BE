@@ -1,22 +1,15 @@
 package com.grepp.spring.infra.error.mypageAdvice;
 
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
-import com.grepp.spring.infra.error.exceptions.mypage.CalendarAuthRequiredException;
-import com.grepp.spring.infra.error.exceptions.mypage.CalendarEventSaveFailedException;
-import com.grepp.spring.infra.error.exceptions.mypage.CalendarSyncFailedException;
-import com.grepp.spring.infra.error.exceptions.mypage.CalendarTokenExpiredException;
 import com.grepp.spring.infra.error.exceptions.mypage.FavoriteAlreadyExistException;
 import com.grepp.spring.infra.error.exceptions.mypage.FavoriteNotFoundException;
 import com.grepp.spring.infra.error.exceptions.mypage.FavoriteSaveFailedException;
-import com.grepp.spring.infra.error.exceptions.mypage.GoogleAuthFailedException;
 import com.grepp.spring.infra.error.exceptions.mypage.GoogleCalendarApiFailedException;
-import com.grepp.spring.infra.error.exceptions.mypage.InvalidCalendarResponseException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidFavoriteRequestException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidMemberRequestException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
 import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
-import com.grepp.spring.infra.error.exceptions.mypage.TokenSaveFailedException;
 import com.grepp.spring.infra.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -66,31 +59,6 @@ public class MyPageExceptionAdvice {
         .body(ApiResponse.error(ex.getCode()));
   }
 
-  @ExceptionHandler(GoogleAuthFailedException.class)
-  public ResponseEntity<ApiResponse<String>> googleAuthFailedExHandler(
-      GoogleAuthFailedException ex) {
-
-    return ResponseEntity.status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode()));
-  }
-
-  @ExceptionHandler(CalendarAuthRequiredException.class)
-  public ResponseEntity<ApiResponse<String>> CalendarAuthRequiredExHandler(
-      CalendarAuthRequiredException ex) {
-
-    return ResponseEntity
-        .status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode(), ex.getRedirectUrl()));
-  }
-
-  @ExceptionHandler(CalendarTokenExpiredException.class)
-  public ResponseEntity<ApiResponse<String>> CalendarTokenExpiredExHandler(
-      CalendarTokenExpiredException ex) {
-    return ResponseEntity
-        .status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode(), ex.getRedirectUrl()));
-  }
-
   // 404
   @ExceptionHandler(FavoriteNotFoundException.class)
   public ResponseEntity<ApiResponse<String>> favoriteNotFoundExHandlerExHandler(
@@ -126,38 +94,6 @@ public class MyPageExceptionAdvice {
   }
 
   // 500
-  @ExceptionHandler(CalendarSyncFailedException.class)
-  public ResponseEntity<ApiResponse<String>> calendarSyncFailedExHandler(
-      CalendarSyncFailedException ex) {
-
-    return ResponseEntity.status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode()));
-  }
-
-  @ExceptionHandler(InvalidCalendarResponseException.class)
-  public ResponseEntity<ApiResponse<String>> invalidCalendarResponseExHandler(
-      InvalidCalendarResponseException ex) {
-
-    return ResponseEntity.status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode()));
-  }
-
-  @ExceptionHandler(CalendarEventSaveFailedException.class)
-  public ResponseEntity<ApiResponse<String>> calendarEventSaveFailedExHandler(
-      CalendarEventSaveFailedException ex) {
-
-    return ResponseEntity.status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode()));
-  }
-
-  @ExceptionHandler(TokenSaveFailedException.class)
-  public ResponseEntity<ApiResponse<String>> TokenSaveFailedExHandler(
-      TokenSaveFailedException ex) {
-
-    return ResponseEntity.status(ex.getCode().status())
-        .body(ApiResponse.error(ex.getCode()));
-  }
-
   @ExceptionHandler(FavoriteSaveFailedException.class)
   public ResponseEntity<ApiResponse<String>> FavoriteSaveFailedExHandler(
       FavoriteSaveFailedException ex) {

@@ -1,5 +1,7 @@
 package com.grepp.spring.app.model.mypage.entity;
 
+import com.grepp.spring.app.controller.api.mypage.payload.request.CreateFavoritePlaceRequest;
+import com.grepp.spring.app.controller.api.mypage.payload.request.ModifyFavoritePlaceRequest;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
 import jakarta.persistence.Column;
@@ -56,6 +58,23 @@ public class FavoriteLocation extends BaseEntity {
     @JoinColumn(name = "member_id", unique = true)
     private Member member;
 
+
+    // 생성을 위한 정적 팩토리 메서드
+    public static FavoriteLocation create(Member member, CreateFavoritePlaceRequest request) {
+        return FavoriteLocation.builder()
+            .longitude(request.getLongitude())
+            .latitude(request.getLatitude())
+            .name(request.getStationName())
+            .member(member)
+            .build();
+    }
+
+    // 위치 업데이트
+    public void updateLocation(ModifyFavoritePlaceRequest request) {
+        this.name = request.getStationName();
+        this.latitude = request.getLatitude();
+        this.longitude = request.getLongitude();
+    }
 
 
 }
