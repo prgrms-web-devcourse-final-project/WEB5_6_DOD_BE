@@ -119,12 +119,21 @@ public class ScheduleCommandService {
     @Transactional
     public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, Event event) {
 
-        CreateScheduleDto dto = CreateScheduleDto.toDto(request);
+        Schedule schedule = getSchedule(request, event);
+        createScheduleMembers(request, schedule);
 
+        return CreateScheduleDto.toResponse(schedule.getId());
+    }
+
+    private Schedule getSchedule(CreateSchedulesRequest request, Event event) {
+        CreateScheduleDto dto = CreateScheduleDto.toDto(request);
         Schedule schedule = CreateScheduleDto.fromDto(dto, event);
 
         scheduleCommandRepository.save(schedule);
+        return schedule;
+    }
 
+    private void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule) {
         for (ScheduleMemberRolesDto entry : request.getMemberRoles()) {
             String memberId = String.valueOf(entry.getMemberId());
             ScheduleRole role = entry.getRole();
@@ -141,8 +150,6 @@ public class ScheduleCommandService {
 
             scheduleMemberQueryRepository.save(scheduleMember);
         }
-
-        return CreateScheduleDto.toResponse(schedule.getId());
     }
 
     @Transactional
