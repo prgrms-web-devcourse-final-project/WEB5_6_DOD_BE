@@ -11,7 +11,10 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavorit
 import com.grepp.spring.app.controller.api.mypage.payload.response.PublicCalendarIdResponse;
 import com.grepp.spring.app.model.mainpage.service.PublicCalendarService;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
-import com.grepp.spring.app.model.mypage.service.MypageService;
+import com.grepp.spring.app.model.mypage.service.FavoriteLocationCommandService;
+import com.grepp.spring.app.model.mypage.service.FavoriteLocationQueryService;
+import com.grepp.spring.app.model.mypage.service.FavoriteTimetableCommandService;
+import com.grepp.spring.app.model.mypage.service.FavoriteTimetableQueryService;
 import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
@@ -38,7 +41,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class MypageController {
 
-  private final MypageService mypageService;
+  private final FavoriteLocationCommandService favoriteLocationCommandService;
+  private final FavoriteLocationQueryService favoriteLocationQueryService;
+  private final FavoriteTimetableCommandService favoriteTimetableCommandService;
+  private final FavoriteTimetableQueryService favoriteTimetableQueryService;
   private final PublicCalendarIdService publicCalendarIdService;
   private final PublicCalendarService publicCalendarService;
 
@@ -52,7 +58,7 @@ public class MypageController {
     String memberId = extractCurrentMemberId();
 
     // 서비스에서 DTO 받아옴
-    FavoriteLocationDto dto = mypageService.createFavoriteLocation(memberId, request);
+    FavoriteLocationDto dto = favoriteLocationCommandService.createFavoriteLocation(memberId, request);
 
     // 응답용 DTO 로 변환
     CreateFavoritePlaceResponse response = FavoriteLocationDto.fromDto(dto);
@@ -70,7 +76,7 @@ public class MypageController {
 
     String memberId = extractCurrentMemberId();
 
-    CreateFavoriteTimeResponse response = mypageService.createOrUpdateFavoriteTimetable(memberId,
+    CreateFavoriteTimeResponse response = favoriteTimetableCommandService.createOrUpdateFavoriteTimetable(memberId,
         request);
 
     // API 응답 감싸서 반환
@@ -85,7 +91,7 @@ public class MypageController {
 
     String memberId = extractCurrentMemberId();
 
-    List<FavoriteLocationDto> response = mypageService.getFavoriteLocations(memberId);
+    List<FavoriteLocationDto> response = favoriteLocationQueryService.getFavoriteLocations(memberId);
 
     // API 응답 감싸서 반환
     return ResponseEntity.ok(ApiResponse.success(response));
@@ -98,7 +104,7 @@ public class MypageController {
 
     String memberId = extractCurrentMemberId();
 
-    CreateFavoriteTimeResponse response = mypageService.getFavoriteTimetableResponse(memberId);
+    CreateFavoriteTimeResponse response = favoriteTimetableQueryService.getFavoriteTimetableResponse(memberId);
 
     return ResponseEntity.ok(ApiResponse.success(response));
 
@@ -113,7 +119,7 @@ public class MypageController {
 
     String memberId = extractCurrentMemberId();
 
-    FavoriteLocationDto dto = mypageService.modifyFavoriteLocation(memberId, request);
+    FavoriteLocationDto dto = favoriteLocationCommandService.modifyFavoriteLocation(memberId, request);
 
     ModifyFavoritePlaceResponse response = FavoriteLocationDto.toModifyResponse(dto);
 
