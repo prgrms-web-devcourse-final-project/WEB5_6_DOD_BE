@@ -55,70 +55,65 @@ public class AllTimeScheduleDto {
     }
 
     public static AllTimeScheduleResponse fromDto(AllTimeScheduleDto dto) {
-        AllTimeScheduleResponse response = new AllTimeScheduleResponse();
-
-        response.setEventId(dto.getEventId());
-        response.setEventTitle(dto.getEventTitle());
-        response.setDescription(dto.getDescription());
-        response.setTotalMembers(dto.getTotalMembers());
-        response.setConfirmedMembers(dto.getConfirmedMembers());
-        response.setParticipantCounts(dto.getParticipantCounts());
-
+        AllTimeScheduleResponse.TimeTable timeTable = null;
         if (dto.getTimeTable() != null) {
-            AllTimeScheduleResponse.TimeTable timeTable = new AllTimeScheduleResponse.TimeTable();
-
-            if (dto.getTimeTable().getDates() != null) {
-                List<AllTimeScheduleResponse.DateInfo> dateInfos = dto.getTimeTable().getDates().stream()
-                    .map(AllTimeScheduleDto::convertDateInfo)
-                    .collect(Collectors.toList());
-                timeTable.setDates(dateInfos);
-            }
-
-            timeTable.setStartTime(dto.getTimeTable().getStartTime());
-            timeTable.setEndTime(dto.getTimeTable().getEndTime());
-            response.setTimeTable(timeTable);
+            List<AllTimeScheduleResponse.DateInfo> dateInfos = dto.getTimeTable().getDates().stream()
+                .map(AllTimeScheduleDto::convertDateInfo)
+                .collect(Collectors.toList());
+            timeTable = AllTimeScheduleResponse.TimeTable.builder()
+                .dates(dateInfos)
+                .startTime(dto.getTimeTable().getStartTime())
+                .endTime(dto.getTimeTable().getEndTime())
+                .build();
         }
 
+        List<AllTimeScheduleResponse.MemberSchedule> memberSchedules = null;
         if (dto.getMemberSchedules() != null) {
-            List<AllTimeScheduleResponse.MemberSchedule> memberSchedules = dto.getMemberSchedules().stream()
+            memberSchedules = dto.getMemberSchedules().stream()
                 .map(AllTimeScheduleDto::convertMemberSchedule)
                 .collect(Collectors.toList());
-            response.setMemberSchedules(memberSchedules);
         }
 
-        return response;
+        return AllTimeScheduleResponse.builder()
+            .eventId(dto.getEventId())
+            .eventTitle(dto.getEventTitle())
+            .description(dto.getDescription())
+            .timeTable(timeTable)
+            .memberSchedules(memberSchedules)
+            .totalMembers(dto.getTotalMembers())
+            .confirmedMembers(dto.getConfirmedMembers())
+            .participantCounts(dto.getParticipantCounts())
+            .build();
     }
 
     private static AllTimeScheduleResponse.DateInfo convertDateInfo(DateInfoDto dto) {
-        AllTimeScheduleResponse.DateInfo dateInfo = new AllTimeScheduleResponse.DateInfo();
-        dateInfo.setDate(dto.getDate());
-        dateInfo.setDayOfWeek(dto.getDayOfWeek());
-        dateInfo.setDisplayDate(dto.getDisplayDate());
-        return dateInfo;
+        return AllTimeScheduleResponse.DateInfo.builder()
+            .date(dto.getDate())
+            .dayOfWeek(dto.getDayOfWeek())
+            .displayDate(dto.getDisplayDate())
+            .build();
     }
 
     private static AllTimeScheduleResponse.MemberSchedule convertMemberSchedule(MemberScheduleDto dto) {
-        AllTimeScheduleResponse.MemberSchedule memberSchedule = new AllTimeScheduleResponse.MemberSchedule();
-
-        memberSchedule.setEventMemberId(dto.getEventMemberId());
-        memberSchedule.setMemberName(dto.getMemberName());
-        memberSchedule.setIsConfirmed(dto.getIsConfirmed());
-
+        List<AllTimeScheduleResponse.DailyTimeSlot> dailyTimeSlots = null;
         if (dto.getDailyTimeSlots() != null) {
-            List<AllTimeScheduleResponse.DailyTimeSlot> dailyTimeSlots = dto.getDailyTimeSlots().stream()
+            dailyTimeSlots = dto.getDailyTimeSlots().stream()
                 .map(AllTimeScheduleDto::convertDailyTimeSlot)
                 .collect(Collectors.toList());
-            memberSchedule.setDailyTimeSlots(dailyTimeSlots);
         }
-
-        return memberSchedule;
+        return AllTimeScheduleResponse.MemberSchedule.builder()
+            .eventMemberId(dto.getEventMemberId())
+            .memberName(dto.getMemberName())
+            .dailyTimeSlots(dailyTimeSlots)
+            .isConfirmed(dto.getIsConfirmed())
+            .build();
     }
 
     private static AllTimeScheduleResponse.DailyTimeSlot convertDailyTimeSlot(DailyTimeSlotDto dto) {
-        AllTimeScheduleResponse.DailyTimeSlot dailyTimeSlot = new AllTimeScheduleResponse.DailyTimeSlot();
-        dailyTimeSlot.setDate(dto.getDate());
-        dailyTimeSlot.setTimeBit(dto.getTimeBit());
-        return dailyTimeSlot;
+        return AllTimeScheduleResponse.DailyTimeSlot.builder()
+            .date(dto.getDate())
+            .timeBit(dto.getTimeBit())
+            .build();
     }
 
     public static String formatTimeBit(Long timeBit) {

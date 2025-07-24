@@ -44,11 +44,7 @@ public class CreateEventDto {
     private static List<CandidateDateDto> convertCandidateDates(List<CreateEventRequest.CandidateDateWeb> webCandidates) {
         return webCandidates.stream()
             .flatMap(webCandidate -> webCandidate.getDates().stream()
-                .map(date -> CandidateDateDto.builder()
-                    .date(date)
-                    .startTime(webCandidate.getStartTime())
-                    .endTime(webCandidate.getEndTime())
-                    .build()))
+                .map(date -> new CandidateDateDto(date, webCandidate.getStartTime(), webCandidate.getEndTime())))
             .collect(Collectors.toList());
     }
 

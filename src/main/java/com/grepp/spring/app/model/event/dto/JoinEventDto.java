@@ -1,20 +1,17 @@
 package com.grepp.spring.app.model.event.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@Builder
+@AllArgsConstructor
 public class JoinEventDto {
 
     private final Long eventId;
     private final String memberId;
 
     public static JoinEventDto toDto(Long eventId, String memberId) {
-        return JoinEventDto.builder()
-            .eventId(eventId)
-            .memberId(memberId)
-            .build();
+        return new JoinEventDto(eventId, memberId);
     }
 
 }

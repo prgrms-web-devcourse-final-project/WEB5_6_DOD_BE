@@ -4,6 +4,8 @@ import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.infra.entity.BaseEntity;
+import com.grepp.spring.infra.error.exceptions.event.InvalidEventDataException;
+import com.grepp.spring.infra.response.EventErrorCode;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +99,12 @@ public class Event extends BaseEntity {
         }
         if (maxMember > 100) {
             throw new IllegalArgumentException("최대 인원은 100명을 초과할 수 없습니다.");
+        }
+    }
+
+    public void validateCapacity(Long currentMemberCount) {
+        if (this.maxMember != null && currentMemberCount >= this.maxMember) {
+            throw new InvalidEventDataException(EventErrorCode.EVENT_MEMBER_LIMIT_EXCEEDED);
         }
     }
 
