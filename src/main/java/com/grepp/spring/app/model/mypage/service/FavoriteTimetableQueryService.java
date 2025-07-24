@@ -4,7 +4,6 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavorit
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.converter.FavoriteTimetableConverter;
 import com.grepp.spring.app.model.mypage.dto.FavoriteTimetableDto;
-import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
 import com.grepp.spring.app.model.mypage.repository.MyTimetableRepository;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
@@ -13,10 +12,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class FavoriteTimetableQueryService {
 
   private final MyTimetableRepository myTimetableRepository;

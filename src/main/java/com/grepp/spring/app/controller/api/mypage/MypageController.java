@@ -16,6 +16,7 @@ import com.grepp.spring.app.model.mypage.service.FavoriteLocationQueryService;
 import com.grepp.spring.app.model.mypage.service.FavoriteTimetableCommandService;
 import com.grepp.spring.app.model.mypage.service.FavoriteTimetableQueryService;
 import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
+import com.grepp.spring.infra.auth.CurrentUser;
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.MyPageErrorCode;
@@ -53,12 +54,11 @@ public class MypageController {
   @PostMapping("/favorite-location")
   @Operation(summary = "즐겨찾기 장소 등록", description = "회원 즐겨찾기 장소 등록")
   public ResponseEntity<ApiResponse<CreateFavoritePlaceResponse>> createFavoriteLocation(
-      @RequestBody @Valid CreateFavoritePlaceRequest request) {
-
-    String memberId = extractCurrentMemberId();
+      @RequestBody @Valid CreateFavoritePlaceRequest request,
+      @CurrentUser String userId) {
 
     // 서비스에서 DTO 받아옴
-    FavoriteLocationDto dto = favoriteLocationCommandService.createFavoriteLocation(memberId, request);
+    FavoriteLocationDto dto = favoriteLocationCommandService.createFavoriteLocation(userId, request);
 
     // 응답용 DTO 로 변환
     CreateFavoritePlaceResponse response = FavoriteLocationDto.fromDto(dto);
@@ -72,12 +72,12 @@ public class MypageController {
   @PostMapping("/favorite-timetable")
   @Operation(summary = "즐겨찾기 시간대 등록 및 수정", description = "회원 즐겨찾기 시간대 등록 및 수정")
   public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> createOrUpdateFavoriteTime(
-      @RequestBody @Valid CreateFavoriteTimeRequest request) {
+      @RequestBody @Valid CreateFavoriteTimeRequest request,
+      @CurrentUser String userId
+  ) {
 
-    String memberId = extractCurrentMemberId();
-
-    CreateFavoriteTimeResponse response = favoriteTimetableCommandService.createOrUpdateFavoriteTimetable(memberId,
-        request);
+    CreateFavoriteTimeResponse response =
+        favoriteTimetableCommandService.createOrUpdateFavoriteTimetable(userId, request);
 
     // API 응답 감싸서 반환
     return ResponseEntity.ok(ApiResponse.success(response));
@@ -87,11 +87,12 @@ public class MypageController {
 
   @GetMapping("/favorite-location")
   @Operation(summary = "즐겨찾기 장소 조회", description = "회원 즐겨찾기 장소 조회")
-  public ResponseEntity<ApiResponse<List<FavoriteLocationDto>>> getFavoriteLocations() {
+  public ResponseEntity<ApiResponse<List<FavoriteLocationDto>>> getFavoriteLocations(
+      @CurrentUser String userId
+  ) {
 
-    String memberId = extractCurrentMemberId();
-
-    List<FavoriteLocationDto> response = favoriteLocationQueryService.getFavoriteLocations(memberId);
+    List<FavoriteLocationDto> response =
+        favoriteLocationQueryService.getFavoriteLocations(userId);
 
     // API 응답 감싸서 반환
     return ResponseEntity.ok(ApiResponse.success(response));
@@ -100,11 +101,12 @@ public class MypageController {
 
   @GetMapping("/favorite-timetable")
   @Operation(summary = "즐겨찾기 시간대 조회", description = "회원 즐겨찾기 시간대 조회")
-  public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> getFavoriteTimetables() {
+  public ResponseEntity<ApiResponse<CreateFavoriteTimeResponse>> getFavoriteTimetables(
+      @CurrentUser String userId
+  ) {
 
-    String memberId = extractCurrentMemberId();
-
-    CreateFavoriteTimeResponse response = favoriteTimetableQueryService.getFavoriteTimetableResponse(memberId);
+    CreateFavoriteTimeResponse response =
+        favoriteTimetableQueryService.getFavoriteTimetableResponse(userId);
 
     return ResponseEntity.ok(ApiResponse.success(response));
 
@@ -115,11 +117,12 @@ public class MypageController {
   @Operation(summary = "즐겨찾기 장소 수정", description = "회원 즐겨찾기 장소 수정")
   @PatchMapping("/favorite-location")
   public ResponseEntity<ApiResponse<ModifyFavoritePlaceResponse>> modifyFavoritePlace(
-      @RequestBody @Valid ModifyFavoritePlaceRequest request) {
+      @RequestBody @Valid ModifyFavoritePlaceRequest request,
+      @CurrentUser String userId
+  ) {
 
-    String memberId = extractCurrentMemberId();
-
-    FavoriteLocationDto dto = favoriteLocationCommandService.modifyFavoriteLocation(memberId, request);
+    FavoriteLocationDto dto =
+        favoriteLocationCommandService.modifyFavoriteLocation(userId, request);
 
     ModifyFavoritePlaceResponse response = FavoriteLocationDto.toModifyResponse(dto);
 
@@ -130,12 +133,12 @@ public class MypageController {
 
   @Operation(summary = "공개 캘린더 ID 조회")
   @GetMapping("/calendar/public-id")
-  public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> getPublicCalendarId() {
-
-    String memberId = extractCurrentMemberId();
+  public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> getPublicCalendarId(
+      @CurrentUser String userId
+  ) {
 
     // DB 에서 ID 조회하기
-    String publicCalendarId = publicCalendarIdService.getPublicCalendarId(memberId);
+    String publicCalendarId = publicCalendarIdService.getPublicCalendarId(userId);
 
     PublicCalendarIdResponse response = new PublicCalendarIdResponse(publicCalendarId);
 
@@ -148,17 +151,17 @@ public class MypageController {
   @Operation(summary = "공개 캘린더 ID 입력받기")
   @PostMapping("/calendar/public-id")
   public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> savePublicCalendarId(
-      @RequestBody PublicCalendarIdRequest request
+      @RequestBody PublicCalendarIdRequest request,
+      @CurrentUser String userId
   ) {
     String publicCalendarId = request.getPublicCalendarId();
 
-    String memberId = extractCurrentMemberId();
 
     // 유효한 캘린더 id 인지 검증 위해 api 호출
     publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
 
     // DB 에 저장하기
-    publicCalendarIdService.savePublicCalendarId(memberId, publicCalendarId);
+    publicCalendarIdService.savePublicCalendarId(userId, publicCalendarId);
 
     PublicCalendarIdResponse response = PublicCalendarIdResponse.builder()
         .calendarId(publicCalendarId)
@@ -166,21 +169,6 @@ public class MypageController {
 
     return ResponseEntity.ok(ApiResponse.success(response));
 
-  }
-
-
-  private String extractCurrentMemberId() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    // isAuthenticated -> 로그인, 비로그인 사용자 다 true
-    // 로그인 한 사용자 토큰 : OAuth2AuthenticationToken
-    // 로그인하지 않은 사용자도 token 을 줌. 토큰이 AnonymousAuthenticationToken 인지를 확인
-    if (authentication == null ||
-        authentication instanceof AnonymousAuthenticationToken) {
-      throw new AuthenticationRequiredException(MyPageErrorCode.AUTHENTICATION_REQUIRED);
-    }
-
-    return authentication.getName();
   }
 
 }
