@@ -94,6 +94,7 @@ public class EventQueryService {
             .eventTitle(event.getTitle())
             .description(event.getDescription())
             .timeTable(timeTable)
+            .maxMembers(event.getMaxMember())
             .memberSchedules(memberSchedules)
             .totalMembers(eventMembers.size())
             .confirmedMembers(confirmedMembers)
