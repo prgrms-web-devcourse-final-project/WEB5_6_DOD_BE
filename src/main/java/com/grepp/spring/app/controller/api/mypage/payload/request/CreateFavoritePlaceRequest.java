@@ -3,12 +3,14 @@ package com.grepp.spring.app.controller.api.mypage.payload.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateFavoritePlaceRequest {
     @NotNull
     @Schema(example = ".강남역 8번 출구")
@@ -19,7 +21,5 @@ public class CreateFavoritePlaceRequest {
     @NotNull
     @Schema(example = "127.0276")
     private double longitude;
-
-
 
 }
