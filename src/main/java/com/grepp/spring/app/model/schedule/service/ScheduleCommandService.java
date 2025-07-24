@@ -3,25 +3,54 @@ package com.grepp.spring.app.model.schedule.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
+import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.auth.domain.Principal;
-import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
 import com.grepp.spring.app.model.event.entity.Event;
-import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.dto.*;
-import com.grepp.spring.app.model.schedule.entity.*;
-import com.grepp.spring.app.model.schedule.repository.*;
+import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
+import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
+import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
+import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.DepartLocationMetroTransferDto;
+import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
+import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
+import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
+import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
+import com.grepp.spring.app.model.schedule.dto.WriteSuggestedLocationDto;
+import com.grepp.spring.app.model.schedule.dto.WriteSuggestedMetroTransferDto;
+import com.grepp.spring.app.model.schedule.dto.ZoomMeetingDto;
+import com.grepp.spring.app.model.schedule.entity.Line;
+import com.grepp.spring.app.model.schedule.entity.Location;
+import com.grepp.spring.app.model.schedule.entity.Metro;
+import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.entity.Vote;
+import com.grepp.spring.app.model.schedule.entity.Workspace;
+import com.grepp.spring.app.model.schedule.repository.LineQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
 import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
@@ -30,9 +59,11 @@ import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,50 +79,44 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.format.DateTimeFormatter;
-
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ScheduleCommandService {
 
     @PersistenceContext
     private EntityManager em;
 
-    @Autowired private ScheduleCommandRepository scheduleCommandRepository;
-    @Autowired private ScheduleQueryRepository scheduleQueryRepository;
+    private final ScheduleQueryRepository scheduleQueryRepository;
+    private final ScheduleCommandRepository scheduleCommandRepository;
 
-    @Autowired private ScheduleMemberQueryRepository scheduleMemberQueryRepository;
-    @Autowired private ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+    private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
-    @Autowired private WorkspaceQueryRepository workspaceQueryRepository;
-    @Autowired private WorkspaceCommandRepository workspaceCommandRepository;
+    private final WorkspaceQueryRepository workspaceQueryRepository;
+    private final WorkspaceCommandRepository workspaceCommandRepository;
 
-    @Autowired private MetroTransferCommandRepository metroTransferCommandRepository;
+    private final MetroTransferCommandRepository metroTransferCommandRepository;
 
-    @Autowired private LineQueryRepository lineQueryRepository;
+    private final LineQueryRepository lineQueryRepository;
 
-    @Autowired private EventRepository eventRepository;
+    private final MemberRepository memberRepository;
 
-    @Autowired private MemberRepository memberRepository;
+    private final VoteQueryRepository voteQueryRepository;
 
-    @Autowired
-    private VoteQueryRepository voteQueryRepository;
+    private final LocationQueryRepository locationQueryRepository;
+    private final VoteCommandRepository voteCommandRepository;
 
+    private final LocationCommandRepository locationCommandRepository;
 
-    @Autowired
-    private LocationQueryRepository locationQueryRepository;
-    @Autowired private VoteCommandRepository voteCommandRepository;
-    @Autowired
-    private LocationCommandRepository locationCommandRepository;
-    @Autowired
-    private MetroQueryRepository metroQueryRepository;
+    private final MetroQueryRepository metroQueryRepository;
 
     @Value("${kakao.middle-location.api-key}")
     private String kakaoMiddleLocationApiKey;
 
-    @Autowired private ZoomOAuthService zoomOAuthService;
+    @Autowired
+    private ZoomOAuthService zoomOAuthService;
 
-    @Value("${zoom.refresh-token}") 
+    @Value("${zoom.refresh-token}")
     private String zoomRefreshToken;
 
     @Transactional
@@ -130,7 +155,8 @@ public class ScheduleCommandService {
 
         Principal user = (Principal) authentication.getPrincipal();
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), scheduleId);
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
+            user.getUsername(), scheduleId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
 
@@ -139,8 +165,7 @@ public class ScheduleCommandService {
             modifyScheduleEntity(scheduleId, dto);
 
             modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
-        }
-        else {
+        } else {
             throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
 
@@ -190,7 +215,7 @@ public class ScheduleCommandService {
         }
 
 //        if (dto.getPlatformURL() != null) {
-            schedule.get().setPlatformUrl(dto.getPlatformURL());
+        schedule.get().setPlatformUrl(dto.getPlatformURL());
 //        }
     }
 
@@ -220,13 +245,12 @@ public class ScheduleCommandService {
 
         Principal user = (Principal) authentication.getPrincipal();
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), scheduleId);
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
+            user.getUsername(), scheduleId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
             scheduleCommandRepository.deleteById(scheduleId);
-        }
-
-        else {
+        } else {
             throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
     }
@@ -266,8 +290,7 @@ public class ScheduleCommandService {
             scheduleMember.setDepartLocationName(dto.getDepartLocationName());
             scheduleMember.setLongitude(dto.getLongitude());
             scheduleMember.setLatitude(dto.getLatitude());
-        }
-        else { // DB에 존재한다면
+        } else { // DB에 존재한다면
             CreateDepartLocationDto dto = CreateDepartLocationDto.entityToDto(metro.get());
 
             scheduleMember.setDepartLocationName(dto.getDepartLocationName());
@@ -276,7 +299,8 @@ public class ScheduleCommandService {
         }
 
         // 출발장소들을 이용하여 중간장소 계산
-        List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+        List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(
+            scheduleId);
 
         Double middleLatitude = 0.0;
         Double middleLongitude = 0.0;
@@ -300,7 +324,8 @@ public class ScheduleCommandService {
             log.info("subwayStation size = {}", subwayStation.size());
 
             for (JsonNode subwayStationJson : subwayStation) {
-                SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
+                SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson,
+                    schedule.get());
                 Location location = SubwayStationDto.fromDto(subwayStationDto);
                 location = locationCommandRepository.save(location);
 
@@ -310,7 +335,8 @@ public class ScheduleCommandService {
                 List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
 
                 for (Line l : line) {
-                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location, l);
+                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(
+                        location, l);
                     MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
                     metroTransferCommandRepository.save(metroTransfer);
                 }
@@ -328,7 +354,8 @@ public class ScheduleCommandService {
     // 카카오 api 활용하여 중간장소 역 3개 추출
     public List<JsonNode> findNearestStations(double latitude, double longitude)
         throws JsonProcessingException {
-        String url = UriComponentsBuilder.fromHttpUrl("https://dapi.kakao.com/v2/local/search/category.json")
+        String url = UriComponentsBuilder.fromHttpUrl(
+                "https://dapi.kakao.com/v2/local/search/category.json")
             .queryParam("category_group_code", "SW8")
             .queryParam("x", longitude) // x = 경도
             .queryParam("y", latitude)  // y = 위도
@@ -341,12 +368,13 @@ public class ScheduleCommandService {
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+            String.class);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode json = mapper.readTree(response.getBody());
 
-        JsonNode  documents = json.get("documents");
+        JsonNode documents = json.get("documents");
         List<JsonNode> result = new ArrayList<>();
         String stationName = "";
 
@@ -383,10 +411,11 @@ public class ScheduleCommandService {
         Location location = locationQueryRepository.findById(lid.getId())
             .orElseThrow(() -> new LocationNotFoundException(ScheduleErrorCode.LOCATION_NOT_FOUND));
 
-            location.setVoteCount(location.getVoteCount() + 1);
+        location.setVoteCount(location.getVoteCount() + 1);
 
         List<Location> locationList = locationQueryRepository.findByScheduleId(schedule.getId());
-        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId())
+            .size();
         int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
 
         if (scheduleMemberNumber - voteCount == 0) {
@@ -432,10 +461,12 @@ public class ScheduleCommandService {
         HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
 
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<ZoomMeetingDto> responseEntity = restTemplate.postForEntity(apiUrl, requestEntity, ZoomMeetingDto.class);
+        ResponseEntity<ZoomMeetingDto> responseEntity = restTemplate.postForEntity(apiUrl,
+            requestEntity, ZoomMeetingDto.class);
 
         if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
-            throw new RuntimeException("Zoom API를 통해 회의를 생성하는데 실패했습니다. 응답: " + responseEntity.getBody());
+            throw new RuntimeException(
+                "Zoom API를 통해 회의를 생성하는데 실패했습니다. 응답: " + responseEntity.getBody());
         }
 
         String meetingLink = responseEntity.getBody().getJoinUrl();
@@ -452,7 +483,8 @@ public class ScheduleCommandService {
     public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Principal user = (Principal) auth.getPrincipal();
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(user.getUsername(), schedule.getId());
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
+            user.getUsername(), schedule.getId());
         Member member = memberRepository.findById(user.getUsername()).orElseThrow();
         Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
 
@@ -460,12 +492,12 @@ public class ScheduleCommandService {
             Location location;
             // DB에 존재하지 않는다면
             if (metro.isEmpty()) {
-                WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
+                WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request,
+                    schedule, member);
 
                 location = WriteSuggestedLocationDto.fromDto(dto);
                 location = locationCommandRepository.save(location);
-            }
-            else { // DB에 존재한다면
+            } else { // DB에 존재한다면
                 location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
                 location = locationCommandRepository.save(location);
             }
@@ -474,13 +506,12 @@ public class ScheduleCommandService {
             List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
 
             for (Line l : line) {
-                WriteSuggestedMetroTransferDto dto =  WriteSuggestedMetroTransferDto.toDto(schedule,location,l);
+                WriteSuggestedMetroTransferDto dto = WriteSuggestedMetroTransferDto.toDto(schedule,
+                    location, l);
                 MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
                 metroTransferCommandRepository.save(metroTransfer);
             }
-        }
-
-        else {
+        } else {
             throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
 
