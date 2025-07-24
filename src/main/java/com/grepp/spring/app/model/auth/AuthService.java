@@ -2,6 +2,8 @@ package com.grepp.spring.app.model.auth;
 
 import com.grepp.spring.app.controller.api.auth.Provider;
 import com.grepp.spring.app.controller.api.auth.payload.request.LoginRequest;
+import com.grepp.spring.app.model.auth.code.AuthToken;
+import com.grepp.spring.app.model.auth.dto.NewTokensDto;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.auth.token.entity.RefreshToken;
@@ -11,14 +13,22 @@ import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
+import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.auth.jwt.dto.AccessTokenDto;
 import com.grepp.spring.infra.auth.jwt.dto.RefreshTokenDto;
 import com.grepp.spring.infra.auth.oauth2.user.OAuth2UserInfo;
+import com.grepp.spring.infra.error.exceptions.member.InvalidTokenException;
+import com.grepp.spring.infra.response.ResponseCode;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -138,4 +148,79 @@ public class AuthService {
             .userName(member.getName())
             .build();
     }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+
+        // 쿠키에서 토큰 제거
+        ResponseCookie deleteAccessTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.ACCESS_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
+
+        ResponseCookie deleteRefreshTokenCookie = TokenCookieFactory.createExpiredToken(AuthToken.REFRESH_TOKEN.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
+
+        ResponseCookie deleteSessionIdCookie = TokenCookieFactory.createExpiredToken(AuthToken.AUTH_SERVER_SESSION_ID.name());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteSessionIdCookie.toString());
+
+        // Redis에서 리프레시 토큰 제거
+        String accessToken = jwtTokenProvider.resolveToken(request, AuthToken.ACCESS_TOKEN);
+        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+            String atJti = jwtTokenProvider.getClaims(accessToken).getId();
+            refreshTokenService.deleteByAccessTokenId(atJti);
+        }
+        log.info("토큰이 무효화되었습니다.");
+    }
+
+    @Transactional
+    public NewTokensDto updateTokens(String accessToken, String refreshToken) {
+
+        // 리프레시 토큰의 유효성 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)){
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
+        }
+
+        // 토큰에서 Claim 을 추출합시다.
+        Claims accessClaims = jwtTokenProvider.getClaims(accessToken);
+        String atJtiFromAccess = accessClaims.getId(); // 기존 Access Token의 JTI
+        String userId = accessClaims.getSubject();
+
+        Claims refreshClaims = jwtTokenProvider.getClaims(refreshToken);
+        String atJtiFromRefresh = refreshClaims.get("atId", String.class);
+        String refreshJti = refreshClaims.getId(); // Refresh Token의 JTI
+
+        // 엑세스 토큰과 리프레시 토큰의 JTI 일치 여부 확인
+        if (!atJtiFromAccess.equals(atJtiFromRefresh)) {
+            // 일치하지 않으면 즉시 Redis에서 제거
+            refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
+        }
+
+        // Redis에 저장된 리프레시 토큰 조회 및 검증
+        RefreshToken currentRefreshToken = refreshTokenService.findByAccessTokenId(atJtiFromRefresh);
+        if (currentRefreshToken == null || !currentRefreshToken.getId().equals(refreshJti)) {
+            refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
+            throw new InvalidTokenException(ResponseCode.INVALID_TOKEN, "엑세스 토큰과 리프레시 토큰의 정보가 일치하지 않습니다.");
+        }
+
+        // 새로운 Access Token 생성
+        AccessTokenDto newAccessTokenDto = jwtTokenProvider.generateAccessToken(userId, Role.ROLE_USER.name());
+        // 새로운 Refresh token 생성
+        RefreshTokenDto newRefreshTokenDto = jwtTokenProvider.generateRefreshToken(
+            newAccessTokenDto.getJti());
+        // 기존에 Redis에 저장된 Refresh Token 삭제 및 새로운 토큰 저장
+        refreshTokenService.deleteByAccessTokenId(atJtiFromRefresh);
+
+        // 새 Refresh Token을 Redis 에 저장합니다.
+        RefreshToken newRefreshToken = RefreshToken.builder()
+            .id(newRefreshTokenDto.getJti())
+            .atId(newAccessTokenDto.getJti())
+            .ttl(jwtTokenProvider.getRefreshTokenExpiration())
+            .build();
+        refreshTokenService.saveWithAtId(newRefreshToken);
+
+        log.info("갱신된 Access Token: {}", newAccessTokenDto.getJti());
+        log.info("갱신된 Refresh Token: {}", newRefreshTokenDto.getJti());
+
+        return new NewTokensDto(newAccessTokenDto, newRefreshTokenDto);
+    }
+
 }
