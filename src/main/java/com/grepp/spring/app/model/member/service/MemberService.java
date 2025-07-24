@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.member.service;
 
+import com.grepp.spring.app.controller.api.member.payload.MemberInfoResponse;
 import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.token.RefreshTokenService;
 import com.grepp.spring.app.model.group.entity.Group;
@@ -16,8 +17,9 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.infra.auth.jwt.JwtTokenProvider;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
-import com.grepp.spring.infra.error.exceptions.member.InvalidNameException;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
+import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.response.MyPageErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +49,15 @@ public class MemberService {
 
     public Optional<Member> findById(String userId) {
         return memberRepository.findById(userId);
+    }
+
+    // 읽기 전용이니까 readOnly
+    @Transactional(readOnly = true)
+    public MemberInfoResponse getMemberInfoResponse(String userId) {
+        Member member = memberRepository.findById(userId)
+            .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND)); // 서윤님이 만든 예외 쓰기. 나중에 전역 처리 해야함
+
+        return MemberInfoResponse.from(member);
     }
 
     @Transactional
@@ -154,60 +164,30 @@ public class MemberService {
 
     // 이름 변경
     @Transactional
-    public ModifyMemberInfoResponse modifyMemberInfo(String userId, String username) {
-
+    public ModifyMemberInfoResponse modifyMemberName(String userId, String username) {
         Member member = memberRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
 
-        if (StringUtils.hasText(username)) {
-            // 앞 뒤 공백 제거
-            username = username.trim();
-            // 정규표현식으로 검증
-            validateName(username);
-            member.setName(username);
-        }
-//        member.setProfileImageNumber((long) new Random().nextInt(10));
-
+        // 이제 Member 엔티티에서 자체적으로 이름 변경 및 검증 처리
+        member.updateName(username);
         memberRepository.save(member);
-        log.info("프로필이 변경되었습니다. 이름: {}", member.getName());
+        log.info("이름이 변경되었습니다. 이름: {}", member.getName());
 
-        // 변경된 사용자 정보 리턴 (나중에 응답에 넣을 거임)
+        // 변경된 사용자 정보 리턴
         return new ModifyMemberInfoResponse(member.getId(), member.getName(), member.getProfileImageNumber());
-    }
-
-    // 이름 요구사항 검증 메서드
-    private void validateName(String username){
-        if (username == null) {
-            throw new InvalidNameException("이름은 필수 입력값입니다.");
-        }
-
-        if (username.length() < 2 || username.length() > 10) {
-            throw new InvalidNameException("이름은 2자 이상 10자 이하로만 가능합니다.");
-        }
-        // 한글, 영어 조합. 양 끝 제외 공백 허용
-        String pattern = "^[가-힣a-zA-Z](?:[가-힣a-zA-Z ]*[가-힣a-zA-Z])?$";
-
-        if (!username.matches(pattern)) {
-            throw new InvalidNameException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
-        }
     }
 
     // 프로필 사진 변경
     @Transactional
     public ModifyMemberInfoResponse modifyProfileImage(String userId) {
-
         Member member = memberRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+            .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
 
-        // 기존의 프로필 번호
-        int currentProfileNumber = member.getProfileImageNumber();
-        int newProfileNumber;
-        Random random = new Random();
-        do {
-            newProfileNumber = random.nextInt(8);
-        } while (newProfileNumber == currentProfileNumber); //기존 번호와 같으면 다시
+        // Member 엔티티 자체에서 프로필 이미지 변경을 처리
+        member.updateProfileImage();
+        memberRepository.save(member);
+        log.info("프로필 이미지가 변경되었습니다. 새로운 이미지 번호: {}", member.getProfileImageNumber());
 
-        member.setProfileImageNumber(newProfileNumber);
         return new ModifyMemberInfoResponse(member.getId(), member.getName(), member.getProfileImageNumber());
     }
 }
