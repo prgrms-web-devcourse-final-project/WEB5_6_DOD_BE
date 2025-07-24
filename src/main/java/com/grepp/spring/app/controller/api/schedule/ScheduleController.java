@@ -49,17 +49,24 @@ public class ScheduleController {
     private final ScheduleQueryService scheduleQueryService;
     private final ScheduleCommandService scheduleCommandService;
 
+    // 일정을 검증하기 위한 공통 메서드
+    private Schedule validSchedule(Long scheduleId) {
+        return scheduleQueryService.findScheduleById(scheduleId);
+    }
+
     // 일정 조회
     @Operation(summary = "일정 조회", description = "일정을 조회합니다.")
     @GetMapping("/show/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(
         @PathVariable Long scheduleId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         ShowScheduleResponse response = scheduleQueryService.showSchedule(schedule);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+
 
     // 일정 등록
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
@@ -81,7 +88,7 @@ public class ScheduleController {
         @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request,
         @CurrentUser String userId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         scheduleCommandService.modifySchedule(request, schedule.getId(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
@@ -93,7 +100,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(
         @PathVariable Long scheduleId, @CurrentUser String userId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         scheduleCommandService.deleteSchedule(schedule.getId(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
@@ -108,7 +115,7 @@ public class ScheduleController {
         @CurrentUser String userId)
         throws JsonProcessingException {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
 
         scheduleCommandService.createDepartLocation(schedule.getId(), request, userId);
 
@@ -121,7 +128,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ShowSuggestedLocationsResponse>> showSuggestedLocations(
         @PathVariable Long scheduleId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(
             schedule.getId());
 
@@ -134,7 +141,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation(@PathVariable Long scheduleId,
         @RequestBody WriteSuggestedLocationRequest request, @CurrentUser String userId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         scheduleCommandService.WriteSuggestedLocation(schedule, request, userId);
 
         return ResponseEntity.ok(ApiResponse.success("중간장소를 등록했습니다."));
@@ -146,7 +153,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(request.getScheduleId());
+        Schedule schedule = validSchedule(request.getScheduleId());
         ScheduleMember scheduleMember = scheduleQueryService.findScheduleMemberById(
             scheduleMemberId);
         Location location = scheduleQueryService.findLocationById(request.getLocationId());
@@ -162,7 +169,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ShowVoteMembersResponse>> showVoteMembers(
         @PathVariable Long scheduleId) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
 
         ShowVoteMembersResponse response = scheduleQueryService.findVoteMembers(schedule.getId());
 
@@ -187,7 +194,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> createWorkspace(
         @PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
 
-        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = validSchedule(scheduleId);
         scheduleCommandService.AddWorkspace(schedule, request);
 
         return ResponseEntity.ok(ApiResponse.success("워크스페이스를 등록했습니다."));
