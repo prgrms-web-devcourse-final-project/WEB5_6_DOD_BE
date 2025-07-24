@@ -82,6 +82,7 @@ public class ShowScheduleDto {
 
         List<ScheduleMembersDto> members = IntStream.range(0, scheduleMembers.size())
             .mapToObj(i-> new ScheduleMembersDto(
+                scheduleMembers.get(i).getMember().getId(),
                 scheduleMembers.get(i).getName(),
                 scheduleMembers.get(i).getRole()
             ))

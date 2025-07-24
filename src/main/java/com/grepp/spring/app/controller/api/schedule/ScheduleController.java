@@ -67,7 +67,6 @@ public class ScheduleController {
     }
 
 
-
     // 일정 등록
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
     @PostMapping("/create")
