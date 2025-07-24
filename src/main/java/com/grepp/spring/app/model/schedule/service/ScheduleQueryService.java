@@ -68,41 +68,11 @@ public class ScheduleQueryService {
         return ShowScheduleDto.fromDto(dto);
     }
 
-    public Schedule findScheduleById(Long scheduleId) {
-
-        return scheduleQueryRepository.findById(scheduleId)
-            .orElseThrow(() -> new ScheduleNotFoundException(
-                GroupErrorCode.SCHEDULE_NOT_FOUND));
-    }
-
-    public Event findEventById(Long eventId) {
-        return eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
-            EventErrorCode.EVENT_NOT_FOUND));
-    }
-
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
-
-        List<Location> location = locationQueryRepository.findByScheduleId(scheduleId);
-        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
-            scheduleId);
-
-        int departLocationCount = 0;
-        for (ScheduleMember scheduleMember : scheduleMembers) {
-            if (scheduleMember.getLatitude() != null) {
-                departLocationCount++;
-            }
-        }
-
-        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId)
-            .size();
+        List<MetroInfoDto> infoDto = getMetroInfoDtos(scheduleId);
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
+        int departLocationCount = getDepartLocationCount(scheduleId);
         int voteCount = voteQueryRepository.findByScheduleId(scheduleId).size();
-
-        List<MetroInfoDto> infoDto = new ArrayList<>();
-        for (Location l : location) {
-            List<MetroTransfer> transferForLocation = metroTransferQueryRepository.findByLocationId(
-                l.getId());
-            infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
-        }
 
         ShowSuggestedLocationsDto finalDto = ShowSuggestedLocationsDto.fromMetroInfoDto(infoDto,
             scheduleMemberNumber, voteCount, departLocationCount);
@@ -110,8 +80,37 @@ public class ScheduleQueryService {
         return ShowSuggestedLocationsDto.fromDto(finalDto);
     }
 
+    private List<MetroInfoDto> getMetroInfoDtos(Long scheduleId) {
+        List<Location> location = locationQueryRepository.findByScheduleId(scheduleId);
+        List<MetroInfoDto> infoDto = new ArrayList<>();
+        for (Location l : location) {
+            List<MetroTransfer> transferForLocation = metroTransferQueryRepository.findByLocationId(
+                l.getId());
+            infoDto.add(MetroInfoDto.toDto(l, transferForLocation));
+        }
+        return infoDto;
+    }
+
+    private int getDepartLocationCount(Long scheduleId) {
+        List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
+        int departLocationCount = 0;
+        for (ScheduleMember scheduleMember : scheduleMembers) {
+            if (scheduleMember.getLatitude() != null) {
+                departLocationCount++;
+            }
+        }
+        return departLocationCount;
+    }
+
     public ShowVoteMembersResponse findVoteMembers(Long scheduleId) {
 
+        List<VoteMemberDto> voteMemberList = getVoteMemberDtos(scheduleId);
+        ShowVoteMembersResponse response = VoteMemberDto.fromDto(voteMemberList);
+
+        return response;
+    }
+
+    private List<VoteMemberDto> getVoteMemberDtos(Long scheduleId) {
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
             scheduleId);
 
@@ -124,10 +123,18 @@ public class ScheduleQueryService {
                 voteMemberList.add(voteMemberDto);
             }
         }
+        return voteMemberList;
+    }
 
-        ShowVoteMembersResponse response = VoteMemberDto.fromDto(voteMemberList);
+    public Schedule findScheduleById(Long scheduleId) {
+        return scheduleQueryRepository.findById(scheduleId)
+            .orElseThrow(() -> new ScheduleNotFoundException(
+                GroupErrorCode.SCHEDULE_NOT_FOUND));
+    }
 
-        return response;
+    public Event findEventById(Long eventId) {
+        return eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
+            EventErrorCode.EVENT_NOT_FOUND));
     }
 
     public Location findLocationById(Long locationId) {
