@@ -7,6 +7,7 @@ public enum EventErrorCode {
     ALREADY_COMPLETED_SCHEDULE("400", HttpStatus.BAD_REQUEST, "이미 확정된 일정입니다."),
     CANNOT_COMPLETE_EMPTY_SCHEDULE("400", HttpStatus.BAD_REQUEST, "빈 일정은 확정할 수 없습니다."),
     EVENT_MEMBER_LIMIT_EXCEEDED("400", HttpStatus.BAD_REQUEST, "이벤트 참여 인원이 초과되었습니다."),
+    CANNOT_CREATE_SCHEDULE_RESULT("400", HttpStatus.BAD_REQUEST, "일정 조율 결과를 생성할 수 없습니다."),
     AUTHENTICATION_REQUIRED("401", HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     NOT_EVENT_MEMBER("403", HttpStatus.FORBIDDEN, "해당 이벤트의 참여자가 아닙니다."),
     NOT_GROUP_MEMBER("403", HttpStatus.FORBIDDEN, "해당 그룹의 멤버가 아닙니다."),

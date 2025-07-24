@@ -51,6 +51,10 @@ public class EventScheduleResultService {
         List<CandidateDate> candidateDates = getCandidateDates(eventId);
         Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
 
+        if (memberScheduleMap.isEmpty()) {
+            throw new InvalidEventDataException(EventErrorCode.CANNOT_CREATE_SCHEDULE_RESULT);
+        }
+
         List<RecommendationDto.TimeSlot> availableTimeSlots = analyzeAvailableTimeSlots(candidateDates, eventMembers, memberScheduleMap);
 
         List<RecommendationDto.ContinuousTimeRange> continuousRanges = mergeContinuousTimeSlots(availableTimeSlots);
