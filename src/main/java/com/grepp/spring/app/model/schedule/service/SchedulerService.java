@@ -16,6 +16,7 @@ public class SchedulerService {
 
     // 왼쪽부터 0초 0분 1시(새벽) 1일 *(매달) *(요일 무시)
     @Scheduled(cron = "0 0 1 1 * *")
+//    @Scheduled(fixedDelay = 30000) // 30초 간격 테스트
     public void schedulingSchedule() {
         scheduleQueryRepository.findAll().forEach(schedule -> {
             if(schedule.getStatus() == ScheduleStatus.COMPLETE) {

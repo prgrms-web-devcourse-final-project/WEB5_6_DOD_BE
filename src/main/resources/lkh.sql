@@ -30,7 +30,6 @@ values (1, '2025-08-09 17:30:00','2025-08-09 23:00:00' , '강남역', 'NONE', '�
 insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
 values (2, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOOGLE_MEET', '홍익대학교 ', 'FIXED',2,true, '데브코스 만나는 날입니당', '모여라! 데브코스!');
 
-
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
 values ('1a', '{noop}123qwe!@#', 'GOOGLE', 'ROLE_USER', 'a@gmail.com','이서준', 1, '010-1111-1111');
@@ -151,3 +150,49 @@ values (2, 2,1,1);
 
 insert into vote(id, schedule_member_id, location_id, schedule_id)
 values (3, 3,1,1);
+
+-- 스케줄러 테스트
+insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
+values (4, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOOGLE_MEET', '홍익대학교 ', 'COMPLETE',2,true, '데브코스 만나는 날입니당', '모여라! 데브코스!');
+
+insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
+values (5, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOOGLE_MEET', '홍익대학교 ', 'COMPLETE',2,true, '데브코스 만나는 날입니당', '모여라! 데브코스!');
+
+insert into schedules(id, start_time, end_time, location, meeting_platform, specific_location, status, event_id, activated, description, schedule_name)
+values (6, '2025-11-11 17:30:00','2025-11-11 23:00:00' , '홍대입구역', 'GOOGLE_MEET', '홍익대학교 ', 'COMPLETE',2,true, '데브코스 만나는 날입니당', '모여라! 데브코스!');
+
+insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
+values (7,'1a',4, 'ROLE_MASTER','서울역', 321.1234, 126.972836, '이서준');
+
+insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
+values (8,'2a',5, 'ROLE_MEMBER','건대입구역', 37.540882, 127.071103, '이강현');
+
+insert into schedule_members(id, member_id, schedule_id, role, depart_location_name, latitude, longitude, name)
+values (9,'3a',6, 'ROLE_MEMBER','강남역', 37.497958, 127.027539, '안준희');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (1,4,'동대문역사문화공원역',123.123,456.456, 'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (2,5,'역삼역',321.321,312.312,'DEFAULT');
+
+insert into locations(id,schedule_id, name, latitude, longitude,status)
+values (3,6,'홍대입구역',678.678,867.876, 'DEFAULT');
+
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (1,1, '2',4,'#00A84D');
+
+insert into metro_transfer(id, location_id, line_name,schedule_id, color)
+values (2,1, '4',5,'#00A2D1');
+
+insert into metro_transfer(id, location_id, line_name, schedule_id, color)
+values (3,1, '5',6,'#00A84D');
+
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (1, 7,1,4);
+
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (2, 8,2,5);
+
+insert into vote(id, schedule_member_id, location_id, schedule_id)
+values (3, 9,3,6);
