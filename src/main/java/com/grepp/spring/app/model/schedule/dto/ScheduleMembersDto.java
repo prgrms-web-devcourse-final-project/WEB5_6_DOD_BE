@@ -13,6 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ScheduleMembersDto {
+    private String id;
     private String name;
     private ScheduleRole scheduleRole;
 }

@@ -2,6 +2,7 @@ package com.grepp.spring.app.controller.api.schedule.payload.request;
 
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
+import com.grepp.spring.app.model.schedule.dto.ModifyWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +25,6 @@ public class ModifySchedulesRequest {
 
     // 온라인/오프라인 공통 워크 스페이스
     private Long workspaceId; // 추가
-    private List<WorkspaceDto> workspaces;
+    private List<ModifyWorkspaceDto> workspace;
 
 }

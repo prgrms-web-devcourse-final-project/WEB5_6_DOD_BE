@@ -31,11 +31,9 @@ public class ModifyScheduleDto {
 
     // 온라인/오프라인 공통 워크 스페이스
     private Long workspaceId; // 추가
-    private List<WorkspaceDto> workspaces;
+    private List<ModifyWorkspaceDto> workspace;
 
     public static ModifyScheduleDto toDto(ModifySchedulesRequest request) {
-        String url = request.getMeetingPlatform().equals(MeetingPlatform.NONE)
-            ? null : request.getPlatformURL();
 
         return ModifyScheduleDto.builder()
             .startTime(request.getStartTime())
@@ -47,10 +45,10 @@ public class ModifyScheduleDto {
             .specificLatitude(request.getSpecificLatitude()) // 추가
             .specificLongitude(request.getSpecificLongitude()) // 추가
             .meetingPlatform(request.getMeetingPlatform())
-            .platformURL(url)
+            .platformURL(request.getPlatformURL())
             .status(request.getStatus())
             .workspaceId(request.getWorkspaceId())
-            .workspaces(request.getWorkspaces())
+            .workspace(request.getWorkspace())
             .build();
     }
 }
