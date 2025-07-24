@@ -23,6 +23,7 @@ import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
 import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.DepartLocationMetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
+import com.grepp.spring.app.model.schedule.dto.ModifyWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
@@ -222,19 +223,19 @@ public class ScheduleCommandService {
     private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {
         Workspace workspace = workspaceQueryRepository.findworkspace(scheduleId, workspaceId);
 
-        if (dto.getWorkspaces() != null && !dto.getWorkspaces().isEmpty()) {
-            WorkspaceDto workspaceDto = dto.getWorkspaces().get(0);
+        if (dto.getWorkspace() != null && !dto.getWorkspace().isEmpty()) {
+            ModifyWorkspaceDto modifyWorkspaceDto = dto.getWorkspace().get(0);
 
-            if (workspaceDto.getType() != null) {
-                workspace.setType(workspaceDto.getType());
+            if (modifyWorkspaceDto.getType() != null) {
+                workspace.setType(modifyWorkspaceDto.getType());
             }
 
-            if (workspaceDto.getName() != null) {
-                workspace.setName(workspaceDto.getName());
+            if (modifyWorkspaceDto.getName() != null) {
+                workspace.setName(modifyWorkspaceDto.getName());
             }
 
-            if (workspaceDto.getUrl() != null) {
-                workspace.setUrl(workspaceDto.getUrl());
+            if (modifyWorkspaceDto.getUrl() != null) {
+                workspace.setUrl(modifyWorkspaceDto.getUrl());
             }
         }
     }
