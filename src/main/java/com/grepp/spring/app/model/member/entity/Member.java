@@ -9,6 +9,7 @@ import com.grepp.spring.app.model.mypage.entity.FavoriteLocation;
 import com.grepp.spring.app.model.mypage.entity.FavoriteTimetable;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.infra.entity.BaseEntity;
+import com.grepp.spring.infra.error.exceptions.member.InvalidNameException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,8 +25,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 
 @Entity
@@ -95,7 +98,38 @@ public class Member extends BaseEntity {
     private List<ScheduleMember> scheduleMembers = new ArrayList<>();
 
 
+    // 객체지향적 설계로 변경하는 과정입니다...
+    // 이름을 수정하는 메서드
+    public void updateName(String newName) {
+        if (StringUtils.hasText(newName)) {
+            newName = newName.trim();
+            validateName(newName);
+            this.name = newName;
+        }
+    }
 
+    // 이름 유효성 검증은 Member 엔티티 내부 메서드로 이동
+    private void validateName(String username){
+        if (username == null) {
+            throw new InvalidNameException("이름은 필수 입력값입니다.");
+        }
+        if (username.length() < 2 || username.length() > 10) {
+            throw new InvalidNameException("이름은 2자 이상 10자 이하로만 가능합니다.");
+        }
+        String pattern = "^[가-힣a-zA-Z](?:[가-힣a-zA-Z ]*[가-힣a-zA-Z])?$";
+        if (!username.matches(pattern)) {
+            throw new InvalidNameException("이름은 한글, 영문만 사용 가능하며, 숫자나 특수문자는 포함할 수 없습니다.");
+        }
+    }
 
-
+    // 프로필 이미지를 수정하는 메서드
+    public void updateProfileImage() {
+        int currentProfileNumber = this.profileImageNumber;
+        int newProfileNumber;
+        Random random = new Random();
+        do {
+            newProfileNumber = random.nextInt(8);
+        } while (newProfileNumber == currentProfileNumber);
+        this.profileImageNumber = newProfileNumber;
+    }
 }
