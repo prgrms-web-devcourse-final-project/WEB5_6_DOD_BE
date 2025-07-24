@@ -9,10 +9,13 @@ import com.grepp.spring.infra.error.exceptions.mypage.FavoriteAlreadyExistExcept
 import com.grepp.spring.infra.error.exceptions.mypage.FavoriteNotFoundException;
 import com.grepp.spring.infra.error.exceptions.mypage.FavoriteSaveFailedException;
 import com.grepp.spring.infra.error.exceptions.mypage.GoogleAuthFailedException;
+import com.grepp.spring.infra.error.exceptions.mypage.GoogleCalendarApiFailedException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidCalendarResponseException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidFavoriteRequestException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidMemberRequestException;
+import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
 import com.grepp.spring.infra.error.exceptions.mypage.TokenSaveFailedException;
 import com.grepp.spring.infra.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +48,15 @@ public class MyPageExceptionAdvice {
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
   }
+
+  @ExceptionHandler(InvalidPublicCalendarIdException.class)
+  public ResponseEntity<ApiResponse<String>> invalidPublicCalendarIdExHandler(
+      InvalidPublicCalendarIdException ex) {
+
+    return ResponseEntity.status(ex.getCode().status())
+        .body(ApiResponse.error(ex.getCode()));
+  }
+
   // 401
   @ExceptionHandler(AuthenticationRequiredException.class) // 멤버 인증 관련
   public ResponseEntity<ApiResponse<String>> authenticationRequiredExHandler(
@@ -63,7 +75,7 @@ public class MyPageExceptionAdvice {
   }
 
   @ExceptionHandler(CalendarAuthRequiredException.class)
-  public ResponseEntity<ApiResponse<String>> handleCalendarAuthRequiredExHandler(
+  public ResponseEntity<ApiResponse<String>> CalendarAuthRequiredExHandler(
       CalendarAuthRequiredException ex) {
 
     return ResponseEntity
@@ -72,7 +84,7 @@ public class MyPageExceptionAdvice {
   }
 
   @ExceptionHandler(CalendarTokenExpiredException.class)
-  public ResponseEntity<ApiResponse<String>> handleCalendarTokenExpiredExHandler(
+  public ResponseEntity<ApiResponse<String>> CalendarTokenExpiredExHandler(
       CalendarTokenExpiredException ex) {
     return ResponseEntity
         .status(ex.getCode().status())
@@ -91,6 +103,14 @@ public class MyPageExceptionAdvice {
   @ExceptionHandler(MemberNotFoundException.class) // 멤버 관련
   public ResponseEntity<ApiResponse<String>> memberNotFoundExHandlerExHandler(
       MemberNotFoundException ex) {
+
+    return ResponseEntity.status(ex.getCode().status())
+        .body(ApiResponse.error(ex.getCode()));
+  }
+
+  @ExceptionHandler(PublicCalendarIdNotFoundException.class)
+  public ResponseEntity<ApiResponse<String>> publicCalendarIdNotFoundException(
+      PublicCalendarIdNotFoundException ex) {
 
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
@@ -141,6 +161,15 @@ public class MyPageExceptionAdvice {
   @ExceptionHandler(FavoriteSaveFailedException.class)
   public ResponseEntity<ApiResponse<String>> FavoriteSaveFailedExHandler(
       FavoriteSaveFailedException ex) {
+
+    return ResponseEntity.status(ex.getCode().status())
+        .body(ApiResponse.error(ex.getCode()));
+  }
+
+  // 503
+  @ExceptionHandler(GoogleCalendarApiFailedException.class)
+  public ResponseEntity<ApiResponse<String>> GoogleCalendarApiExHandler(
+      GoogleCalendarApiFailedException ex) {
 
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
