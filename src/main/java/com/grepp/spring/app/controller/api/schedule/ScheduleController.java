@@ -1,11 +1,12 @@
 package com.grepp.spring.app.controller.api.schedule;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedulesRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.request.VoteMiddleLocationsRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateDepartLocationResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
@@ -16,7 +17,6 @@ import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSchedul
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowSuggestedLocationsResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.ShowVoteMembersResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.VoteMiddleLocationsResponse;
-import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.schedule.entity.Location;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -28,7 +28,6 @@ import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,8 +45,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ScheduleController {
 
-    private final ScheduleCommandService scheduleCommandService;
     private final ScheduleQueryService scheduleQueryService;
+    private final ScheduleCommandService scheduleCommandService;
 
     // 일정 조회
     @Operation(summary = "일정 조회", description = "일정을 조회합니다.")
@@ -55,10 +54,10 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(
         @PathVariable Long scheduleId) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-            ShowScheduleResponse response = scheduleQueryService.showSchedule(schedule);
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        ShowScheduleResponse response = scheduleQueryService.showSchedule(schedule);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 일정 등록
@@ -67,11 +66,11 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
         @RequestBody CreateSchedulesRequest request) {
 
-            Event event = scheduleQueryService.findEventById(request.getEventId());
+        Event event = scheduleQueryService.findEventById(request.getEventId());
 
-            CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event);
+        CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event);
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 일정 수정
@@ -80,10 +79,10 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<Void>> modifySchedule(
         @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-            scheduleCommandService.modifySchedule(request, schedule.getId());
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        scheduleCommandService.modifySchedule(request, schedule.getId());
 
-            return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
     }
 
     // 일정 삭제
@@ -92,10 +91,10 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(
         @PathVariable Long scheduleId) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-            scheduleCommandService.deleteSchedule(schedule.getId());
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        scheduleCommandService.deleteSchedule(schedule.getId());
 
-            return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
     }
 
 
@@ -106,11 +105,11 @@ public class ScheduleController {
         @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request)
         throws JsonProcessingException {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
 
-            scheduleCommandService.createDepartLocation(schedule.getId(), request);
+        scheduleCommandService.createDepartLocation(schedule.getId(), request);
 
-            return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
     }
 
     // 중간장소 후보 조회
@@ -119,16 +118,18 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<ShowSuggestedLocationsResponse>> showSuggestedLocations(
         @PathVariable Long scheduleId) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-            ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(schedule.getId());
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        ShowSuggestedLocationsResponse response = scheduleQueryService.showSuggestedLocation(
+            schedule.getId());
 
-            return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     // 투표 전 중간장소 직접 입력받기
     @Operation(summary = "투표 전 중간장소 직접 입력받기", description = "투표 전 중간장소를 직접 입력받습니다.")
     @PostMapping("/write-suggested-location/{scheduleId}")
-    public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation( @PathVariable Long scheduleId, @RequestBody WriteSuggestedLocationRequest request) {
+    public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation(@PathVariable Long scheduleId,
+        @RequestBody WriteSuggestedLocationRequest request) {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
         scheduleCommandService.WriteSuggestedLocation(schedule, request);
@@ -142,24 +143,25 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<VoteMiddleLocationsResponse>> voteMiddleLocation(
         @PathVariable Long scheduleMemberId, @RequestBody VoteMiddleLocationsRequest request) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(request.getScheduleId());
-            ScheduleMember scheduleMember = scheduleQueryService.findScheduleMemberById(scheduleMemberId);
-            Location location = scheduleQueryService.findLocationById(request.getLocationId());
+        Schedule schedule = scheduleQueryService.findScheduleById(request.getScheduleId());
+        ScheduleMember scheduleMember = scheduleQueryService.findScheduleMemberById(
+            scheduleMemberId);
+        Location location = scheduleQueryService.findLocationById(request.getLocationId());
 
-            scheduleCommandService.voteMiddleLocation(schedule, scheduleMember, location);
+        scheduleCommandService.voteMiddleLocation(schedule, scheduleMember, location);
 
-            return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("성공적으로 투표를 진행했습니다."));
     }
 
     // 스케줄에 대해 투표한 인원의 아이디 확인
     @Operation(summary = "투표한 인원의 아이디를 확인합니다.", description = "투표한 인원의 아이디를 확인합니다.")
     @GetMapping("/show-vote-members/{scheduleId}")
-    public  ResponseEntity<ApiResponse<ShowVoteMembersResponse>> showVoteMembers(@PathVariable Long scheduleId) {
+    public ResponseEntity<ApiResponse<ShowVoteMembersResponse>> showVoteMembers(
+        @PathVariable Long scheduleId) {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
 
         ShowVoteMembersResponse response = scheduleQueryService.findVoteMembers(schedule.getId());
-
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -167,9 +169,11 @@ public class ScheduleController {
     // 온라인 회의장 링크 개설(줌)
     @Operation(summary = "온라인 회의장 링크 개설(줌)", description = "온라인 회의장을 개설합니다.")
     @PostMapping("/create-online-meeting/{scheduleId}")
-    public ResponseEntity<ApiResponse<CreateOnlineMeetingRoomResponse>> CreateOnlineMeetingRoom(@PathVariable Long scheduleId) {
+    public ResponseEntity<ApiResponse<CreateOnlineMeetingRoomResponse>> CreateOnlineMeetingRoom(
+        @PathVariable Long scheduleId) {
 
-        CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(scheduleId);
+        CreateOnlineMeetingRoomResponse response = scheduleCommandService.createOnlineMeeting(
+            scheduleId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -177,23 +181,25 @@ public class ScheduleController {
     // 공통 워크스페이스 등록
     @Operation(summary = "워크스페이스 등록", description = "워크스페이스 등록을 진행합니다.")
     @PostMapping("/add-workspace/{scheduleId}")
-    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> createWorkspace(@PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
+    public ResponseEntity<ApiResponse<CreateWorkspaceResponse>> createWorkspace(
+        @PathVariable Long scheduleId, @RequestBody AddWorkspaceRequest request) {
 
-            Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-            scheduleCommandService.AddWorkspace(schedule, request);
+        Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
+        scheduleCommandService.AddWorkspace(schedule, request);
 
-            return ResponseEntity.ok(ApiResponse.success("워크스페이스를 등록했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("워크스페이스를 등록했습니다."));
     }
 
     // 공통 워크스페이스 삭제
     @Operation(summary = "워크스페이스 삭제", description = "워크스페이스 삭제를 진행합니다.")
     @PostMapping("/delete-workspace/{workspaceId}")
-    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> createWorkspace(@PathVariable Long workspaceId) {
+    public ResponseEntity<ApiResponse<DeleteWorkSpaceResponse>> createWorkspace(
+        @PathVariable Long workspaceId) {
 
         Workspace workspace = scheduleQueryService.findWorkspaceById(workspaceId);
 
-            scheduleCommandService.deleteWorkspace(workspace.getId());
+        scheduleCommandService.deleteWorkspace(workspace.getId());
 
-            return ResponseEntity.ok(ApiResponse.success("워크스페이스를 삭제했습니다."));
+        return ResponseEntity.ok(ApiResponse.success("워크스페이스를 삭제했습니다."));
     }
 }
