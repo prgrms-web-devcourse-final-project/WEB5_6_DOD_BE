@@ -11,7 +11,6 @@ import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedu
 import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
-import com.grepp.spring.app.model.auth.domain.Principal;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
@@ -72,8 +71,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -149,14 +146,10 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void modifySchedule(ModifySchedulesRequest request, Long scheduleId) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        Principal user = (Principal) authentication.getPrincipal();
+    public void modifySchedule(ModifySchedulesRequest request, Long scheduleId, String userId) {
 
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            user.getUsername(), scheduleId);
+            userId, scheduleId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
 
@@ -240,13 +233,10 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void deleteSchedule(Long scheduleId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        Principal user = (Principal) authentication.getPrincipal();
+    public void deleteSchedule(Long scheduleId, String userId) {
 
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            user.getUsername(), scheduleId);
+            userId, scheduleId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
             scheduleCommandRepository.deleteById(scheduleId);
@@ -266,11 +256,9 @@ public class ScheduleCommandService {
     }
 
     @Transactional // Transactional 내에서 수정이 되어야 자동 변경 감지된다.
-    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request)
+    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request,
+        String userId)
         throws JsonProcessingException {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) authentication.getPrincipal();
 
         Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
 
@@ -279,7 +267,7 @@ public class ScheduleCommandService {
         locationCommandRepository.deleteLocation(scheduleId);
 
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            user.getUsername(), scheduleId);
+            userId, scheduleId);
 
         Optional<Metro> metro = metroQueryRepository.findByName(request.getDepartLocationName());
 
@@ -480,12 +468,12 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        Principal user = (Principal) auth.getPrincipal();
+    public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
+        String userId) {
+
         ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            user.getUsername(), schedule.getId());
-        Member member = memberRepository.findById(user.getUsername()).orElseThrow();
+            userId, schedule.getId());
+        Member member = memberRepository.findById(userId).orElseThrow();
         Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {

@@ -24,6 +24,7 @@ import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.entity.Workspace;
 import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
+import com.grepp.spring.infra.auth.CurrentUser;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -77,10 +78,11 @@ public class ScheduleController {
     @Operation(summary = "일정 수정", description = "일정 수정을 진행합니다.")
     @PatchMapping("/modify/{scheduleId}")
     public ResponseEntity<ApiResponse<Void>> modifySchedule(
-        @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request) {
+        @PathVariable Long scheduleId, @RequestBody ModifySchedulesRequest request,
+        @CurrentUser String userId) {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-        scheduleCommandService.modifySchedule(request, schedule.getId());
+        scheduleCommandService.modifySchedule(request, schedule.getId(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("일정이 수정되었습니다."));
     }
@@ -89,10 +91,10 @@ public class ScheduleController {
     @Operation(summary = "일정 삭제", description = "일정을 삭제합니다.")
     @DeleteMapping("/delete/{scheduleId}")
     public ResponseEntity<ApiResponse<DeleteSchedulesResponse>> deleteSchedules(
-        @PathVariable Long scheduleId) {
+        @PathVariable Long scheduleId, @CurrentUser String userId) {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-        scheduleCommandService.deleteSchedule(schedule.getId());
+        scheduleCommandService.deleteSchedule(schedule.getId(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("일정을 삭제했습니다."));
     }
@@ -102,12 +104,13 @@ public class ScheduleController {
     @Operation(summary = "출발장소 등록", description = "출발장소 등록을 진행합니다.")
     @PostMapping("create-depart-location/{scheduleId}")
     public ResponseEntity<ApiResponse<CreateDepartLocationResponse>> createDepartLocation(
-        @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request)
+        @RequestParam Long scheduleId, @RequestBody CreateDepartLocationRequest request,
+        @CurrentUser String userId)
         throws JsonProcessingException {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
 
-        scheduleCommandService.createDepartLocation(schedule.getId(), request);
+        scheduleCommandService.createDepartLocation(schedule.getId(), request, userId);
 
         return ResponseEntity.ok(ApiResponse.success("출발장소가 등록되었습니다."));
     }
@@ -129,10 +132,10 @@ public class ScheduleController {
     @Operation(summary = "투표 전 중간장소 직접 입력받기", description = "투표 전 중간장소를 직접 입력받습니다.")
     @PostMapping("/write-suggested-location/{scheduleId}")
     public ResponseEntity<ApiResponse<Void>> writeSuggestedLocation(@PathVariable Long scheduleId,
-        @RequestBody WriteSuggestedLocationRequest request) {
+        @RequestBody WriteSuggestedLocationRequest request, @CurrentUser String userId) {
 
         Schedule schedule = scheduleQueryService.findScheduleById(scheduleId);
-        scheduleCommandService.WriteSuggestedLocation(schedule, request);
+        scheduleCommandService.WriteSuggestedLocation(schedule, request, userId);
 
         return ResponseEntity.ok(ApiResponse.success("중간장소를 등록했습니다."));
     }
