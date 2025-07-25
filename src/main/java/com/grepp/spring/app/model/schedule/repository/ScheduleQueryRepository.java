@@ -13,4 +13,6 @@ public interface ScheduleQueryRepository extends JpaRepository<Schedule, Long> {
 
 
     List<Schedule> findByEvent(Event event);
+
+    Event findEventById(Long id);
 }
