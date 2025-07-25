@@ -14,6 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ScheduleMembersDto {
     private String id;
+    private Long scheduleMemberId;
     private String name;
     private ScheduleRole scheduleRole;
 }

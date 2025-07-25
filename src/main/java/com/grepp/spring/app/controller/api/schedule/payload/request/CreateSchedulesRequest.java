@@ -5,11 +5,13 @@ import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
 public class CreateSchedulesRequest {
     private Long eventId;
     private LocalDateTime startTime;
