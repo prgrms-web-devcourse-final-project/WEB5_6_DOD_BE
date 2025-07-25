@@ -9,6 +9,7 @@ import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavorit
 import com.grepp.spring.app.controller.api.mypage.payload.response.CreateFavoriteTimeResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.ModifyFavoritePlaceResponse;
 import com.grepp.spring.app.controller.api.mypage.payload.response.PublicCalendarIdResponse;
+import com.grepp.spring.app.model.mainpage.service.PublicCalendarService;
 import com.grepp.spring.app.model.mypage.dto.FavoriteLocationDto;
 import com.grepp.spring.app.model.mypage.service.MypageService;
 import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
@@ -39,6 +40,7 @@ public class MypageController {
 
   private final MypageService mypageService;
   private final PublicCalendarIdService publicCalendarIdService;
+  private final PublicCalendarService publicCalendarService;
 
 
   // 즐겨찾기 장소 등록
@@ -120,6 +122,22 @@ public class MypageController {
 
   }
 
+  @Operation(summary = "공개 캘린더 ID 조회")
+  @GetMapping("/calendar/public-id")
+  public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> getPublicCalendarId() {
+
+    String memberId = extractCurrentMemberId();
+
+    // DB 에서 ID 조회하기
+    String publicCalendarId = publicCalendarIdService.getPublicCalendarId(memberId);
+
+    PublicCalendarIdResponse response = new PublicCalendarIdResponse(publicCalendarId);
+
+
+    return ResponseEntity.ok(ApiResponse.success(response));
+
+  }
+
 
   @Operation(summary = "공개 캘린더 ID 입력받기")
   @PostMapping("/calendar/public-id")
@@ -129,6 +147,9 @@ public class MypageController {
     String publicCalendarId = request.getPublicCalendarId();
 
     String memberId = extractCurrentMemberId();
+
+    // 유효한 캘린더 id 인지 검증 위해 api 호출
+    publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
 
     // DB 에 저장하기
     publicCalendarIdService.savePublicCalendarId(memberId, publicCalendarId);

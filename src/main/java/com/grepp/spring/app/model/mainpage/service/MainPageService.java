@@ -11,7 +11,10 @@ import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.infra.error.exceptions.mypage.GoogleCalendarApiFailedException;
+import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -20,7 +23,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @Service
@@ -74,8 +75,6 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     LocalDate weekEnd = weekStart.plusDays(6);
     UnifiedScheduleResult weeklyResult = getUnifiedSchedules(memberId, weekStart, weekEnd);
 
-    // (api 호출 한 번 실패하면 그냥 일간, 주간 둘다 false 임)
-    boolean googleFetchSuccess = todayResult.isGoogleFetchSuccess();
 
     ShowMainPageResponse.WeeklyScheduleDto weeklyScheduleDto =
         ShowMainPageResponse.WeeklyScheduleDto.builder()
@@ -90,7 +89,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         .groups(groups)
         .schedules(todayResult.getSchedules())
         .weeklySchedules(List.of(weeklyScheduleDto))
-        .googleCalendarFetchSuccess(googleFetchSuccess) // 성공 여부 담기
+        .googleCalendarFetchSuccess(todayResult.isGoogleFetchSuccess()) // 성공 여부 담기
         .build();
   }
 
@@ -119,33 +118,25 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         })
         .toList();
 
-    // 공개 캘린더 ID 조회
-    Optional<String> publicCalendarIdOpt = publicCalendarIdService.getPublicCalendarId(memberId);
 
     // 공개 캘린더 ID 없을 때 내부 일정만 반환
-    if (publicCalendarIdOpt.isEmpty()) {
-      log.info("회원 {}는 공개 캘린더 ID가 없음 → 내부 일정만 반환", memberId);
-      return new UnifiedScheduleResult(internalDtos, true); // 구글 호출 자체가 없어서 true 처리
-    }
-    String publicCalendarId = publicCalendarIdOpt.get();
-
     try {
+      // ID 조회 (없으면 예외)
+      String publicCalendarId = publicCalendarIdService.getPublicCalendarId(memberId);
 
-      // 공개 캘린더 일정 가져오기 -> 메인페이지 로드될 때마다 호출 (동기화 새로고침 필요 X)
-      List<PublicCalendarEventDto> publicEvents = publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
+      // 공개 캘린더 일정 가져오기
+      List<PublicCalendarEventDto> publicEvents =
+          publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
 
-      // 일정 범위 필터링하기
+      // 일정 범위 필터링
       publicEvents = publicEvents.stream()
           .filter(e -> {
-            // 종일 -> date / 일반 -> dateTime
             LocalDateTime eventStart = parseDateOrDateTime(e.getStart());
             LocalDateTime eventEnd = parseDateOrDateTime(e.getEnd());
 
             if (e.isAllDay()) {
-              // 종일 일정은 start 일만 조회 범위에 들어올 때 표시
               return !eventStart.isBefore(startDateTime) && !eventStart.isAfter(endDateTime);
             } else {
-              // 일반 일정은 기간 겹치면 포함
               return !(eventEnd.isBefore(startDateTime) || eventStart.isAfter(endDateTime));
             }
           })
@@ -160,16 +151,26 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
           ))
           .toList();
 
+      // 내부 일정 + 구글 일정 합치기
       List<UnifiedScheduleDto> merged = Stream.concat(internalDtos.stream(), publicGoogleDtos.stream())
-        .sorted(Comparator.comparing(UnifiedScheduleDto::getStartTime))
-        .toList();
+          .sorted(Comparator.comparing(UnifiedScheduleDto::getStartTime))
+          .toList();
 
+      // 구글까지 성공적으로 가져온 경우 → success=true
       return new UnifiedScheduleResult(merged, true);
-    } catch (RestClientException ex) {
-      log.warn("구글 공개 캘린더 조회 실패! memberId={}, publicCalendarId={}", memberId, publicCalendarId, ex);
-      return new UnifiedScheduleResult(internalDtos, false); // 실패 시에도 내부 일정만 보여주도록 처리 + success 여부 false 로 처리
-    }
 
+    } catch (PublicCalendarIdNotFoundException e) {
+      // 공개 캘린더 ID 자체가 없으면 내부 일정만 반환
+      // log.info("회원 {}는 공개 캘린더 ID가 없음 → 내부 일정만 반환", memberId);
+      return new UnifiedScheduleResult(internalDtos, true);
+
+    } catch (InvalidPublicCalendarIdException e) {
+      return new UnifiedScheduleResult(internalDtos, false);
+
+    } catch (GoogleCalendarApiFailedException e) {
+      return new UnifiedScheduleResult(internalDtos, false);
+
+    }
   }
   public static LocalDateTime parseDateOrDateTime(String dateOrDateTime) {
     if (dateOrDateTime == null) return null;
