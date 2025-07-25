@@ -1,4 +1,4 @@
-package com.grepp.spring.infra;
+package com.grepp.spring.infra.utils;
 
 import java.util.List;
 import java.util.Random;

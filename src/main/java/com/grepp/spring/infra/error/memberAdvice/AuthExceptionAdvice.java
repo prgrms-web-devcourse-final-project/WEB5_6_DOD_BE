@@ -1,4 +1,4 @@
-package com.grepp.spring.infra.error;
+package com.grepp.spring.infra.error.memberAdvice;
 
 import com.grepp.spring.infra.error.exceptions.AuthApiException;
 import com.grepp.spring.infra.response.ApiResponse;
