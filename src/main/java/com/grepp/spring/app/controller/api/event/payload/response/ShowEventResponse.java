@@ -1,5 +1,6 @@
 package com.grepp.spring.app.controller.api.event.payload.response;
 
+import com.grepp.spring.app.model.event.code.MeetingType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,4 +24,7 @@ public class ShowEventResponse {
 
     @Schema(description = "그룹 ID", example = "6789")
     private final Long groupId;
+
+    @Schema(description = "미팅 타입", example = "ONLINE")
+    private final MeetingType meetingType;
 }

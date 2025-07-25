@@ -58,6 +58,7 @@ public class EventQueryService {
             .description(event.getDescription())
             .role(eventMember.getRole().name())
             .groupId(event.getGroup().getId())
+            .meetingType(event.getMeetingType())
             .build();
     }
 
