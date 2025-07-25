@@ -18,6 +18,7 @@ public class AllTimeScheduleDto {
     private final String description;
     private final TimeTableDto timeTable;
     private final List<MemberScheduleDto> memberSchedules;
+    private final Integer maxMembers;
     private final Integer totalMembers;
     private final Integer confirmedMembers;
     private final Map<String, List<Integer>> participantCounts;
@@ -80,6 +81,7 @@ public class AllTimeScheduleDto {
             .description(dto.getDescription())
             .timeTable(timeTable)
             .memberSchedules(memberSchedules)
+            .maxMembers(dto.getMaxMembers())
             .totalMembers(dto.getTotalMembers())
             .confirmedMembers(dto.getConfirmedMembers())
             .participantCounts(dto.getParticipantCounts())

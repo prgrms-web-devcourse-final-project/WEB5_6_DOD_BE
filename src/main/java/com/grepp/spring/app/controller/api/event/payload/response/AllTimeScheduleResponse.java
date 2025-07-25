@@ -14,6 +14,7 @@ public class AllTimeScheduleResponse {
     private final String description;
     private final TimeTable timeTable;
     private final List<MemberSchedule> memberSchedules;
+    private final Integer maxMembers;
     private final Integer totalMembers;
     private final Integer confirmedMembers;
     private final Map<String, List<Integer>> participantCounts;
