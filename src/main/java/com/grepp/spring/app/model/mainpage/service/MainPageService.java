@@ -14,7 +14,6 @@ import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.infra.error.exceptions.mypage.GoogleCalendarApiFailedException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
-import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -23,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,7 +52,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     private final List<UnifiedScheduleDto> schedules;
     private final boolean googleFetchSuccess;
   }
-
+  @Transactional(readOnly = true)
   public ShowMainPageResponse getMainPageData(String memberId, LocalDate targetDate) {
 
     if (memberId == null || memberId.trim().isEmpty()) {
@@ -93,6 +93,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         .build();
   }
 
+  @Transactional(readOnly = true)
   public UnifiedScheduleResult getUnifiedSchedules(String memberId, LocalDate start,
       LocalDate end) {
 
@@ -118,11 +119,19 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         })
         .toList();
 
+    // 캘린더 id 조회
+    Optional<String> publicCalendarIdOpt = publicCalendarIdService.getPublicCalendarId(memberId);
+
+    // 공개 캘린더 ID 없으면 내부 일정만 반환
+    if (publicCalendarIdOpt.isEmpty()) {
+      log.info("공개 캘린더 ID 없음 → 내부 일정만 반환");
+      return new UnifiedScheduleResult(internalDtos, true);
+    }
+
 
     // 공개 캘린더 ID 없을 때 내부 일정만 반환
     try {
-      // ID 조회 (없으면 예외)
-      String publicCalendarId = publicCalendarIdService.getPublicCalendarId(memberId);
+      String publicCalendarId = publicCalendarIdOpt.get();
 
       // 공개 캘린더 일정 가져오기
       List<PublicCalendarEventDto> publicEvents =
@@ -158,11 +167,6 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
 
       // 구글까지 성공적으로 가져온 경우 → success=true
       return new UnifiedScheduleResult(merged, true);
-
-    } catch (PublicCalendarIdNotFoundException e) {
-      // 공개 캘린더 ID 자체가 없으면 내부 일정만 반환
-      // log.info("회원 {}는 공개 캘린더 ID가 없음 → 내부 일정만 반환", memberId);
-      return new UnifiedScheduleResult(internalDtos, true);
 
     } catch (InvalidPublicCalendarIdException e) {
       return new UnifiedScheduleResult(internalDtos, false);

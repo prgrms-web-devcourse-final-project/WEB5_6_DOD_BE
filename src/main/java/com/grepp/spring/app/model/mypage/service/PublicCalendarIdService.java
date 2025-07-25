@@ -7,7 +7,6 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
-import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -42,13 +41,13 @@ public class PublicCalendarIdService {
 
   // DB 에 저장된 공개 캘린더 ID 조회
   @Transactional(readOnly = true)
-  public String getPublicCalendarId(String memberId) {
+  public Optional<String> getPublicCalendarId(String memberId) {
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
 
     return calendarRepository.findByMember(member)
         .map(Calendar::getPublicCalendarId)
-        .orElseThrow(() -> new PublicCalendarIdNotFoundException(MyPageErrorCode.PUBLIC_CALENDAR_ID_NOT_FOUND));
+        .filter(id -> id != null && !id.isBlank()); // null/빈 값이면 Optional.empty()
   }
 
 }

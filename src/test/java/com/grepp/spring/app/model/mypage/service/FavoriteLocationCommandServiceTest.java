@@ -43,6 +43,10 @@ class FavoriteLocationCommandServiceTest {
     Member member = new Member();
     FavoriteLocation location = FavoriteLocation.create(member, request);
 
+    // @BeforeEach 로 setup 메서드 만들어서 더미 멤버 만들어서 선언부 줄이기
+
+    // 생성도 만들자 ㅜㅜ -> 리팩토링 먼저 해야굄...
+    //
     when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
     // 즐겨찾기 장소 등록 안되어있음을 가정
     when(myLocationRepository.existsByMemberId(memberId)).thenReturn(false);
@@ -55,6 +59,6 @@ class FavoriteLocationCommandServiceTest {
     assertNotNull(result);
     assertEquals("서울역", result.getStationName());
     // save 1번 호출 되었는지 검증
-    verify(myLocationRepository, times(1)).save(any(FavoriteLocation.class));
+    verify(myLocationRepository, times( 1)).save(any(FavoriteLocation.class));
   }
 }

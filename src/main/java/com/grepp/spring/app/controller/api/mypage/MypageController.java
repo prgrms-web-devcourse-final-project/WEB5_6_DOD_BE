@@ -138,7 +138,9 @@ public class MypageController {
   ) {
 
     // DB 에서 ID 조회하기
-    String publicCalendarId = publicCalendarIdService.getPublicCalendarId(userId);
+    String publicCalendarId = publicCalendarIdService.getPublicCalendarId(userId)
+        .orElse(null); // ID 없으면 null 로 내려주기
+
 
     PublicCalendarIdResponse response = new PublicCalendarIdResponse(publicCalendarId);
 
@@ -159,6 +161,8 @@ public class MypageController {
 
     // 유효한 캘린더 id 인지 검증 위해 api 호출
     publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
+
+    // 해당 메서드 위한 서비스를 만듦 -> 합치는 과정을 그 서비스에서 비즈니스 로직 처리 한번에
 
     // DB 에 저장하기
     publicCalendarIdService.savePublicCalendarId(userId, publicCalendarId);
