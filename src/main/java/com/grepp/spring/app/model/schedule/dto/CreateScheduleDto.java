@@ -23,8 +23,6 @@ public class CreateScheduleDto {
     private String scheduleName;
     private String description;
 
-//    private int maxNumber; // 추가
-
     private List<ScheduleMemberRolesDto> memberRoles;
 
     public static CreateScheduleDto toDto(CreateSchedulesRequest request) {

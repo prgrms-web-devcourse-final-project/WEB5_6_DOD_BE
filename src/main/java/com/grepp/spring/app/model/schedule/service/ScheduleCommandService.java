@@ -27,7 +27,6 @@ import com.grepp.spring.app.model.schedule.dto.ModifyWorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
 import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
-import com.grepp.spring.app.model.schedule.dto.WorkspaceDto;
 import com.grepp.spring.app.model.schedule.dto.WriteSuggestedLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WriteSuggestedMetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ZoomMeetingDto;
@@ -117,16 +116,45 @@ public class ScheduleCommandService {
     @Value("${zoom.refresh-token}")
     private String zoomRefreshToken;
 
+    // 공통 로직
+    private Optional<Schedule> getSchedule(Long scheduleId) {
+        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+        return schedule;
+    }
+
+    private Member memberValid(String memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new UserNotFoundException(GroupErrorCode.USER_NOT_FOUND));
+        return member;
+    }
+
+    private ScheduleMember getScheduleMember(Long scheduleId, String userId) {
+        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(userId, scheduleId);
+        return scheduleMember;
+    }
+
+    private Optional<Metro> getMetro(String departLocationName) {
+        Optional<Metro> metro = metroQueryRepository.findByName(departLocationName);
+        return metro;
+    }
+
+    private Location getLocation(Location lid) {
+        Location location = locationQueryRepository.findById(lid.getId())
+            .orElseThrow(() -> new LocationNotFoundException(ScheduleErrorCode.LOCATION_NOT_FOUND));
+        return location;
+    }
+
     @Transactional
     public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, Event event) {
 
-        Schedule schedule = getSchedule(request, event);
+        Schedule schedule = create(request, event);
         createScheduleMembers(request, schedule);
 
         return CreateScheduleDto.toResponse(schedule.getId());
     }
 
-    private Schedule getSchedule(CreateSchedulesRequest request, Event event) {
+    // NOTE private 변경
+    public Schedule create(CreateSchedulesRequest request, Event event) {
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
         Schedule schedule = CreateScheduleDto.fromDto(dto, event);
 
@@ -134,13 +162,13 @@ public class ScheduleCommandService {
         return schedule;
     }
 
-    private void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule) {
+    // NOTE private 변경
+    public void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule) {
         for (ScheduleMemberRolesDto entry : request.getMemberRoles()) {
             String memberId = String.valueOf(entry.getMemberId());
             ScheduleRole role = entry.getRole();
 
-            Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new UserNotFoundException(GroupErrorCode.USER_NOT_FOUND));
+            Member member = memberValid(memberId);
 
             ScheduleMember scheduleMember = ScheduleMember.builder()
                 .name(member.getName())
@@ -156,8 +184,8 @@ public class ScheduleCommandService {
     @Transactional
     public void modifySchedule(ModifySchedulesRequest request, Long scheduleId, String userId) {
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            userId, scheduleId);
+        ScheduleMember scheduleMember = getScheduleMember(
+            scheduleId, userId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
 
@@ -169,12 +197,10 @@ public class ScheduleCommandService {
         } else {
             throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
-
-
     }
 
     private void modifyScheduleEntity(Long scheduleId, ModifyScheduleDto dto) {
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+        Optional<Schedule> schedule = getSchedule(scheduleId);
         if (dto.getStartTime() != null) {
             schedule.get().setStartTime(dto.getStartTime());
         }
@@ -215,9 +241,7 @@ public class ScheduleCommandService {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
 
-//        if (dto.getPlatformURL() != null) {
         schedule.get().setPlatformUrl(dto.getPlatformURL());
-//        }
     }
 
     private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {
@@ -243,8 +267,7 @@ public class ScheduleCommandService {
     @Transactional
     public void deleteSchedule(Long scheduleId, String userId) {
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            userId, scheduleId);
+        ScheduleMember scheduleMember = getScheduleMember(scheduleId, userId);
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
             scheduleCommandRepository.deleteById(scheduleId);
@@ -264,21 +287,83 @@ public class ScheduleCommandService {
     }
 
     @Transactional // Transactional 내에서 수정이 되어야 자동 변경 감지된다.
-    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request,
-        String userId)
-        throws JsonProcessingException {
+    public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request, String userId) throws JsonProcessingException {
 
-        Optional<Schedule> schedule = scheduleQueryRepository.findById(scheduleId);
+        Optional<Schedule> schedule = getSchedule(scheduleId);
 
         // 출발장소 추가될때마다 매번 다른 중간장소가 나와야함. 기존의 중간장소는 모두 삭제
         metroTransferCommandRepository.deleteByScheduleId(scheduleId);
         locationCommandRepository.deleteLocation(scheduleId);
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            userId, scheduleId);
+        ScheduleMember scheduleMember = getScheduleMember(scheduleId,userId);
+        Optional<Metro> metro = getMetro(request.getDepartLocationName());
+        setDepartLocation(request, metro, scheduleMember);
 
-        Optional<Metro> metro = metroQueryRepository.findByName(request.getDepartLocationName());
+        // 출발장소들을 이용하여 중간장소 계산
+        List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
 
+        Double middleLatitude = getLatitude(scheduleLocations);
+        Double middleLongitude = getLongitude(scheduleLocations);
+
+        // 3개의 지하철역 정보를 가져오기
+        List<JsonNode> subwayStation = findNearestStations(middleLatitude, middleLongitude);
+
+        // 중간 지하철역 후보 저장
+        saveMiddleLocation(subwayStation, schedule);
+
+        em.flush();  // DB 반영
+        em.clear();  // 영속성 컨텍스트 초기화
+
+    }
+
+    private void saveMiddleLocation(List<JsonNode> subwayStation, Optional<Schedule> schedule) {
+        Optional<Metro> metro;
+        for (JsonNode subwayStationJson : subwayStation) {
+            SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
+            Location location = SubwayStationDto.fromDto(subwayStationDto);
+            location = locationCommandRepository.save(location);
+
+            log.info("location = {}", location);
+
+            metro = metroQueryRepository.findByName(location.getName());
+            List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+
+            for (Line l : line) {
+                DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location, l);
+                MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
+                metroTransferCommandRepository.save(metroTransfer);
+            }
+        }
+    }
+
+    private static Double getLongitude(List<ScheduleMember> scheduleLocations) {
+        Double middleLongitude = 0.0;
+        int cnt = 0;
+        for (ScheduleMember sc : scheduleLocations) {
+            if (sc.getLongitude() != null) {
+                cnt++;
+                middleLongitude += sc.getLongitude();      // 중간 위도 계산
+            }
+        }
+        middleLongitude = middleLongitude / cnt;
+        return middleLongitude;
+    }
+
+    private static Double getLatitude(List<ScheduleMember> scheduleLocations) {
+        Double middleLatitude = 0.0;
+        int cnt = 0;
+        for (ScheduleMember sc : scheduleLocations) {
+            if (sc.getLatitude() != null) {
+                cnt++;
+                middleLatitude += sc.getLatitude();        // 중간 경도 계산
+            }
+        }
+        middleLatitude = middleLatitude / cnt;
+        return middleLatitude;
+    }
+
+    private static void setDepartLocation(CreateDepartLocationRequest request, Optional<Metro> metro,
+        ScheduleMember scheduleMember) {
         // DB에 존재하지 않는다면
         if (metro.isEmpty()) {
             CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
@@ -293,58 +378,6 @@ public class ScheduleCommandService {
             scheduleMember.setLongitude(dto.getLongitude());
             scheduleMember.setLatitude(dto.getLatitude());
         }
-
-        // 출발장소들을 이용하여 중간장소 계산
-        List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(
-            scheduleId);
-
-        Double middleLatitude = 0.0;
-        Double middleLongitude = 0.0;
-        int cnt = 0;
-
-        for (ScheduleMember sc : scheduleLocations) {
-            if (sc.getLatitude() != null) {
-                cnt++;
-                middleLatitude += sc.getLatitude();        // 중간 경도 계산
-                middleLongitude += sc.getLongitude();      // 중간 위도 계산
-            }
-        }
-
-        if (middleLatitude != 0.0) {
-            middleLatitude = middleLatitude / cnt;
-            middleLongitude = middleLongitude / cnt;
-
-            // 3개의 지하철역 정보를 가져오기
-            List<JsonNode> subwayStation = findNearestStations(middleLatitude, middleLongitude);
-
-            log.info("subwayStation size = {}", subwayStation.size());
-
-            for (JsonNode subwayStationJson : subwayStation) {
-                SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson,
-                    schedule.get());
-                Location location = SubwayStationDto.fromDto(subwayStationDto);
-                location = locationCommandRepository.save(location);
-
-                log.info("location = {}", location);
-
-                metro = metroQueryRepository.findByName(location.getName());
-                List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
-
-                for (Line l : line) {
-                    DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(
-                        location, l);
-                    MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
-                    metroTransferCommandRepository.save(metroTransfer);
-                }
-            }
-        }
-
-        log.info("middleLatitude = {}", middleLatitude);
-        log.info("middleLongitude = {}", middleLongitude);
-
-        em.flush();  // DB 반영
-        em.clear();  // 영속성 컨텍스트 초기화
-
     }
 
     // 카카오 api 활용하여 중간장소 역 3개 추출
@@ -404,8 +437,7 @@ public class ScheduleCommandService {
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
-        Location location = locationQueryRepository.findById(lid.getId())
-            .orElseThrow(() -> new LocationNotFoundException(ScheduleErrorCode.LOCATION_NOT_FOUND));
+        Location location = getLocation(lid);
 
         location.setVoteCount(location.getVoteCount() + 1);
 
@@ -429,6 +461,8 @@ public class ScheduleCommandService {
         }
 
     }
+
+
 
     @Transactional
     public CreateOnlineMeetingRoomResponse createOnlineMeeting(Long scheduleId) {
@@ -479,24 +513,12 @@ public class ScheduleCommandService {
     public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
         String userId) {
 
-        ScheduleMember scheduleMember = scheduleMemberQueryRepository.findScheduleMember(
-            userId, schedule.getId());
+        ScheduleMember scheduleMember = getScheduleMember(schedule.getId(),userId);
         Member member = memberRepository.findById(userId).orElseThrow();
-        Optional<Metro> metro = metroQueryRepository.findByName(request.getLocationName());
+        Optional<Metro> metro = getMetro(request.getLocationName());
 
         if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
-            Location location;
-            // DB에 존재하지 않는다면
-            if (metro.isEmpty()) {
-                WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request,
-                    schedule, member);
-
-                location = WriteSuggestedLocationDto.fromDto(dto);
-                location = locationCommandRepository.save(location);
-            } else { // DB에 존재한다면
-                location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
-                location = locationCommandRepository.save(location);
-            }
+            Location location = saveSuggestedLocation(schedule, request, metro, member);
 
             metro = metroQueryRepository.findByName(location.getName());
             List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
@@ -511,5 +533,22 @@ public class ScheduleCommandService {
             throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
         }
 
+    }
+
+    private Location saveSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
+        Optional<Metro> metro, Member member) {
+        Location location;
+        // DB에 존재하지 않는다면
+        if (metro.isEmpty()) {
+            WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request,
+                schedule, member);
+
+            location = WriteSuggestedLocationDto.fromDto(dto);
+            location = locationCommandRepository.save(location);
+        } else { // DB에 존재한다면
+            location = WriteSuggestedLocationDto.metroToEntity(metro.get(), schedule, member);
+            location = locationCommandRepository.save(location);
+        }
+        return location;
     }
 }
