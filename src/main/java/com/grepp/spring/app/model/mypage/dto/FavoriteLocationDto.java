@@ -14,7 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -53,11 +53,12 @@ public class FavoriteLocationDto {
 
   // dto -> response, 내부 리스트 아이템으로 response 로 변환해서 감쌈 -> controller 안에서 사용할 거
   public static CreateFavoritePlaceResponse fromDto(FavoriteLocationDto dto) {
-    FavoriteLocationList item = new FavoriteLocationList();
-    item.setFavoritePlaceId(dto.getFavoriteLocationId());
-    item.setStationName(dto.getStationName());
-    item.setLatitude(dto.getLatitude());
-    item.setLongitude(dto.getLongitude());
+    FavoriteLocationList item = FavoriteLocationList.builder()
+        .favoritePlaceId(dto.getFavoriteLocationId())
+        .stationName(dto.getStationName())
+        .latitude(dto.getLatitude())
+        .longitude(dto.getLongitude())
+        .build();
 
     // 리스트 형태로 감싸서 응답 객체에 넣기 (요소 1개만 필요해서?, 수정 안해도 되니까?)
     return new CreateFavoritePlaceResponse(Collections.singletonList(item));
@@ -73,15 +74,14 @@ public class FavoriteLocationDto {
   }
 
   public static ModifyFavoritePlaceResponse toModifyResponse(FavoriteLocationDto dto) {
-    ModifyFavoritePlaceResponse.ModifyFavLocationList item = new ModifyFavoritePlaceResponse.ModifyFavLocationList();
-    item.setFavoritePlaceId(dto.getFavoriteLocationId());
-    item.setStationName(dto.getStationName());
-    item.setLatitude(dto.getLatitude());
-    item.setLongitude(dto.getLongitude());
+    ModifyFavoritePlaceResponse.ModifyFavLocationList item =
+        ModifyFavoritePlaceResponse.ModifyFavLocationList.builder()
+            .favoritePlaceId(dto.getFavoriteLocationId())
+            .stationName(dto.getStationName())
+            .latitude(dto.getLatitude())
+            .longitude(dto.getLongitude())
+            .build();
 
     return new ModifyFavoritePlaceResponse(Collections.singletonList(item));
   }
-
-
-
 }

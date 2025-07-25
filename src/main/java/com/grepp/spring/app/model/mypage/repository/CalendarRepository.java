@@ -10,6 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CalendarRepository extends JpaRepository<Calendar, Long> {
 
-
   Optional<Calendar> findByMember(Member member);
 }
