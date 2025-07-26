@@ -2,6 +2,7 @@ package com.grepp.spring.app.model.member.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -23,8 +25,15 @@ import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.group.service.GroupCommandService;
 import com.grepp.spring.app.model.member.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.schedule.code.ScheduleRole;
+import com.grepp.spring.app.model.schedule.entity.Schedule;
+import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
+import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
+import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
 import com.grepp.spring.infra.utils.RandomPicker;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -51,6 +61,16 @@ class MemberServiceTest {
     @Mock
     private GroupCommandRepository groupCommandRepository;
 
+    @InjectMocks
+    @Spy
+    private ScheduleCommandService scheduleCommandService;
+
+    @Mock
+    private ScheduleMemberRepository scheduleMemberRepository;
+
+    @Mock
+    private ScheduleCommandRepository scheduleCommandRepository;
+
     // 테스트용 객체
     private Member testMember1;
     private Member testMember2;
@@ -63,6 +83,12 @@ class MemberServiceTest {
     private GroupMember testGroupOtherLeader2;
     private GroupMember testGroupMember1;
     private GroupMember testGroupMember2;
+    private Schedule testSchedule;
+    private ScheduleMember testScheduleMaster;
+    private ScheduleMember testScheduleMember1;
+    private ScheduleMember testScheduleMember2;
+    private ScheduleMember testScheduleMember3;
+    private ScheduleMember testScheduleMember4;
 
     @BeforeEach
     void setUp() {
@@ -156,6 +182,55 @@ class MemberServiceTest {
         testGroupMember2.setGroup(testGroup);
         testGroupMember2.setGroupAdmin(false);
 
+        // 테스트용 일정
+        testSchedule = new Schedule();
+        testSchedule.setId(70L);
+        testSchedule.setDescription("7팀 회식하는 날");
+        testSchedule.setLocation("강남역");
+        testSchedule.setStartTime(LocalDateTime.parse("2025-08-09T17:30:00.000"));
+        testSchedule.setEndTime(LocalDateTime.parse("2025-08-09T23:00:00.000"));
+        testSchedule.setScheduleName("7팀 최종 프로젝트 쫑파티");
+
+        // 테스트용 일정 관리자
+        testScheduleMaster = spy(new ScheduleMember());
+        testScheduleMaster.setId(70L);
+        testScheduleMaster.setMember(testMember1);
+        testScheduleMaster.setSchedule(testSchedule);
+        testScheduleMaster.setRole(ScheduleRole.ROLE_MASTER);
+        testScheduleMaster.setLatitude(37.55315);
+        testScheduleMaster.setLongitude(126.972533);
+        // 테스트용 일정 멤버
+        testScheduleMember1 = spy(new ScheduleMember());
+        testScheduleMember1.setId(71L);
+        testScheduleMember1.setMember(testMember2);
+        testScheduleMember1.setSchedule(testSchedule);
+        testScheduleMember1.setRole(ScheduleRole.ROLE_MEMBER);
+        testScheduleMember1.setLatitude(37.55315);
+        testScheduleMember1.setLongitude(126.972533);
+
+        testScheduleMember2 = spy(new ScheduleMember());
+        testScheduleMember2.setId(72L);
+        testScheduleMember2.setMember(testMember3);
+        testScheduleMember2.setSchedule(testSchedule);
+        testScheduleMember2.setRole(ScheduleRole.ROLE_MEMBER);
+        testScheduleMember2.setLatitude(37.55315);
+        testScheduleMember2.setLongitude(126.972533);
+
+        testScheduleMember3 = spy(new ScheduleMember());
+        testScheduleMember3.setId(73L);
+        testScheduleMember3.setMember(testMember4);
+        testScheduleMember3.setSchedule(testSchedule);
+        testScheduleMember3.setRole(ScheduleRole.ROLE_MEMBER);
+        testScheduleMember3.setLatitude(37.55315);
+        testScheduleMember3.setLongitude(126.972533);
+
+        testScheduleMember4 = spy(new ScheduleMember());
+        testScheduleMember4.setId(74L);
+        testScheduleMember4.setMember(testMember5);
+        testScheduleMember4.setSchedule(testSchedule);
+        testScheduleMember4.setRole(ScheduleRole.ROLE_MEMBER);
+        testScheduleMember4.setLatitude(37.55315);
+        testScheduleMember4.setLongitude(126.972533);
     }
 
     @Test
@@ -249,5 +324,61 @@ class MemberServiceTest {
         verify(groupCommandRepository, times(1)).delete(testGroup);
         // 누군가에게 관리자 권한을 주고, 그 정보를 저장하는 메서드도 호출되지 않았는지 검증
         verify(groupMemberRepository, never()).save(any(GroupMember.class));
+    }
+
+    @Test
+    @DisplayName("일정 마스터가 탈퇴 시 다른 멤버에게 권한을 위임하는 경우")
+    void handleScheduleWithdrawalDelegate() {
+        // testMember1이 마스터인 일정 조회 시 testSchedule 을 포함한 리스트 Return
+        List<Schedule> schedules = Arrays.asList(testSchedule);
+        when(scheduleMemberRepository.findByMember(testMember1))
+            .thenReturn(schedules);
+        // 일정에서 관리자가 아닌 다른 멤버들 조회
+        List<ScheduleMember> otherMembers = Arrays.asList(testScheduleMember1, testScheduleMember2,
+            testScheduleMember3, testScheduleMember4);
+        when(scheduleMemberRepository.findByScheduleAndMemberNot(testSchedule, testMember1))
+            .thenReturn(otherMembers);
+
+        // ScheduleMember 객체 캡쳐 준비
+        ArgumentCaptor<ScheduleMember> newMasterCaptor = ArgumentCaptor.forClass(ScheduleMember.class);
+        // 위임받을 멤버가 임의로 선택됨
+        try(MockedStatic<RandomPicker> mockedStatic = mockStatic(RandomPicker.class)) {
+            mockedStatic.when(() -> RandomPicker.pickRandom(anyList()))
+                .thenReturn(newMasterCaptor);
+        }
+        // 실제 메서드 호출
+        scheduleCommandService.handleScheduleWithdrawal(testMember1);
+        // 일정이 삭제되지 않았는지 검증
+        verify(scheduleCommandRepository, never()).delete(any(Schedule.class));
+        // grantAdminRole 메서드가 호출되었는지 (권한 위임이 발생했는지) 검증
+        verify(scheduleMemberRepository, times(1)).save(newMasterCaptor.capture());
+        // 캡쳐된 객체 가져오기
+        ScheduleMember capturedNewScheduleMaster = newMasterCaptor.getValue();
+        // 권한 위임 메서드가 호출되었는지 검증
+        verify(capturedNewScheduleMaster, times(1)).grantMasterRole();
+        // 실제로 권한이 변경되었는지 검증
+        assertEquals(ScheduleRole.ROLE_MASTER, capturedNewScheduleMaster.getRole(), "새 일정 마스터의 권한은 ROLE_MASTER 가 되어야 함.");
+        // 수정된 권한 정보가 저장되었는지 검증
+        verify(scheduleMemberRepository, times(1)).save(capturedNewScheduleMaster);
+    }
+
+    @Test
+    @DisplayName("일정 마스터가 일정의 유일한 멤버인 경우")
+    void handleScheduleWithdrawalUniqueMember() {
+        // testMember1이 마스터인 일정 조회 시 testSchedule 을 포함한 리스트 Return
+        List<Schedule> schedules = Arrays.asList(testSchedule);
+        when(scheduleMemberRepository.findByMember(testMember1))
+            .thenReturn(schedules);
+        // 일정의 모든 멤버 조회 시 본인 혼자만 있음.
+        List<ScheduleMember> otherScheduleMembers = Collections.emptyList();
+        when(scheduleMemberRepository.findByScheduleAndMemberNot(testSchedule, testMember1))
+            .thenReturn(otherScheduleMembers);
+        // 실제 메서드 호출
+        scheduleCommandService.handleScheduleWithdrawal(testMember1);
+        // 일정 삭제 메서드 호출 검증
+        verify(scheduleCommandRepository, times(1)).delete(testSchedule);
+        // 일정 권한 위임 후 정보를 저장하는 메서드가 호출되지 않았는지 검증
+        verify(scheduleMemberRepository, never()).save(any(ScheduleMember.class));
+
     }
 }
