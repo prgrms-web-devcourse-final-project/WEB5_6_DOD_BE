@@ -36,13 +36,13 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
   private String specificLocation;
   private Boolean isGrouped;          // 그룹 일정 여부
   private String groupName;           // 그룹명 (그룹 일정일 경우)
-//private String groupMemberName;
   private String participantNames;
   private MeetingType meetingType;    // ON/OFF
   private MeetingPlatform meetingPlatform;
   private ScheduleStatus scheduleStatus; // recommend, fixed, complete
   private ScheduleSource source;      // 일정 출처 (SERVICE / GOOGLE)
   private Boolean activated;
+  private Long scheduleMemberId;
 
 
   // 우리 서비스 일정 → DTO
@@ -50,13 +50,8 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
       Schedule s,
       Group g,
       ScheduleMember sm ,
-//    List<GroupMember> groupMembers,
       List<ScheduleMember> scheduleMembers
   ) {
-
-//    String memberNames = groupMembers.stream()
-//        .map(member -> member.getMember().getName())
-//        .collect(Collectors.joining(", "));
 
     String participantNames = scheduleMembers.stream()
         .map(m -> m.getMember().getName()) // Member 엔티티에서 이름 꺼내기
@@ -74,13 +69,13 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .specificLocation(s.getSpecificLocation())
         .isGrouped(g.getIsGrouped()) // 필요하면 s.getEvent() != null 로 변경
         .groupName(g.getIsGrouped() ? g.getName() : null)  // 그룹 일정이면 s.getEvent().getGroup().getName()
-//      .groupMemberName(memberNames)
         .participantNames(participantNames)
         .meetingType(s.getEvent().getMeetingType()) // 아직 MeetingType이 없다면 null 처리
         .meetingPlatform(s.getMeetingPlatform())
         .scheduleStatus(s.getStatus())
         .source(ScheduleSource.SERVICE)
         .activated(sm.getActivated())
+        .scheduleMemberId(sm.getId())
         .build();
   }
 

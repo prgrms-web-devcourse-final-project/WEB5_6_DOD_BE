@@ -1,14 +1,19 @@
 package com.grepp.spring.app.controller.api.mainpage;
 
+import com.grepp.spring.app.controller.api.mainpage.payload.request.UpdateActivationRequest;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
+import com.grepp.spring.app.controller.api.mainpage.payload.response.UpdateActivationResponse;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
+import com.grepp.spring.app.model.mainpage.service.MainPageScheduleMemberService;
 import com.grepp.spring.app.model.mainpage.service.MainPageService;
 import com.grepp.spring.app.model.mainpage.service.MainPageService.UnifiedScheduleResult;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.infra.auth.CurrentUser;
 import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +28,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,20 +44,21 @@ public class MainPageController {
   @Autowired
   private final MainPageService mainPageService;
 
+  private final MainPageScheduleMemberService mainPageScheduleMemberService;
+
 
   // 통합된 하나의 API
   @Operation(summary = "메인페이지", description = "회원의 그룹리스트, 일정 및 캘린더 조회")
   @GetMapping()
   public ResponseEntity<ApiResponse<ShowMainPageResponse>> getMainPage(
+      @CurrentUser String userId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
   ) {
     // 기본 오늘 날짜
     LocalDate targetDate = (date != null) ? date : LocalDate.now();
 
-    String memberId = extractCurrentMemberId();
-
     // 메인페이지 데이터 가져오기
-    ShowMainPageResponse response = mainPageService.getMainPageData(memberId, targetDate);
+    ShowMainPageResponse response = mainPageService.getMainPageData(userId, targetDate);
 
     return ResponseEntity.ok(ApiResponse.success(response));
   }
@@ -57,13 +66,12 @@ public class MainPageController {
   @Operation(summary = "날짜 범위 지정 (내부 + 구글 공개) 일정 통합 조회 (메인페이지 확장)")
   @GetMapping("/calendar")
   public ApiResponse<Map<LocalDate,List<UnifiedScheduleDto>>> getSchedulesInRange(
+      @CurrentUser String userId,
       @RequestParam LocalDate startDate,
       @RequestParam LocalDate endDate
   ) {
-    String memberId = extractCurrentMemberId();
-
     // start ~ end 날짜 동안의 통합 일정 조회
-    UnifiedScheduleResult result = mainPageService.getUnifiedSchedules(memberId, startDate, endDate);
+    UnifiedScheduleResult result = mainPageService.getUnifiedSchedules(userId, startDate, endDate);
 
     Map<LocalDate, List<UnifiedScheduleDto>> groupedByDate = result.getSchedules().stream()
         .collect(Collectors.groupingBy(
@@ -79,20 +87,18 @@ public class MainPageController {
     return ApiResponse.success("월간 일정 조회 성공", groupedByDate);
   }
 
+  @Operation(summary = "일정 비활성화 기능")
+  @PatchMapping("/schedule-members/{scheduleMemberId}/activation")
+  public ApiResponse<UpdateActivationResponse> activateScheduleMember(
+      @PathVariable Long scheduleMemberId,
+      @RequestBody @Valid UpdateActivationRequest request
+  ){
+    UpdateActivationResponse response =
+        mainPageScheduleMemberService.updateActivation(scheduleMemberId, request.isActivated());
 
-  private String extractCurrentMemberId() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-    // isAuthenticated -> 로그인, 비로그인 사용자 다 true
-    // 로그인 한 사용자 토큰 : OAuth2AuthenticationToken
-    // 로그인하지 않은 사용자도 token 을 줌. 토큰이 AnonymousAuthenticationToken 인지를 확인
-    if (authentication == null ||
-        authentication instanceof AnonymousAuthenticationToken) {
-      throw new AuthenticationRequiredException(MyPageErrorCode.AUTHENTICATION_REQUIRED);
-    }
-
-    return authentication.getName();
+    return ApiResponse.success(response);
   }
+
 }
 
 

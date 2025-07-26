@@ -9,6 +9,7 @@ import com.grepp.spring.infra.error.exceptions.mypage.InvalidFavoriteRequestExce
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidMemberRequestException;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.error.exceptions.mypage.ScheduleMemberIdNotFoundException;
 import com.grepp.spring.infra.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -70,6 +71,14 @@ public class MyPageExceptionAdvice {
   @ExceptionHandler(MemberNotFoundException.class) // 멤버 관련
   public ResponseEntity<ApiResponse<String>> memberNotFoundExHandlerExHandler(
       MemberNotFoundException ex) {
+
+    return ResponseEntity.status(ex.getCode().status())
+        .body(ApiResponse.error(ex.getCode()));
+  }
+
+  @ExceptionHandler(ScheduleMemberIdNotFoundException.class) // 스케줄 멤버 관련 (일정 비활성화)
+  public ResponseEntity<ApiResponse<String>> scheduleMemberIdNotFoundExHandlerExHandler(
+      ScheduleMemberIdNotFoundException ex) {
 
     return ResponseEntity.status(ex.getCode().status())
         .body(ApiResponse.error(ex.getCode()));
