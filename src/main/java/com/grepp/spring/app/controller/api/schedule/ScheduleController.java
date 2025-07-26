@@ -73,9 +73,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
         @RequestBody CreateSchedulesRequest request, @CurrentUser String userId) {
 
-        Event event = scheduleQueryService.findEventById(request.getEventId());
-
-        CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event, userId);
+        CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, userId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

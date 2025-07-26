@@ -85,6 +85,9 @@ public class ScheduleCommandService {
     @PersistenceContext
     private EntityManager em;
 
+    private final ScheduleQueryService scheduleQueryService;
+
+
     private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleCommandRepository scheduleCommandRepository;
 
@@ -147,8 +150,11 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, Event event, String userId) {
+    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, String userId) {
 
+        Event event = scheduleQueryService.findEventById(request.getEventId());
+
+        event.unActivated();
         Schedule schedule = create(request, event);
         createScheduleMembers(request, schedule, userId);
 
