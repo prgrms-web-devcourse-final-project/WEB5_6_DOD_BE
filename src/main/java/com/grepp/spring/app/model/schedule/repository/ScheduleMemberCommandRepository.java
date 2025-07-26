@@ -22,4 +22,6 @@ public interface ScheduleMemberCommandRepository extends JpaRepository<ScheduleM
     ArrayList<ScheduleMember> findBySchedule(Schedule schedule);
 
     ScheduleMember findByScheduleAndMemberId(Schedule schedule, String id);
+
+    boolean existsByScheduleIdAndMemberId(Long scheduleId, String scheduleMemberId);
 }
