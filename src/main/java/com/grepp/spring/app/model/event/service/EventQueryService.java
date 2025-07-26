@@ -18,6 +18,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
+import com.grepp.spring.infra.error.exceptions.event.EventAlreadyCompletedException;
 import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.event.NotEventMemberException;
 import com.grepp.spring.infra.error.exceptions.event.ScheduleResultNotFoundException;
@@ -48,6 +49,10 @@ public class EventQueryService {
     public ShowEventResponse getEvent(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+
+        if (!event.getActivated()) {
+            throw new EventAlreadyCompletedException(EventErrorCode.EVENT_ALREADY_COMPLETED);
+        }
 
         EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
             .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));

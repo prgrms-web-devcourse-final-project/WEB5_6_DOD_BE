@@ -16,6 +16,7 @@ public enum EventErrorCode {
     GROUP_NOT_FOUND("404", HttpStatus.NOT_FOUND, "존재하지 않는 그룹입니다."),
     SCHEDULE_RESULT_NOT_FOUND("404", HttpStatus.NOT_FOUND, "일정 조율 결과를 찾을 수 없습니다."),
     ALREADY_JOINED_EVENT("409", HttpStatus.CONFLICT, "이미 참여한 이벤트입니다."),
+    EVENT_ALREADY_COMPLETED("409", HttpStatus.CONFLICT, "이미 일정이 생성된 이벤트입니다."),
     INVALID_CANDIDATE_DATES("422", HttpStatus.UNPROCESSABLE_ENTITY, "유효하지 않은 후보 날짜입니다.");
 
     private final String code;

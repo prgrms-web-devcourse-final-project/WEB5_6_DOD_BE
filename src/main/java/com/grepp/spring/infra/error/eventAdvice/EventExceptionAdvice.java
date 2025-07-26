@@ -34,6 +34,14 @@ public class EventExceptionAdvice {
             .body(ApiResponse.error(ex.code()));
     }
 
+    @ExceptionHandler(EventAlreadyCompletedException.class)
+    public ResponseEntity<ApiResponse<String>> eventAlreadyCompletedExHandler(
+        EventAlreadyCompletedException ex) {
+
+        return ResponseEntity.status(ex.code().status())
+            .body(ApiResponse.error(ex.code()));
+    }
+
     @ExceptionHandler(EventAuthenticationException.class)
     public ResponseEntity<ApiResponse<String>> eventAuthenticationExHandler(
         EventAuthenticationException ex) {
