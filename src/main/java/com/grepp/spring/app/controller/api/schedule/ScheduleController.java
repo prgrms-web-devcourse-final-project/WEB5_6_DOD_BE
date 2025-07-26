@@ -27,6 +27,7 @@ import com.grepp.spring.app.model.schedule.service.ScheduleQueryService;
 import com.grepp.spring.infra.auth.CurrentUser;
 import com.grepp.spring.infra.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +72,7 @@ public class ScheduleController {
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
-        @RequestBody CreateSchedulesRequest request, @CurrentUser String userId) {
+        @RequestBody @Valid CreateSchedulesRequest request, @CurrentUser String userId) {
 
         CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, userId);
 
