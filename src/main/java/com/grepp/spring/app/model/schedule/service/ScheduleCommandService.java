@@ -24,7 +24,7 @@ import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.DepartLocationMetroTransferDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
 import com.grepp.spring.app.model.schedule.dto.ModifyWorkspaceDto;
-import com.grepp.spring.app.model.schedule.dto.ScheduleMemberRolesDto;
+import com.grepp.spring.app.model.schedule.dto.CreateScheduleMembersDto;
 import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
 import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
 import com.grepp.spring.app.model.schedule.dto.WriteSuggestedLocationDto;
@@ -55,7 +55,6 @@ import com.grepp.spring.infra.utils.RandomPicker;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
 import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
-import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMasterException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
 import jakarta.persistence.EntityManager;
@@ -85,6 +84,9 @@ public class ScheduleCommandService {
 
     @PersistenceContext
     private EntityManager em;
+
+    private final ScheduleQueryService scheduleQueryService;
+
 
     private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleCommandRepository scheduleCommandRepository;
@@ -148,10 +150,13 @@ public class ScheduleCommandService {
     }
 
     @Transactional
-    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, Event event) {
+    public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, String userId) {
 
+        Event event = scheduleQueryService.findEventById(request.getEventId());
+
+        event.activation();
         Schedule schedule = create(request, event);
-        createScheduleMembers(request, schedule);
+        createScheduleMembers(request, schedule, userId);
 
         return CreateScheduleDto.toResponse(schedule.getId());
     }
@@ -166,10 +171,18 @@ public class ScheduleCommandService {
     }
 
     // NOTE private 변경
-    public void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule) {
-        for (ScheduleMemberRolesDto entry : request.getMemberRoles()) {
+    public void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule, String userId) {
+        for (CreateScheduleMembersDto entry : request.getMembers()) {
             String memberId = String.valueOf(entry.getMemberId());
-            ScheduleRole role = entry.getRole();
+
+            ScheduleRole role;
+
+            if (entry.getMemberId().equals(userId)) {
+                role = ScheduleRole.ROLE_MASTER;
+            }
+            else {
+                role = ScheduleRole.ROLE_MEMBER;
+            }
 
             Member member = memberValid(memberId);
 
@@ -187,19 +200,16 @@ public class ScheduleCommandService {
     @Transactional
     public void modifySchedule(ModifySchedulesRequest request, Long scheduleId, String userId) {
 
-        ScheduleMember scheduleMember = getScheduleMember(
-            scheduleId, userId);
+        ScheduleMember scheduleMember = getScheduleMember(scheduleId, userId);
 
-        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
+        scheduleMember.isScheduleMasterOrThrow();
 
-            ModifyScheduleDto dto = ModifyScheduleDto.toDto(request);
+        ModifyScheduleDto dto = ModifyScheduleDto.toDto(request);
 
-            modifyScheduleEntity(scheduleId, dto);
+        modifyScheduleEntity(scheduleId, dto);
 
-            modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
-        } else {
-            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
-        }
+        modifyWorkspaceEntity(scheduleId, dto, request.getWorkspaceId());
+
     }
 
     private void modifyScheduleEntity(Long scheduleId, ModifyScheduleDto dto) {
@@ -272,11 +282,9 @@ public class ScheduleCommandService {
 
         ScheduleMember scheduleMember = getScheduleMember(scheduleId, userId);
 
-        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
-            scheduleCommandRepository.deleteById(scheduleId);
-        } else {
-            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
-        }
+        scheduleMember.isScheduleMasterOrThrow();
+
+        scheduleCommandRepository.deleteById(scheduleId);
     }
 
     public void AddWorkspace(Schedule schedule, AddWorkspaceRequest request) {
@@ -302,9 +310,9 @@ public class ScheduleCommandService {
         Optional<Metro> metro = getMetro(request.getDepartLocationName());
         setDepartLocation(request, metro, scheduleMember);
 
-        // 출발장소들을 이용하여 중간장소 계산
         List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
 
+        // 출발장소들을 이용하여 중간장소 계산
         Double middleLatitude = getLatitude(scheduleLocations);
         Double middleLongitude = getLongitude(scheduleLocations);
 
@@ -316,7 +324,6 @@ public class ScheduleCommandService {
 
         em.flush();  // DB 반영
         em.clear();  // 영속성 컨텍스트 초기화
-
     }
 
     private void saveMiddleLocation(List<JsonNode> subwayStation, Optional<Schedule> schedule) {
@@ -384,7 +391,7 @@ public class ScheduleCommandService {
     }
 
     // 카카오 api 활용하여 중간장소 역 3개 추출
-    public List<JsonNode> findNearestStations(double latitude, double longitude)
+    private List<JsonNode> findNearestStations(double latitude, double longitude)
         throws JsonProcessingException {
         String url = UriComponentsBuilder.fromHttpUrl(
                 "https://dapi.kakao.com/v2/local/search/category.json")
@@ -465,8 +472,6 @@ public class ScheduleCommandService {
 
     }
 
-
-
     @Transactional
     public CreateOnlineMeetingRoomResponse createOnlineMeeting(Long scheduleId) {
 
@@ -520,20 +525,17 @@ public class ScheduleCommandService {
         Member member = memberRepository.findById(userId).orElseThrow();
         Optional<Metro> metro = getMetro(request.getLocationName());
 
-        if (scheduleMember.getRole() == ScheduleRole.ROLE_MASTER) {
-            Location location = saveSuggestedLocation(schedule, request, metro, member);
+        scheduleMember.isScheduleMasterOrThrow();
 
-            metro = metroQueryRepository.findByName(location.getName());
-            List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+        Location location = saveSuggestedLocation(schedule, request, metro, member);
 
-            for (Line l : line) {
-                WriteSuggestedMetroTransferDto dto = WriteSuggestedMetroTransferDto.toDto(schedule,
-                    location, l);
-                MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
-                metroTransferCommandRepository.save(metroTransfer);
-            }
-        } else {
-            throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
+        metro = metroQueryRepository.findByName(location.getName());
+        List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+
+        for (Line l : line) {
+            WriteSuggestedMetroTransferDto dto = WriteSuggestedMetroTransferDto.toDto(schedule, location, l);
+            MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
+            metroTransferCommandRepository.save(metroTransfer);
         }
 
     }
@@ -543,8 +545,7 @@ public class ScheduleCommandService {
         Location location;
         // DB에 존재하지 않는다면
         if (metro.isEmpty()) {
-            WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request,
-                schedule, member);
+            WriteSuggestedLocationDto dto = WriteSuggestedLocationDto.requestToDto(request, schedule, member);
 
             location = WriteSuggestedLocationDto.fromDto(dto);
             location = locationCommandRepository.save(location);
