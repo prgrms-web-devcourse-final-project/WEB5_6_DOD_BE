@@ -74,3 +74,19 @@ VALUES
     (50002, 2, 'GOOGLE_115434652372556552718',true),
     (50003, 3, 'GOOGLE_115434652372556552718',true),
     (50004, 4, 'GOOGLE_115434652372556552718',true);
+
+-- 이벤트 1 참가자 추가 (DOD 이벤트)
+INSERT INTO event_members (id, role, confirmed, created_at, modified_at, member_id, event_id)
+VALUES (20001, 'ROLE_MEMBER', false, NOW(), NOW(), 'GOOGLE_115434652372556552718', 1);
+
+-- 이벤트 2 참가자 추가 (DOD 이벤트)
+INSERT INTO event_members (id, role, confirmed, created_at, modified_at, member_id, event_id)
+VALUES (20002, 'ROLE_MEMBER', false, NOW(), NOW(), 'GOOGLE_115434652372556552718', 2);
+
+-- 이벤트 3 참가자 추가 (일회성 이벤트)
+INSERT INTO event_members (id, role, confirmed, created_at, modified_at, member_id, event_id)
+VALUES (20003, 'ROLE_MEMBER', false, NOW(), NOW(), 'GOOGLE_115434652372556552718', 3);
+
+-- 이벤트 1 리더(생성자)
+INSERT INTO event_members (id, role, confirmed, created_at, modified_at, member_id, event_id)
+VALUES (20004, 'ROLE_MASTER', true, NOW(), NOW(), 'GOOGLE_1234', 1);

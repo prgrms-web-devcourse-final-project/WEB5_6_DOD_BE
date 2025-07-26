@@ -21,7 +21,9 @@ public class BaseEntity {
     @LastModifiedDate
     protected LocalDateTime modifiedAt = LocalDateTime.now();
 
-    public void unActivated(){
-        this.activated = false;
+    public void activation(){
+        this.activated = !this.activated;
     }
+
+
 }
