@@ -23,7 +23,7 @@ public class CreateScheduleDto {
     private String scheduleName;
     private String description;
 
-    private List<ScheduleMemberRolesDto> memberRoles;
+    private List<CreateScheduleMembersDto> memberRoles;
 
     public static CreateScheduleDto toDto(CreateSchedulesRequest request) {
 
@@ -35,7 +35,7 @@ public class CreateScheduleDto {
             .scheduleName(request.getScheduleName())
             .description(request.getDescription())
 //            .maxNumber(request.getMaxNumber())
-            .memberRoles(request.getMemberRoles()).build();
+            .memberRoles(request.getMembers()).build();
     }
 
     public static Schedule fromDto(CreateScheduleDto dto, Event id) {

@@ -71,11 +71,11 @@ public class ScheduleController {
     @Operation(summary = "일정 등록", description = "일정 등록을 진행합니다.")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<CreateSchedulesResponse>> createSchedules(
-        @RequestBody CreateSchedulesRequest request) {
+        @RequestBody CreateSchedulesRequest request, @CurrentUser String userId) {
 
         Event event = scheduleQueryService.findEventById(request.getEventId());
 
-        CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event);
+        CreateSchedulesResponse response = scheduleCommandService.createSchedule(request, event, userId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
