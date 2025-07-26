@@ -369,6 +369,9 @@ public class GroupCommandService {
     private void deportMemberInEvent(GroupMember targetGroupMember, Long groupId) {
         for (Event event : eventRepository.findByGroupId(groupId)) {
             // eventMember 삭제
+            if(!eventMemberRepository.existsByEventIdAndMemberId(event.getId(), targetGroupMember.getMember().getId())){
+                continue;
+            }
             eventMemberRepository.deleteByEventAndMemberId(event,
                 targetGroupMember.getMember().getId());
             // schedule에서 추방
@@ -386,6 +389,9 @@ public class GroupCommandService {
     private void deportMemberInSchedule(GroupMember targetGroupMember, Event event) {
         // 이벤트 내 일정에 대한 처리
         for (Schedule schedule : scheduleCommandRepository.findByEvent(event)) {
+            if(!scheduleMemberCommandRepository.existsByScheduleIdAndMemberId(schedule.getId(), targetGroupMember.getMember().getId())){
+                continue;
+            }
             // scheduleMember 삭제
             // 일정에 본인이 일정 팀장인 경우 isRoleMaster를 true로 설정
             boolean isRoleMaster = false;
