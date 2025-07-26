@@ -81,11 +81,10 @@ public class MainPageController {
   @Operation(summary = "일정 비활성화 기능")
   @PatchMapping("/schedule-members/{scheduleMemberId}/activation")
   public ApiResponse<UpdateActivationResponse> activateScheduleMember(
-      @PathVariable Long scheduleMemberId,
-      @RequestParam boolean activation // 활성화 여부
+      @PathVariable Long scheduleMemberId
   ){
     UpdateActivationResponse response =
-        mainPageScheduleMemberService.updateActivation(scheduleMemberId, activation);
+        mainPageScheduleMemberService.updateActivation(scheduleMemberId);
 
     return ApiResponse.success(response);
   }

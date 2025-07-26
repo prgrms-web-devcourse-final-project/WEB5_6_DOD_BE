@@ -16,16 +16,12 @@ public class MainPageScheduleMemberService {
   private final MainPageScheduleMemberRepository mainPageScheduleMemberRepository;
 
   @Transactional
-  public UpdateActivationResponse updateActivation(Long scheduleMemberId, boolean activation) {
+  public UpdateActivationResponse updateActivation(Long scheduleMemberId) {
 
     ScheduleMember sm = mainPageScheduleMemberRepository.findById(scheduleMemberId)
         .orElseThrow(() -> new ScheduleMemberIdNotFoundException(MyPageErrorCode.SCHEDULE_MEMBER_NOT_FOUND_EXCEPTION));
 
-    if (activation) {
-      sm.activated();      // 활성화
-    } else {
-      sm.unActivated();    // 비활성화
-    }
+    sm.activation();
 
     return UpdateActivationResponse.from(sm);
   }
