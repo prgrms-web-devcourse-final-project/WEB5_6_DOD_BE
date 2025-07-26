@@ -63,18 +63,12 @@ public class EventCommandService {
     }
 
     public void joinEvent(Long eventId, Long groupId, String currentMemberId) {
-
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
-        Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+        Event event = findEventOrThrow(dto.getEventId());
+        Member member = findMemberOrThrow(dto.getMemberId());
 
-        Member member = memberRepository.findById(dto.getMemberId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
-
-        if (eventMemberRepository.existsByEventIdAndMemberId(dto.getEventId(), dto.getMemberId())) {
-            throw new AlreadyJoinedEventException(EventErrorCode.ALREADY_JOINED_EVENT);
-        }
+        validateEventMemberIsAlreadyJoined(dto.getEventId(), dto.getMemberId());
 
         Long currentMemberCount = eventMemberRepository.countByEventId(dto.getEventId());
         event.validateCapacity(currentMemberCount);
@@ -83,21 +77,15 @@ public class EventCommandService {
 
         EventMemberDto memberDto = EventMemberDto.toDto(dto.getEventId(), dto.getMemberId(), Role.ROLE_MEMBER);
         createEventMember(memberDto);
-
     }
 
     public void createOrUpdateMyTime(MyTimeScheduleRequest request, Long eventId, String currentMemberId) {
         MyTimeScheduleDto dto = MyTimeScheduleDto.toDto(request, eventId, currentMemberId);
 
-        Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+        Event event = findEventOrThrow(dto.getEventId());
+        EventMember eventMember = findEventMemberOrThrow(dto.getEventId(), dto.getMemberId());
 
-        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
-            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
-
-        if (eventMember.getConfirmed()) {
-            throw new AlreadyCompletedScheduleException(EventErrorCode.ALREADY_COMPLETED_SCHEDULE);
-        }
+        validateEventMemberIsAlreadyConfirmedSchedule(eventMember);
 
         for (MyTimeScheduleDto.DailyTimeSlotDto slot : dto.getDailyTimeSlots()) {
             updateOrCreateTempSchedule(eventMember, slot);
@@ -126,12 +114,8 @@ public class EventCommandService {
     public void completeMyTime(Long eventId, String currentMemberId) {
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
-        Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
-
-        EventMember eventMember = eventMemberRepository
-            .findByEventIdAndMemberIdAndActivatedTrue(dto.getEventId(), dto.getMemberId())
-            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
+        Event event = findEventOrThrow(dto.getEventId());
+        EventMember eventMember = findEventMemberOrThrow(dto.getEventId(), dto.getMemberId());
 
         List<TempSchedule> schedules = tempScheduleRepository
             .findAllByEventMemberIdAndActivatedTrue(eventMember.getId());
@@ -145,22 +129,14 @@ public class EventCommandService {
     }
 
     public void createScheduleResult(Long eventId, String currentMemberId) {
-        Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
-
-        EventMember eventMember = eventMemberRepository.findByEventIdAndMemberIdAndActivatedTrue(eventId, currentMemberId)
-            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
-
+        Event event = findEventOrThrow(eventId);
+        EventMember eventMember = findEventMemberOrThrow(eventId, currentMemberId);
         eventScheduleResultService.createScheduleRecommendations(eventId);
     }
 
     private void createEventMember(EventMemberDto dto) {
-        Event event = eventRepository.findById(dto.getEventId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
-
-        Member member = memberRepository.findById(dto.getMemberId())
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
-
+        Event event = findEventOrThrow(dto.getEventId());
+        Member member = findMemberOrThrow(dto.getMemberId());
         EventMember eventMember = EventMemberDto.toEntity(dto, event, member);
         eventMemberRepository.save(eventMember);
     }
@@ -170,8 +146,7 @@ public class EventCommandService {
             Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new EventNotFoundException(EventErrorCode.GROUP_NOT_FOUND));
 
-            Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
+            Member member = findMemberOrThrow(memberId);
 
             Optional<GroupMember> existingGroupMember = groupMemberRepository
                 .findByGroupIdAndMemberId(groupId, memberId);
@@ -192,6 +167,34 @@ public class EventCommandService {
             throw e;
         } catch (Exception e) {
             throw new InvalidEventDataException(EventErrorCode.INVALID_EVENT_DATA);
+        }
+    }
+
+    private Event findEventOrThrow(Long eventId) {
+        return eventRepository.findById(eventId)
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+    }
+
+    private Member findMemberOrThrow(String memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    private EventMember findEventMemberOrThrow(Long eventId, String memberId) {
+        return eventMemberRepository
+            .findByEventIdAndMemberIdAndActivatedTrue(eventId, memberId)
+            .orElseThrow(() -> new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER));
+    }
+
+    private void validateEventMemberIsAlreadyJoined(Long eventId, String memberId) {
+        if (eventMemberRepository.existsByEventIdAndMemberId(eventId, memberId)) {
+            throw new AlreadyJoinedEventException(EventErrorCode.ALREADY_JOINED_EVENT);
+        }
+    }
+
+    private static void validateEventMemberIsAlreadyConfirmedSchedule(EventMember eventMember) {
+        if (eventMember.getConfirmed()) {
+            throw new AlreadyConfirmedScheduleException(EventErrorCode.ALREADY_CONFIRMED_SCHEDULE);
         }
     }
 

@@ -3,7 +3,7 @@ package com.grepp.spring.app.model.event.entity;
 import com.grepp.spring.app.model.event.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.infra.entity.BaseEntity;
-import com.grepp.spring.infra.error.exceptions.event.AlreadyCompletedScheduleException;
+import com.grepp.spring.infra.error.exceptions.event.AlreadyConfirmedScheduleException;
 import com.grepp.spring.infra.response.EventErrorCode;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class EventMember extends BaseEntity {
 
     public void confirmScheduleOrThrow() {
         if (this.confirmed) {
-            throw new AlreadyCompletedScheduleException(EventErrorCode.ALREADY_COMPLETED_SCHEDULE);
+            throw new AlreadyConfirmedScheduleException(EventErrorCode.ALREADY_CONFIRMED_SCHEDULE);
         }
         this.confirmed = true;
     }

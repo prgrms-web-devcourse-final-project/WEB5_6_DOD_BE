@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum EventErrorCode {
     INVALID_EVENT_DATA("400", HttpStatus.BAD_REQUEST, "잘못된 이벤트 데이터입니다."),
-    ALREADY_COMPLETED_SCHEDULE("400", HttpStatus.BAD_REQUEST, "이미 확정된 일정입니다."),
+    ALREADY_CONFIRMED_SCHEDULE("400", HttpStatus.BAD_REQUEST, "이미 확정된 일정입니다."),
     CANNOT_COMPLETE_EMPTY_SCHEDULE("400", HttpStatus.BAD_REQUEST, "빈 일정은 확정할 수 없습니다."),
     EVENT_MEMBER_LIMIT_EXCEEDED("400", HttpStatus.BAD_REQUEST, "이벤트 참여 인원이 초과되었습니다."),
     CANNOT_CREATE_SCHEDULE_RESULT("400", HttpStatus.BAD_REQUEST, "일정 조율 결과를 생성할 수 없습니다."),
@@ -16,6 +16,7 @@ public enum EventErrorCode {
     GROUP_NOT_FOUND("404", HttpStatus.NOT_FOUND, "존재하지 않는 그룹입니다."),
     SCHEDULE_RESULT_NOT_FOUND("404", HttpStatus.NOT_FOUND, "일정 조율 결과를 찾을 수 없습니다."),
     ALREADY_JOINED_EVENT("409", HttpStatus.CONFLICT, "이미 참여한 이벤트입니다."),
+    EVENT_ALREADY_COMPLETED("409", HttpStatus.CONFLICT, "이미 일정이 생성된 이벤트입니다."),
     INVALID_CANDIDATE_DATES("422", HttpStatus.UNPROCESSABLE_ENTITY, "유효하지 않은 후보 날짜입니다.");
 
     private final String code;

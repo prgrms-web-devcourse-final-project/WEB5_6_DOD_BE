@@ -26,9 +26,17 @@ public class EventExceptionAdvice {
             .body(ApiResponse.error(ex.code()));
     }
 
-    @ExceptionHandler(AlreadyCompletedScheduleException.class)
+    @ExceptionHandler(AlreadyConfirmedScheduleException.class)
     public ResponseEntity<ApiResponse<String>> alreadyCompletedScheduleExHandler(
-        AlreadyCompletedScheduleException ex) {
+        AlreadyConfirmedScheduleException ex) {
+
+        return ResponseEntity.status(ex.code().status())
+            .body(ApiResponse.error(ex.code()));
+    }
+
+    @ExceptionHandler(EventAlreadyCompletedException.class)
+    public ResponseEntity<ApiResponse<String>> eventAlreadyCompletedExHandler(
+        EventAlreadyCompletedException ex) {
 
         return ResponseEntity.status(ex.code().status())
             .body(ApiResponse.error(ex.code()));
