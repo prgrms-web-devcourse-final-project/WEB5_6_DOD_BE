@@ -69,9 +69,10 @@ public class ScheduleMember extends BaseEntity {
     @OneToMany(mappedBy = "scheduleMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
 
-    // 일정 마스터 권한 부여
-    public void grantMasterRole() {
-        this.role = ScheduleRole.ROLE_MASTER;
+    public void isScheduleMasterOrThrow() {
+        if (this.role != ScheduleRole.ROLE_MASTER) {
+                throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
+            }
     }
 
     public void isScheduleMasterOrThrow() {
