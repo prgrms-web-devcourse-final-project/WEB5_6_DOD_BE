@@ -3,6 +3,8 @@ package com.grepp.spring.app.model.schedule.entity;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.infra.entity.BaseEntity;
+import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMasterException;
+import com.grepp.spring.infra.response.ScheduleErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -67,8 +69,22 @@ public class ScheduleMember extends BaseEntity {
     @OneToMany(mappedBy = "scheduleMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
 
-    // 일정 마스터 권한 부여
-    public void grantMasterRole() {
-        this.role = ScheduleRole.ROLE_MASTER;
+    public void isScheduleMasterOrThrow() {
+        if (this.role != ScheduleRole.ROLE_MASTER) {
+                throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
+            }
     }
+
+//    public ScheduleRole isCreate(String userId) {
+//
+//        if (member.getId().equals(userId)) {
+//            this.role = ScheduleRole.ROLE_MASTER;
+//        }
+//        else {
+//            this.role = ScheduleRole.ROLE_MEMBER;
+//        }
+//
+//        return role;
+//    }
+
 }
