@@ -15,6 +15,7 @@ import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.group.repository.GroupCommandRepository;
 import com.grepp.spring.app.model.group.repository.GroupMemberCommandRepository;
+import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
@@ -22,6 +23,7 @@ import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberCommandRepository;
+import com.grepp.spring.infra.utils.RandomPicker;
 import com.grepp.spring.infra.error.exceptions.group.GroupAuthenticationException;
 import com.grepp.spring.infra.error.exceptions.group.GroupNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.NotGroupUserException;
@@ -29,6 +31,7 @@ import com.grepp.spring.infra.error.exceptions.group.OnlyOneGroupLeaderException
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserAlreadyInGroupException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
+import com.grepp.spring.infra.error.exceptions.member.WithdrawNotAllowedException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,7 @@ public class GroupCommandService {
     private final EventMemberRepository eventMemberRepository;
     private final ScheduleCommandRepository scheduleCommandRepository;
     private final ScheduleMemberCommandRepository scheduleMemberCommandRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     // member를 가져오는 전략
     // 필드 내의 Member 객체의 id에만 접근 할 경우 select문을 db에 날리지 않고도 member조회 가능
@@ -419,6 +423,52 @@ public class GroupCommandService {
             Member member1 = scheduleMember.getMember();
             // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
             GroupMember groupMember = findGroupMemberOrThrow(request.getGroupId(), member1.getId());
+        }
+    }
+
+    // 회원 탈퇴 중 그룹 관련 처리 메서드
+    @Transactional
+    public void handleGroupWithdrawal(Member member) {
+        // 본인이 관리자인 그룹 조회
+        List<Group> adminGroups = groupMemberRepository.findGroupsByMemberAndAdmin(member);
+        // 예외처리에 사용할 수퍼 리더를 넘길 수 없는 그룹을 저장할 리스트
+        List<Group> withdrawNotAllowedGroups = new ArrayList<>();
+        // 본인이 수퍼 리더(Admin)인 그룹이 있다면, 각 그룹 별 리더 중 랜덤으로 권한 넘기기
+        if (!adminGroups.isEmpty()) {
+            for (Group group : adminGroups) {
+                // 각 그룹의 모든 멤바 조회
+                List<GroupMember> groupMembersInGroup = groupMemberRepository.findByGroup(group);
+                // 내가 그룹의 유일한 멤바라면 그룹까지 날려버리깅
+                if (groupMembersInGroup.size() == 1 && groupMembersInGroup.getFirst().getMember()
+                    .equals(member)) {
+                    groupCommandRepository.delete(group);
+                    log.info("그룹 {}의 유일한 멤버이므로 그룹이 삭제됩니다.", group.getName());
+                    continue;
+                }
+
+                // 다른 리더가 있다면 랜덤으로 관리자 위임
+                // 각 그룹의 모든 리더 조회 (나 빼고)
+                List<GroupMember> otherLeaders = groupMemberRepository.findByGroupAndLeaderAndMemberNot(
+                    group, member);
+                // 본인 외 다른 멤바가 있다면?
+                if (!otherLeaders.isEmpty()) {
+                    // 리더가 존재한다면 랜덤으로 관리자 넘겨버리깅
+                    GroupMember newAdmin = RandomPicker.pickRandom(otherLeaders);
+                    newAdmin.grantAdminRole(); // 너 이제부터 수퍼리더야.
+                    groupMemberRepository.save(newAdmin);
+                    log.info("그룹 {}의 새 관리자가 {} 님 에게 위임되었습니다.", group.getName(),
+                        newAdmin.getMember().getName());
+                } else {
+                    // 리더가 없으면 예외 발생 시켜야하니깐 그룹을 리스트에 추가해두자. 나중에 응답에 쓸거임
+                    withdrawNotAllowedGroups.add(group);
+                    log.warn("위임할 리더가 없는 그룹: {}", group.getName());
+                }
+            }
+        }
+        // 수퍼 리더 위임이 불가능한 그룹이 있다면 예외처리
+        if (!withdrawNotAllowedGroups.isEmpty()) {
+            throw new WithdrawNotAllowedException("이 그룹에 관리자 권한을 위임할 수 있는 리더를 추가해주세요.",
+                withdrawNotAllowedGroups);
         }
     }
 

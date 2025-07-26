@@ -103,4 +103,9 @@ public class GroupMember extends BaseEntity {
             groupMember.groupAdmin = true;
         }
     }
+
+    // 그룹 관리자 권한 부여
+    public void grantAdminRole() {
+        this.groupAdmin = true;
+    }
 }

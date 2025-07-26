@@ -45,11 +45,13 @@ import com.grepp.spring.app.model.schedule.repository.MetroQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
+import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
 import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.infra.utils.RandomPicker;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
 import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
@@ -106,6 +108,7 @@ public class ScheduleCommandService {
     private final LocationCommandRepository locationCommandRepository;
 
     private final MetroQueryRepository metroQueryRepository;
+    private final ScheduleMemberRepository scheduleMemberRepository;
 
     @Value("${kakao.middle-location.api-key}")
     private String kakaoMiddleLocationApiKey;
@@ -550,5 +553,34 @@ public class ScheduleCommandService {
             location = locationCommandRepository.save(location);
         }
         return location;
+    }
+
+    // 회원 탈퇴 중 일정 관련 처리 메서드
+    @Transactional
+    public void handleScheduleWithdrawal(Member member) {
+        // 본인이 일정 마스터인 모든 일정 조회
+        List<Schedule> masterSchedules = scheduleMemberRepository.findByMember(member);
+
+        // 본인이 마스터인 일정이 있다면,
+        if (!masterSchedules.isEmpty()) {
+            for (Schedule schedule : masterSchedules) {
+                // 각 일정 내 모든 멤바 조회 (나 빼고)
+                List<ScheduleMember> scheduleMembers = scheduleMemberRepository.findByScheduleAndMemberNot(
+                    schedule, member);
+
+                if (scheduleMembers.isEmpty()) {
+                    // 본인이 일정의 유일 멤버라면? 일정 너도 삭제야.
+                    scheduleCommandRepository.delete(schedule);
+                    log.info("일정 {}의 마지막 멤버이므로 일정이 삭제됩니다.", schedule.getScheduleName());
+                } else {
+                    // 다른 멤바가 있다면 랜덤으로 관리자 위임
+                    ScheduleMember newScheduleMaster = RandomPicker.pickRandom(scheduleMembers);
+                    newScheduleMaster.grantMasterRole(); // 새 관리자로 임명
+                    scheduleMemberRepository.save(newScheduleMaster);
+                    log.info("일정 {}의 새 관리자가 {}님 에게 위임되었습니다.", schedule.getScheduleName(),
+                        newScheduleMaster.getMember().getName());
+                }
+            }
+        }
     }
 }

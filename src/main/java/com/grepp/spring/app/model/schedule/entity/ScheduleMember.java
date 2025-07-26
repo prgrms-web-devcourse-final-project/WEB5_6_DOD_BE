@@ -15,7 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,4 +66,9 @@ public class ScheduleMember extends BaseEntity {
     // ScheduleMember 가 삭제되면 그 멤버의 투표도 삭제
     @OneToMany(mappedBy = "scheduleMember", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
+
+    // 일정 마스터 권한 부여
+    public void grantMasterRole() {
+        this.role = ScheduleRole.ROLE_MASTER;
+    }
 }
