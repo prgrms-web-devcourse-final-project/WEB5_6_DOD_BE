@@ -44,6 +44,13 @@ public class EventScheduleResultService {
 
     @Transactional
     public void createScheduleRecommendations(Long eventId) {
+
+        // 결과 생성 필요성 검증
+        if (!shouldGenerateRecommendations(eventId)) {
+            log.debug("스케줄 추천 생성이 필요하지 않습니다. eventId: {}", eventId);
+            return;
+        }
+
         deleteExistingRecommendations(eventId);
 
         Event event = validateAndGetEvent(eventId);
@@ -62,6 +69,42 @@ public class EventScheduleResultService {
         List<RecommendationDto.RecommendationInfo> recommendations = generateRecommendations(continuousRanges);
 
         saveRecommendationsAsSchedules(event, recommendations);
+    }
+
+    private boolean shouldGenerateRecommendations(Long eventId) {
+        // 이미 추천이 존재하고, 마지막 수정 이후 변경사항이 없는지 확인
+        if (hasRecentRecommendations(eventId) && !hasScheduleChangedSinceLastRecommendation(eventId)) {
+            log.debug("최근 추천이 존재하고 일정 변경사항이 없습니다.");
+            return false;
+        }
+        return true;
+    }
+
+    // 최근 추천이 존재하는지 확인
+    private boolean hasRecentRecommendations(Long eventId) {
+        List<Schedule> existingRecommendations = scheduleQueryRepository
+            .findByEventIdAndStatusInAndActivatedTrue(
+                eventId,
+                Arrays.asList(ScheduleStatus.L_RECOMMEND, ScheduleStatus.E_RECOMMEND)
+            );
+        return !existingRecommendations.isEmpty();
+    }
+
+    // 마지막 추천 생성 이후 개인 시간대에 변경사항이 있는지 확인
+    private boolean hasScheduleChangedSinceLastRecommendation(Long eventId) {
+        // Schedule 테이블에서 가장 최근 추천의 생성 시간
+        Optional<LocalDateTime> lastRecommendationTime = scheduleQueryRepository
+            .findMaxCreatedAtByEventIdAndStatusIn(eventId);
+
+        if (lastRecommendationTime.isEmpty()) {
+            return true; // 추천이 없으면 생성 필요
+        }
+
+        // TempSchedule 에서 마지막 추천 이후 수정된 데이터가 있는지 확인
+        List<EventMember> eventMembers = eventMemberRepository.findAllByEventIdAndActivatedTrue(eventId);
+        return tempScheduleRepository.existsByEventMemberInAndModifiedAtAfter(
+            eventMembers, lastRecommendationTime.get()
+        );
     }
 
     private void deleteExistingRecommendations(Long eventId) {
