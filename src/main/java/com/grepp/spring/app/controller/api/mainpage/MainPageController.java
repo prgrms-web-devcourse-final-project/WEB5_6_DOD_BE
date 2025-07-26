@@ -1,19 +1,14 @@
 package com.grepp.spring.app.controller.api.mainpage;
 
-import com.grepp.spring.app.controller.api.mainpage.payload.request.UpdateActivationRequest;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.UpdateActivationResponse;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.mainpage.service.MainPageScheduleMemberService;
 import com.grepp.spring.app.model.mainpage.service.MainPageService;
 import com.grepp.spring.app.model.mainpage.service.MainPageService.UnifiedScheduleResult;
-import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.infra.auth.CurrentUser;
-import com.grepp.spring.infra.error.exceptions.mypage.AuthenticationRequiredException;
 import com.grepp.spring.infra.response.ApiResponse;
-import com.grepp.spring.infra.response.MyPageErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -24,13 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -91,10 +82,10 @@ public class MainPageController {
   @PatchMapping("/schedule-members/{scheduleMemberId}/activation")
   public ApiResponse<UpdateActivationResponse> activateScheduleMember(
       @PathVariable Long scheduleMemberId,
-      @RequestBody @Valid UpdateActivationRequest request
+      @RequestParam boolean activation // 활성화 여부
   ){
     UpdateActivationResponse response =
-        mainPageScheduleMemberService.updateActivation(scheduleMemberId, request.isActivated());
+        mainPageScheduleMemberService.updateActivation(scheduleMemberId, activation);
 
     return ApiResponse.success(response);
   }
