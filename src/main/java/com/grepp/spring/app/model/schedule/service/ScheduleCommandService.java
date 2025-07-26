@@ -154,7 +154,7 @@ public class ScheduleCommandService {
 
         Event event = scheduleQueryService.findEventById(request.getEventId());
 
-        event.unActivated();
+        event.activation();
         Schedule schedule = create(request, event);
         createScheduleMembers(request, schedule, userId);
 
