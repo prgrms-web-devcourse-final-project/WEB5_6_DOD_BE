@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/main-page")
 public class MainPageController {
 
-  @Autowired
   private final MainPageService mainPageService;
 
   private final MainPageScheduleMemberService mainPageScheduleMemberService;
@@ -76,6 +75,20 @@ public class MainPageController {
     response.put("groupedSchedules", groupedByDate);
 
     return ApiResponse.success("월간 일정 조회 성공", groupedByDate);
+  }
+
+  @Operation(summary = "내부 일정 목록만 조회하는 기능")
+  @GetMapping("/schedules")
+  public ApiResponse<List<UnifiedScheduleDto>> getScheduleLists(
+      @CurrentUser String userId,
+      @RequestParam LocalDate startDate,
+      @RequestParam LocalDate endDate
+  ) {
+
+    List<UnifiedScheduleDto> schedules = mainPageService.getInternalSchedules(userId, startDate, endDate);
+
+    return ApiResponse.success(schedules);
+
   }
 
   @Operation(summary = "일정 비활성화 기능")

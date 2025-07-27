@@ -103,21 +103,11 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     log.info(">>> [getUnifiedSchedules] memberId={}, start={}, end={}",
         memberId, startDateTime, endDateTime);
 
-    // 내부 일정 조회
-    List<Schedule> schedules = mainPageScheduleService.findSchedulesInRange(memberId, start, end);
-
     // 우리 서비스 일정 → DTO 변환 호출
-    List<UnifiedScheduleDto> internalDtos = schedules.stream()
-        .map(schedule -> {
-          Group group = schedule.getEvent().getGroup();
-          List<ScheduleMember> participants = scheduleMemberRepository.findAllBySchedule(
-              schedule);
-          ScheduleMember sm = scheduleMemberRepository
-              .findByScheduleIdAndMemberId(schedule.getId(), memberId)
-              .orElse(null); // 참여하지 않는 일정이면 없음 처리
-          return UnifiedScheduleDto.fromService(schedule, group, sm, participants);
-        })
-        .toList();
+    List<UnifiedScheduleDto> internalDtos = convertSchedulesToDtos(
+        mainPageScheduleService.findSchedulesInRange(memberId, start, end),
+        memberId
+    );
 
     // 캘린더 id 조회
     Optional<String> publicCalendarIdOpt = publicCalendarIdService.getPublicCalendarId(memberId);
@@ -136,19 +126,11 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
       // 공개 캘린더 일정 가져오기
       List<PublicCalendarEventDto> publicEvents =
           publicCalendarService.fetchPublicCalendarEvents(publicCalendarId);
+      log.info(">>> 구글 캘린더 원본 이벤트 수: {}", publicEvents.size());
 
       // 일정 범위 필터링
       publicEvents = publicEvents.stream()
-          .filter(e -> {
-            LocalDateTime eventStart = parseDateOrDateTime(e.getStart());
-            LocalDateTime eventEnd = parseDateOrDateTime(e.getEnd());
-
-            if (e.isAllDay()) {
-              return !eventStart.isBefore(startDateTime) && !eventStart.isAfter(endDateTime);
-            } else {
-              return !(eventEnd.isBefore(startDateTime) || eventStart.isAfter(endDateTime));
-            }
-          })
+          .filter(e -> isWithinRange(e, startDateTime, endDateTime))
           .toList();
 
       // 구글 일정(calendar_detail) → DTO 변환 호출
@@ -176,6 +158,43 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
 
     }
   }
+
+  // 내부 일정만 조회
+  public List<UnifiedScheduleDto> getInternalSchedules(String memberId, LocalDate start, LocalDate end) {
+
+    List<Schedule> schedules = mainPageScheduleService.findSchedulesInRange(memberId, start, end);
+    log.info(">>> DB에서 가져온 내부 일정 수: {}", schedules.size());
+
+    return convertSchedulesToDtos(schedules, memberId);
+  }
+
+  private List<UnifiedScheduleDto> convertSchedulesToDtos(List<Schedule> schedules, String memberId) {
+    return schedules.stream()
+        .map(schedule -> {
+          Group group = schedule.getEvent().getGroup();
+          List<ScheduleMember> participants = schedule.getScheduleMembers();
+
+          ScheduleMember sm = participants.stream()
+              .filter(m -> m.getMember().getId().equals(memberId))
+              .findFirst()
+              .orElse(null);
+
+          return UnifiedScheduleDto.fromService(schedule, group, sm, participants);
+        })
+        .toList();
+  }
+
+  private boolean isWithinRange(PublicCalendarEventDto e, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+    LocalDateTime eventStart = parseDateOrDateTime(e.getStart());
+    LocalDateTime eventEnd = parseDateOrDateTime(e.getEnd());
+
+    if (e.isAllDay()) {
+      return !eventStart.isBefore(startDateTime) && !eventStart.isAfter(endDateTime);
+    } else {
+      return !(eventEnd.isBefore(startDateTime) || eventStart.isAfter(endDateTime));
+    }
+  }
+
   public static LocalDateTime parseDateOrDateTime(String dateOrDateTime) {
     if (dateOrDateTime == null) return null;
     return (dateOrDateTime.length() == 10) // -> 종일 일정 포맷 길이가 10 (yyyy-mm-dd)
