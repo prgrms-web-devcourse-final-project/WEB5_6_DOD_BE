@@ -85,7 +85,10 @@ public class ShowScheduleDto {
                 scheduleMembers.get(i).getMember().getId(),
                 scheduleMembers.get(i).getId(),
                 scheduleMembers.get(i).getName(),
-                scheduleMembers.get(i).getRole()
+                scheduleMembers.get(i).getRole(),
+                scheduleMembers.get(i).getDepartLocationName(),
+                scheduleMembers.get(i).getLatitude(),
+                scheduleMembers.get(i).getLongitude()
             ))
             .collect(Collectors.toList());
 

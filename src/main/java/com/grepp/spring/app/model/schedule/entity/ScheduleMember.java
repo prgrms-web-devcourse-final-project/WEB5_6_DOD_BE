@@ -80,12 +80,6 @@ public class ScheduleMember extends BaseEntity {
             }
     }
 
-    public void isScheduleMasterOrThrow() {
-        if (this.role != ScheduleRole.ROLE_MASTER) {
-                throw new NotScheduleMasterException(ScheduleErrorCode.NOT_SCHEDULE_MASTER);
-            }
-    }
-
 //    public ScheduleRole isCreate(String userId) {
 //
 //        if (member.getId().equals(userId)) {
