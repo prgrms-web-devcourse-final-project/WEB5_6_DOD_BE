@@ -62,6 +62,7 @@ public class ScheduleQueryService {
 
         MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
 
+
         ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
             scheduleMembers, workspaces);
 
