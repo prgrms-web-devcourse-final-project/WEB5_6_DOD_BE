@@ -141,6 +141,7 @@ class FavoriteLocationCommandServiceTest {
       dummyFavoriteLocation1.setMember(dummyMember1);
 
       when(memberRepository.findById(memberId)).thenReturn(Optional.of(dummyMember1));
+      
 
       // 기존 꺼 조회
       when(myLocationRepository.findById(1L)).thenReturn(Optional.of(dummyFavoriteLocation1));
