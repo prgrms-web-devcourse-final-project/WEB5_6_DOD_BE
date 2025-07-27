@@ -245,7 +245,7 @@ public class GroupCommandService {
 
     /// 범용적인 예외처리 메서드
     // http 메서드 요청한 member 조회 - 401 AUTHENTICATION_REQUIRED 예외 처리
-    private Member findHttpRequestMemberOrThrow() {
+    protected Member findHttpRequestMemberOrThrow() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null ||
