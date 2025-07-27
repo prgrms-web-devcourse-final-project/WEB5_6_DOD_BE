@@ -1,12 +1,14 @@
 package com.grepp.spring.app.model.mypage.service;
 
 
+import com.grepp.spring.app.controller.api.mypage.payload.response.PublicCalendarIdResponse;
 import com.grepp.spring.app.model.mainpage.entity.Calendar;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.repository.CalendarRepository;
 import com.grepp.spring.infra.error.exceptions.mypage.InvalidPublicCalendarIdException;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
+import com.grepp.spring.infra.error.exceptions.mypage.PublicCalendarIdNotFoundException;
 import com.grepp.spring.infra.response.MyPageErrorCode;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -50,4 +52,23 @@ public class PublicCalendarIdService {
         .filter(id -> id != null && !id.isBlank()); // null/빈 값이면 Optional.empty()
   }
 
+
+  @Transactional
+  public void deletePublicCalendarId(String memberId) {
+
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
+
+    Calendar calendar = calendarRepository.findByMember(member)
+        .orElseThrow(() -> new IllegalStateException("회원의 캘린더가 존재하지 않습니다."));
+
+    if (calendar.getPublicCalendarId() == null || calendar.getPublicCalendarId().isBlank()) {
+      throw new PublicCalendarIdNotFoundException(MyPageErrorCode.PUBLIC_CALENDAR_ID_NOT_FOUND);
+    }
+
+    calendar.setPublicCalendarId(null);
+    calendarRepository.save(calendar);
+  }
+
+  
 }
