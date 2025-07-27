@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -174,5 +175,15 @@ public class MypageController {
     return ResponseEntity.ok(ApiResponse.success(response));
 
   }
+
+  @Operation(summary = "공개 캘린더 ID 삭제하기")
+  @DeleteMapping("/calendar/public-id")
+  public ResponseEntity<ApiResponse<PublicCalendarIdResponse>> deletePublicCalendarId(
+      @CurrentUser String userId
+  ) {
+    publicCalendarIdService.deletePublicCalendarId(userId);
+    return ResponseEntity.ok(ApiResponse.success("공개 캘린더 ID가 삭제되었습니다."));
+  }
+
 
 }
