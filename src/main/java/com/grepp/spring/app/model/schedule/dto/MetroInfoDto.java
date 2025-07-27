@@ -16,6 +16,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MetroInfoDto {
+    private Long locationId; // 추가
     private String locationName;
     private VoteStatus voteStatus;
     private Double latitude;
@@ -33,6 +34,7 @@ public class MetroInfoDto {
 //        }
 
         return MetroInfoDto.builder()
+            .locationId(location.getId())
             .locationName(location.getName())
             .voteStatus(location.getStatus())
             .latitude(location.getLatitude())

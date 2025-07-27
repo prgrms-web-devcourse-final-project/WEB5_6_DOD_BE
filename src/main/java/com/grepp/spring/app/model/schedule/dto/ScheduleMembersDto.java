@@ -17,4 +17,9 @@ public class ScheduleMembersDto {
     private Long scheduleMemberId;
     private String name;
     private ScheduleRole scheduleRole;
+
+    // 추가
+    private String departLocationName;
+    private Double latitude;
+    private Double longitude;
 }
