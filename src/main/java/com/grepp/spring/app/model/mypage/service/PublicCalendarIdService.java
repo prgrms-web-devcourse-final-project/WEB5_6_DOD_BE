@@ -69,5 +69,8 @@ public class PublicCalendarIdService {
     calendar.setPublicCalendarId(null);
     calendarRepository.save(calendar);
   }
+<<<<<<< HEAD
   
+=======
+>>>>>>> origin/jsy/mypage/calendarId-delete
 }
