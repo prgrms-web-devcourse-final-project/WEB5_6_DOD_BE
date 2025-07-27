@@ -69,4 +69,5 @@ public class PublicCalendarIdService {
     calendar.setPublicCalendarId(null);
     calendarRepository.save(calendar);
   }
+  
 }
