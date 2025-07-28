@@ -210,6 +210,4 @@ public class ScheduleController {
 
         return ResponseEntity.ok(ApiResponse.success("워크스페이스를 삭제했습니다."));
     }
-
-
 }
