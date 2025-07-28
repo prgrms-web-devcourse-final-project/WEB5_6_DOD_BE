@@ -80,11 +80,12 @@ public class EventQueryService {
 
         List<EventMember> eventMembers = eventMemberRepository
             .findAllByEventIdAndActivatedTrue(eventId);
-
+// 템프 스케줄 조회
         Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
 
         AllTimeScheduleDto.TimeTableDto timeTable = buildTimeTable(candidateDates);
 
+        // 계산 로직
         List<AllTimeScheduleDto.MemberScheduleDto> memberSchedules = eventMembers.stream()
             .map(member -> buildSingleMemberSchedule(member, candidateDates, memberScheduleMap))
             .collect(Collectors.toList());
@@ -93,6 +94,7 @@ public class EventQueryService {
             .filter(EventMember::getConfirmed)
             .count();
 
+        // 참여자 수 계산
         Map<String, List<Integer>> participantCounts = calculateParticipantCounts(candidateDates, memberScheduleMap);
 
         AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
@@ -122,7 +124,7 @@ public class EventQueryService {
         LocalTime endTime = firstCandidate.getEndTime();
 
         int startSlotIndex = startTime.getHour() * 2 + (startTime.getMinute() >= 30 ? 1 : 0);
-        int endSlotIndex = endTime.getHour() * 2 + (endTime.getMinute() >= 30 ? 1 : 0);
+        int endSlotIndex = endTime.getHour() * 2 + (endTime.getMinute() >= 30 ? 1 : 0); // 30분이 한칸
         int totalSlots = endSlotIndex - startSlotIndex;
 
         for (CandidateDate candidateDate : candidateDates) {
@@ -144,7 +146,7 @@ public class EventQueryService {
                         int actualBitIndex = startSlotIndex + i;
 
                         if (actualBitIndex < 48 && (timeBit & (1L << actualBitIndex)) != 0) {
-                            timeSlotCounts[i]++;
+                            timeSlotCounts[i]++; // 참여자별로 1개씩 증가
                         }
                     }
                 }
@@ -161,6 +163,7 @@ public class EventQueryService {
         return participantCounts;
     }
 
+    // 쿼리 DSL 적용
     private Map<Long, List<TempSchedule>> getMemberScheduleMap(List<EventMember> eventMembers) {
         List<TempSchedule> allSchedules = tempScheduleRepository
             .findAllByEventMemberInAndActivatedTrueOrderByEventMemberIdAscDateAsc(eventMembers);
