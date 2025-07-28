@@ -178,10 +178,9 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
   private List<UnifiedScheduleDto> convertSchedulesToDtos(List<Schedule> schedules, String memberId) {
     return schedules.stream()
         // l_recommend, e_recommend 걸러주기
-        .filter(schedule -> {
-          ScheduleStatus status = schedule.getStatus();
-          return status == ScheduleStatus.FIXED || status == ScheduleStatus.COMPLETE;
-        })
+        .filter(schedule ->
+          schedule.getStatus() == ScheduleStatus.FIXED || schedule.getStatus() == ScheduleStatus.COMPLETE
+        )
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<ScheduleMember> participants = schedule.getScheduleMembers();
