@@ -161,8 +161,7 @@ public class ScheduleCommandService {
         return CreateScheduleDto.toResponse(schedule.getId());
     }
 
-    // NOTE private 변경
-    public Schedule create(CreateSchedulesRequest request, Event event) {
+    private Schedule create(CreateSchedulesRequest request, Event event) {
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
         Schedule schedule = CreateScheduleDto.fromDto(dto, event);
 
@@ -170,8 +169,7 @@ public class ScheduleCommandService {
         return schedule;
     }
 
-    // NOTE private 변경
-    public void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule, String userId) {
+    private void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule, String userId) {
         for (CreateScheduleMembersDto entry : request.getMembers()) {
             String memberId = String.valueOf(entry.getMemberId());
 
