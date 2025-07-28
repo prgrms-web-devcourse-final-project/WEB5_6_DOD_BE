@@ -50,7 +50,6 @@ public class ScheduleController {
     private final ScheduleQueryService scheduleQueryService;
     private final ScheduleCommandService scheduleCommandService;
 
-    // 일정을 검증하기 위한 공통 메서드
     private Schedule validSchedule(Long scheduleId) {
         return scheduleQueryService.findScheduleById(scheduleId);
     }

@@ -1,18 +1,13 @@
 package com.grepp.spring.app.model.schedule;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.grepp.spring.app.controller.api.auth.Provider;
-import com.grepp.spring.app.controller.api.schedule.payload.response.ShowScheduleResponse;
 import com.grepp.spring.app.model.event.code.MeetingType;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.repository.EventRepository;
-import com.grepp.spring.app.model.group.code.GroupRole;
 import com.grepp.spring.app.model.group.entity.Group;
-import com.grepp.spring.app.model.group.entity.GroupMember;
 import com.grepp.spring.app.model.member.code.Role;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
@@ -129,13 +124,8 @@ class ScheduleQueryServiceTest {
         dummyGroup1.setName("그루비룸");
 
         // 테스트용 더미 이벤트 생성
-        dummyEvent1 = new Event();
-        dummyEvent1.setId(10000L);
-        dummyEvent1.setGroup(dummyGroup1);
-        dummyEvent1.setTitle("스케줄입니다~");
-        dummyEvent1.setDescription("스케줄 설명입니다!!");
-        dummyEvent1.setMeetingType(MeetingType.OFFLINE);
-        dummyEvent1.setMaxMember(10);
+        dummyEvent1 = Event.createEvent(dummyGroup1, "스케줄입니다~", "스케줄 설명입니다!!", MeetingType.OFFLINE, 10);
+
 
         // 테스트용 더미 스케줄 생성
         dummySchedule1 = new Schedule();
