@@ -161,6 +161,7 @@ public class EventQueryService {
         return participantCounts;
     }
 
+    // 쿼리 DSL 적용
     private Map<Long, List<TempSchedule>> getMemberScheduleMap(List<EventMember> eventMembers) {
         List<TempSchedule> allSchedules = tempScheduleRepository
             .findAllByEventMemberInAndActivatedTrueOrderByEventMemberIdAscDateAsc(eventMembers);

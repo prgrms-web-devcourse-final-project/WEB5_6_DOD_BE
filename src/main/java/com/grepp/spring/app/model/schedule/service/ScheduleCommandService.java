@@ -161,8 +161,7 @@ public class ScheduleCommandService {
         return CreateScheduleDto.toResponse(schedule.getId());
     }
 
-    // NOTE private 변경
-    public Schedule create(CreateSchedulesRequest request, Event event) {
+    private Schedule create(CreateSchedulesRequest request, Event event) {
         CreateScheduleDto dto = CreateScheduleDto.toDto(request);
         Schedule schedule = CreateScheduleDto.fromDto(dto, event);
 
@@ -170,8 +169,7 @@ public class ScheduleCommandService {
         return schedule;
     }
 
-    // NOTE private 변경
-    public void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule, String userId) {
+    private void createScheduleMembers(CreateSchedulesRequest request, Schedule schedule, String userId) {
         for (CreateScheduleMembersDto entry : request.getMembers()) {
             String memberId = String.valueOf(entry.getMemberId());
 
@@ -521,21 +519,33 @@ public class ScheduleCommandService {
     public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
         String userId) {
 
-        ScheduleMember scheduleMember = getScheduleMember(schedule.getId(),userId);
-        Member member = memberRepository.findById(userId).orElseThrow();
-        Optional<Metro> metro = getMetro(request.getLocationName());
+        List<Location> locationList = locationQueryRepository.findByScheduleId(schedule.getId());
+        boolean bool = true;
 
-        scheduleMember.isScheduleMasterOrThrow();
+        for (Location l : locationList) {
+            if(l.getVoteCount() != 0) bool = false;
+        }
 
-        Location location = saveSuggestedLocation(schedule, request, metro, member);
+        if (bool) {
+            ScheduleMember scheduleMember = getScheduleMember(schedule.getId(),userId);
+            Member member = memberRepository.findById(userId).orElseThrow();
+            Optional<Metro> metro = getMetro(request.getLocationName());
 
-        metro = metroQueryRepository.findByName(location.getName());
-        List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+            scheduleMember.isScheduleMasterOrThrow();
 
-        for (Line l : line) {
-            WriteSuggestedMetroTransferDto dto = WriteSuggestedMetroTransferDto.toDto(schedule, location, l);
-            MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
-            metroTransferCommandRepository.save(metroTransfer);
+            Location location = saveSuggestedLocation(schedule, request, metro, member);
+
+            metro = metroQueryRepository.findByName(location.getName());
+            List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+
+            for (Line l : line) {
+                WriteSuggestedMetroTransferDto dto = WriteSuggestedMetroTransferDto.toDto(schedule, location, l);
+                MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
+                metroTransferCommandRepository.save(metroTransfer);
+            }
+        }
+        else {
+            throw new RuntimeException("투표중입니다! 투표중에는 후보장소를 등록할 수 없습니다.");
         }
 
     }
