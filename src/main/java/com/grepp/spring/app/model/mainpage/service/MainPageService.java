@@ -181,6 +181,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
         .filter(schedule ->
           schedule.getStatus() == ScheduleStatus.FIXED || schedule.getStatus() == ScheduleStatus.COMPLETE
         )
+
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<ScheduleMember> participants = schedule.getScheduleMembers();
