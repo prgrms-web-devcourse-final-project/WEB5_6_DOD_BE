@@ -80,6 +80,9 @@ dependencies {
 
     // Apache POI로 엑셀파일 읽는 모듈
     implementation 'org.apache.poi:poi-ooxml:5.2.3'
+
+    implementation('com.mysql:mysql-connector-j')
+
 }
 
 tasks.withType(Test) {

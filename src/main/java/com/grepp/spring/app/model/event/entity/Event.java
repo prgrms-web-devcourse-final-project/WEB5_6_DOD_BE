@@ -41,7 +41,7 @@ public class Event extends BaseEntity {
     private Integer maxMember;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "team_id")
     private Group group;
 
     // 이벤트가 삭제되면 그 후보 시간대도 삭제

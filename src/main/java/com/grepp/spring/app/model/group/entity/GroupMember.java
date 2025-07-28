@@ -54,7 +54,7 @@ public class GroupMember extends BaseEntity {
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "team_id")
     private Group group;
 
     private Boolean groupAdmin;

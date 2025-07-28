@@ -23,7 +23,7 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "Groups")
+@Table(name = "Teams")
 @Getter
 @Setter
 @NoArgsConstructor
