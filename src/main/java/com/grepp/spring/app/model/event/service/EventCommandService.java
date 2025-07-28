@@ -65,7 +65,10 @@ public class EventCommandService {
     public void joinEvent(Long eventId, Long groupId, String currentMemberId) {
         JoinEventDto dto = JoinEventDto.toDto(eventId, currentMemberId);
 
-        Event event = findEventOrThrow(dto.getEventId());
+        //Event event = findEventOrThrow(dto.getEventId());
+
+        // 비관적락
+        Event event = findEventWithLockOrThrow(dto.getEventId());
         Member member = findMemberOrThrow(dto.getMemberId());
 
         validateEventMemberIsAlreadyJoined(dto.getEventId(), dto.getMemberId());
@@ -172,6 +175,11 @@ public class EventCommandService {
 
     private Event findEventOrThrow(Long eventId) {
         return eventRepository.findById(eventId)
+            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+    }
+
+    private Event findEventWithLockOrThrow(Long eventId) {
+        return eventRepository.findEventForUpdate(eventId)
             .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
     }
 
