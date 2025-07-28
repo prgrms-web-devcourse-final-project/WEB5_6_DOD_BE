@@ -19,7 +19,7 @@ import lombok.Setter;
 @Table(name = "Events")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Event extends BaseEntity {
 
     @Id
