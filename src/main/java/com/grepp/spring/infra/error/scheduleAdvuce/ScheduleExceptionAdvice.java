@@ -3,10 +3,7 @@ package com.grepp.spring.infra.error.scheduleAdvuce;
 import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
-import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
-import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMasterException;
-import com.grepp.spring.infra.error.exceptions.schedule.ScheduleMemberNotFoundException;
-import com.grepp.spring.infra.error.exceptions.schedule.WorkSpaceNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.*;
 import com.grepp.spring.infra.response.ApiResponse;
 import com.grepp.spring.infra.response.EventErrorCode;
 import com.grepp.spring.infra.response.GroupErrorCode;
@@ -77,5 +74,13 @@ public class ScheduleExceptionAdvice {
     ) {
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status()).
             body(ApiResponse.error(ScheduleErrorCode.NOT_SCHEDULE_MASTER));
+    }
+
+    @ExceptionHandler(EventNotActivatedException.class)
+    public ResponseEntity<ApiResponse<String>> eventNotActivatedExHandler(
+        EventNotActivatedException ex
+    ) {
+        return ResponseEntity.status(ScheduleErrorCode.EVENT_NOT_ACTIVATED.status()).
+            body(ApiResponse.error(ScheduleErrorCode.EVENT_NOT_ACTIVATED));
     }
 }
