@@ -21,6 +21,7 @@ public class ModifyFavoritePlaceResponse {
   public static class ModifyFavLocationList{
     private Long favoritePlaceId;
     private String stationName;
+    private String address;
     private double latitude;
     private double longitude;
     private LocalDateTime updatedAt;

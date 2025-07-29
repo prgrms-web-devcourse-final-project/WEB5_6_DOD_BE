@@ -57,6 +57,9 @@ public class UnifiedScheduleDto { //  for (구글 일정 + 내부 일정) 하나
         .map(m -> m.getMember().getName()) // Member 엔티티에서 이름 꺼내기
         .collect(Collectors.joining(", "));
 
+    boolean isGrouped = g != null && Boolean.TRUE.equals(g.getIsGrouped());
+    String groupName = isGrouped ? g.getName() : null;
+
     return UnifiedScheduleDto.builder()
         .id(s.getId())
         .googleEventId(null)

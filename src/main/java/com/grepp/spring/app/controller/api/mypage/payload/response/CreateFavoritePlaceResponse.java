@@ -21,6 +21,7 @@ public class CreateFavoritePlaceResponse {
   public static class FavoriteLocationList{
     private Long favoritePlaceId;
     private String stationName;
+    private String address;
     private double latitude;
     private double longitude;
     private LocalDateTime createdAt;
