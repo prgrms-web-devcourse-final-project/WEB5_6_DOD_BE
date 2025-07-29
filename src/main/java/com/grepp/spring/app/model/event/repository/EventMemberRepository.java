@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.event.repository;
 
+import com.grepp.spring.app.model.event.dto.AllTimeEventMemberDto;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
 import java.util.ArrayList;
@@ -21,4 +22,5 @@ public interface EventMemberRepository extends JpaRepository<EventMember, Long> 
     ArrayList<EventMember> findByEvent(Event event);
 
     void deleteByEventAndMemberId(Event event, String id);
+
 }

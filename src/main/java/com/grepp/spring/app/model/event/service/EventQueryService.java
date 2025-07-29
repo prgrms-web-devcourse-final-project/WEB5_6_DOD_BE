@@ -3,6 +3,8 @@ package com.grepp.spring.app.model.event.service;
 import com.grepp.spring.app.controller.api.event.payload.response.AllTimeScheduleResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.ScheduleResultResponse;
 import com.grepp.spring.app.controller.api.event.payload.response.ShowEventResponse;
+import com.grepp.spring.app.model.event.dto.AllTimeEventDto;
+import com.grepp.spring.app.model.event.dto.AllTimeEventMemberDto;
 import com.grepp.spring.app.model.event.dto.AllTimeScheduleDto;
 import com.grepp.spring.app.model.event.dto.ScheduleResultDto;
 import com.grepp.spring.app.model.event.entity.CandidateDate;
@@ -10,8 +12,11 @@ import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.event.entity.EventMember;
 import com.grepp.spring.app.model.event.entity.TempSchedule;
 import com.grepp.spring.app.model.event.repository.CandidateDateRepository;
+import com.grepp.spring.app.model.event.repository.EventMemberQueryRepository;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
+import com.grepp.spring.app.model.event.repository.EventQueryRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
+import com.grepp.spring.app.model.event.repository.TempScheduleQueryRepository;
 import com.grepp.spring.app.model.event.repository.TempScheduleRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -40,9 +45,12 @@ import java.util.stream.Collectors;
 public class EventQueryService {
 
     private final EventRepository eventRepository;
+    private final EventQueryRepository eventQueryRepository;
     private final EventMemberRepository eventMemberRepository;
+    private final EventMemberQueryRepository eventMemberQueryRepository;
     private final CandidateDateRepository candidateDateRepository;
     private final TempScheduleRepository tempScheduleRepository;
+    private final TempScheduleQueryRepository tempScheduleQueryRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
 
@@ -110,49 +118,51 @@ public class EventQueryService {
 //        return AllTimeScheduleDto.fromDto(dto);
 //    }
 
-    public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
-        Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+        public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
+            AllTimeEventDto event = eventQueryRepository.findAllTimeEventById(eventId);
 
-        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
-            throw new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER);
-        }
+            if (event == null) {
+                throw new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND);
+            }
 
-        List<CandidateDate> candidateDates = candidateDateRepository
-            .findAllByEventIdAndActivatedTrueOrderByDate(eventId);
+            if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
+                throw new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER);
+            }
 
-        List<EventMember> eventMembers = eventMemberRepository
-            .findAllByEventIdAndActivatedTrue(eventId);
+            List<CandidateDate> candidateDates = candidateDateRepository
+                .findAllByEventIdAndActivatedTrueOrderByDate(eventId);
 
-        Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
+            List<EventMember> eventMembers = eventMemberRepository
+                .findAllByEventIdAndActivatedTrue(eventId);
 
-        AllTimeScheduleDto.TimeTableDto timeTable = buildTimeTable(candidateDates);
+            Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
 
-        List<AllTimeScheduleDto.MemberScheduleDto> memberSchedules = eventMembers.stream()
-            .map(member -> buildSingleMemberSchedule(member, candidateDates, memberScheduleMap))
-            .collect(Collectors.toList());
+            AllTimeScheduleDto.TimeTableDto timeTable = buildTimeTable(candidateDates);
 
-        Integer confirmedMembers = (int) eventMembers.stream()
-            .filter(EventMember::getConfirmed)
-            .count();
+            List<AllTimeScheduleDto.MemberScheduleDto> memberSchedules = eventMembers.stream()
+                .map(member -> buildSingleMemberSchedule(member, candidateDates, memberScheduleMap))
+                .collect(Collectors.toList());
 
-        Map<String, List<Integer>> participantCounts = calculateParticipantCounts(candidateDates, memberScheduleMap);
+            Integer confirmedMembers = (int) eventMembers.stream()
+                .filter(EventMember::getConfirmed)
+                .count();
 
-        AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
-            .eventId(event.getId())
-            .eventTitle(event.getTitle())
-            .description(event.getDescription())
-            .timeTable(timeTable)
-            .maxMembers(event.getMaxMember())
-            .memberSchedules(memberSchedules)
-            .totalMembers(eventMembers.size())
-            .confirmedMembers(confirmedMembers)
-            .participantCounts(participantCounts)
-            .build();
+            Map<String, List<Integer>> participantCounts = calculateParticipantCounts(candidateDates, memberScheduleMap);
 
-        return AllTimeScheduleDto.fromDto(dto);
+            AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
+                .eventId(event.getEventId())
+                .eventTitle(event.getEventTitle())
+                .description(event.getEventDescription())
+                .timeTable(timeTable)
+                .maxMembers(event.getEventMaxMember())
+                .memberSchedules(memberSchedules)
+                .totalMembers(eventMembers.size())
+                .confirmedMembers(confirmedMembers)
+                .participantCounts(participantCounts)
+                .build();
+
+            return AllTimeScheduleDto.fromDto(dto);
     }
-
 
     private Map<String, List<Integer>> calculateParticipantCounts(
         List<CandidateDate> candidateDates,
