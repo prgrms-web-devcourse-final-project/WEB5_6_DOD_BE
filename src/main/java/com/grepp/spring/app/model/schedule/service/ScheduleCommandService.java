@@ -453,18 +453,24 @@ public class ScheduleCommandService {
         // 파라미터를 id로 받으면 더 좋을 것 같음
         Location location = locationQueryRepository.findByIdWithPessimisticLock(lid.getId())
                 .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
+//        log.info("location = {}", location.toString());
+
 
         // 락 이후 voteCnt 증가시키기
         location.setVoteCount(location.getVoteCount() + 1);
 
         List<Location> locationList = locationQueryRepository.findByScheduleId(schedule.getId());
+//        log.info("locationList = {}", locationList.toString());
+
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
-        int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
 
         // vote 저장 시점을 뒤로 미뤄서, Location 락과의 교착을 방지
         VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMember, lid, schedule);
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
+
+        int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
+        log.info("voteCount = {}", voteCount);
 
 
         if (scheduleMemberNumber - voteCount == 0) {
@@ -479,6 +485,7 @@ public class ScheduleCommandService {
             }
 
             Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLocationId);
+            log.info("winnerLocation: {}", winnerLocation);
             winnerLocation.get().setStatus(VoteStatus.WINNER);
         }
     }
