@@ -85,6 +85,9 @@ public class GroupQueryService {
                 if(!schedule.getStatus().equals(ScheduleStatus.FIXED) && !schedule.getStatus().equals(ScheduleStatus.COMPLETE)) {
                     continue;
                 }
+                if(!scheduleMemberQueryRepository.existsByScheduleIdAndMemberId(schedule.getId(), member.getId())){
+                    continue;
+                }
                 ScheduleDetails scheduleDetails1 = ScheduleDetails.builder()
                     .scheduleId(schedule.getId())
                     .scheduleName(schedule.getScheduleName())
