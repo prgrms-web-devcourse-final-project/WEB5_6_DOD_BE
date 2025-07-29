@@ -25,6 +25,7 @@ import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.event.EventNotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.ScheduleNotFoundException;
 import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.NotScheduleMemberException;
 import com.grepp.spring.infra.error.exceptions.schedule.ScheduleMemberNotFoundException;
 import com.grepp.spring.infra.error.exceptions.schedule.WorkSpaceNotFoundException;
 import com.grepp.spring.infra.response.EventErrorCode;
@@ -51,22 +52,31 @@ public class ScheduleQueryService {
     private final MetroTransferQueryRepository metroTransferQueryRepository;
 
     @Transactional
-    public ShowScheduleResponse showSchedule(Schedule schedule) {
+    public ShowScheduleResponse showSchedule(Schedule schedule, String userId) {
 
         Long eventId = schedule.getEvent().getId();
 
         List<ScheduleMember> scheduleMembers = scheduleMemberQueryRepository.findByScheduleId(
             schedule.getId());
+        Boolean bool = false;
+        for (ScheduleMember scheduleMember : scheduleMembers) {
+            if (scheduleMember.getMember().getId().equals(userId)) {
+                bool = true;
+            }
+        }
 
-        List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule.getId());
+        if (bool) {
+            List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule.getId());
 
-        MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
+            MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
 
+            ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
+                scheduleMembers, workspaces);
 
-        ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
-            scheduleMembers, workspaces);
+            return ShowScheduleDto.fromDto(dto);
+        }
 
-        return ShowScheduleDto.fromDto(dto);
+        throw new NotScheduleMemberException(ScheduleErrorCode.NOT_SCHEDULE_MEMBER);
     }
 
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {

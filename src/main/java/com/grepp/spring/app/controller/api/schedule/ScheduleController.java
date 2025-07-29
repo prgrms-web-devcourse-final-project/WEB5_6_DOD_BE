@@ -58,10 +58,10 @@ public class ScheduleController {
     @Operation(summary = "일정 조회", description = "일정을 조회합니다.")
     @GetMapping("/show/{scheduleId}")
     public ResponseEntity<ApiResponse<ShowScheduleResponse>> showSchedules(
-        @PathVariable Long scheduleId) {
+        @PathVariable Long scheduleId, @CurrentUser String userId) {
 
         Schedule schedule = validSchedule(scheduleId);
-        ShowScheduleResponse response = scheduleQueryService.showSchedule(schedule);
+        ShowScheduleResponse response = scheduleQueryService.showSchedule(schedule, userId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

@@ -465,17 +465,19 @@ public class ScheduleCommandService {
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
+
         if (scheduleMemberNumber - voteCount == 0) {
+            Long winnerLocationId = 0L;
             int winner = 0;
-            Long winnerLid = null;
             for (Location l : locationList) {
                 if (winner <= l.getVoteCount()) {
                     winner = l.getVoteCount();
-                    winnerLid = l.getId();
+                    winnerLocationId = l.getId();
+                    log.info("winnerLocationId: {}", winnerLocationId);
                 }
             }
 
-            Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLid);
+            Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLocationId);
             winnerLocation.get().setStatus(VoteStatus.WINNER);
         }
     }
