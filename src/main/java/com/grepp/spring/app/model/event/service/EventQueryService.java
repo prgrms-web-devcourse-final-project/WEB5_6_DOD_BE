@@ -45,6 +45,7 @@ public class EventQueryService {
     private final TempScheduleRepository tempScheduleRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
     private final ScheduleMemberQueryRepository scheduleMemberQueryRepository;
+    private final EventScheduleCacheService cacheService;
 
     public ShowEventResponse getEvent(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
@@ -75,6 +76,14 @@ public class EventQueryService {
             throw new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER);
         }
 
+        // 캐시에서 조회 시도
+        AllTimeScheduleResponse cachedResponse = cacheService.getCachedAllTimeSchedule(eventId);
+
+        if (cachedResponse != null) {
+            return cachedResponse;
+        }
+
+        // 캐시 미스 시 데이터베이스에서 조회
         List<CandidateDate> candidateDates = candidateDateRepository
             .findAllByEventIdAndActivatedTrueOrderByDate(eventId);
 
@@ -107,7 +116,11 @@ public class EventQueryService {
             .participantCounts(participantCounts)
             .build();
 
-        return AllTimeScheduleDto.fromDto(dto);
+        AllTimeScheduleResponse response = AllTimeScheduleDto.fromDto(dto);
+
+        cacheService.cacheAllTimeSchedule(eventId, response);
+
+        return response;
     }
 
 
