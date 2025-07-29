@@ -40,6 +40,9 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private Integer maxMember;
 
+    @Version
+    private Long version = 0L;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Group group;
