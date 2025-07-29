@@ -20,6 +20,7 @@ import com.grepp.spring.app.model.group.repository.GroupMemberQueryRepository;
 import com.grepp.spring.app.model.group.repository.GroupQueryRepository;
 import com.grepp.spring.app.model.member.entity.Member;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
@@ -81,6 +82,9 @@ public class GroupQueryService {
         for (Event event : eventQueryRepository.findByGroupId(groupId)) {
             MeetingType meetingType = event.getMeetingType();
             for (Schedule schedule : scheduleQueryRepository.findByEvent(event)) {
+                if(!schedule.getStatus().equals(ScheduleStatus.FIXED) && !schedule.getStatus().equals(ScheduleStatus.COMPLETE)) {
+                    continue;
+                }
                 ScheduleDetails scheduleDetails1 = ScheduleDetails.builder()
                     .scheduleId(schedule.getId())
                     .scheduleName(schedule.getScheduleName())
