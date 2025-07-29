@@ -4,7 +4,6 @@ package com.grepp.spring.app.model.event;
 import com.grepp.spring.app.model.event.entity.EventMember;
 import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.service.EventCommandService;
-import com.grepp.spring.app.model.event.service.JoinEventService;
 import com.grepp.spring.infra.error.exceptions.event.AlreadyJoinedEventException;
 import com.grepp.spring.infra.error.exceptions.event.InvalidEventDataException;
 import java.util.List;
