@@ -7,8 +7,8 @@ values (1,'DOD 그룹','DOD 그룹입니당',true, true);
 show engine innodb status;
 
 -- 이벤트 테이블 생성
-insert into events(id, description, max_member, meeting_type, title, team_id, activated)
-values (4,'일정 생성 이벤트', 10, 'OFFLINE', 'DOD 이벤트', 1, true);
+insert into events(id, description, max_member, meeting_type, title, team_id, activated, version)
+values (4,'일정 생성 이벤트', 10, 'OFFLINE', 'DOD 이벤트', 1, true, 0);
 
 -- 멤버 테이블 생성
 insert into members(id, password, provider, role, email, name, profile_image_number, tel)
