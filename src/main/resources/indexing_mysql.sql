@@ -2,8 +2,8 @@
 CREATE INDEX idx_event_members_event_member
     ON event_members(event_id, member_id);
 
-# CREATE INDEX idx_event_members_event_activated
-#     ON event_members(event_id, confirmed);
+CREATE INDEX idx_event_members_event_activated
+    ON event_members(event_id, activated);
 
 -- 2. 인덱스 확인 (MySQL에서는 SHOW INDEX 사용)
 SHOW INDEX FROM event_members;

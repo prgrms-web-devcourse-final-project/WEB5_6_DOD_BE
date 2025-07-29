@@ -13,8 +13,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CreateFavoritePlaceRequest {
     @NotNull
-    @Schema(example = ".강남역 8번 출구")
+    @Schema(example = "강남역 8번 출구")
     private String stationName; // 역이름으로 수정
+    @NotNull
+    @Schema(example = "서울특별시 강남구 강남대로 396")
+    private String address; //
     @NotNull
     @Schema(example = "37.4979")
     private double latitude;

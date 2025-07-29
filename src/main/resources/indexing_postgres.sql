@@ -2,8 +2,8 @@
 CREATE INDEX IF NOT EXISTS idx_event_members_event_member
     ON event_members(event_id, member_id);
 
--- CREATE INDEX IF NOT EXISTS idx_event_members_event_activated
---     ON event_members(event_id, confirmed);
+CREATE INDEX IF NOT EXISTS idx_event_members_event_activated
+    ON event_members(event_id, activated);
 
 -- 2. 인덱스 확인 (스키마 명시)
 SELECT *

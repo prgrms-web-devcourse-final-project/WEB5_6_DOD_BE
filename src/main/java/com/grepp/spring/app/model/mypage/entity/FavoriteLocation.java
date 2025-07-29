@@ -54,6 +54,9 @@ public class FavoriteLocation extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
+    private String address;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", unique = true)
     private Member member;
@@ -65,6 +68,7 @@ public class FavoriteLocation extends BaseEntity {
             .longitude(request.getLongitude())
             .latitude(request.getLatitude())
             .name(request.getStationName())
+            .address(request.getAddress())
             .member(member)
             .build();
     }
@@ -72,6 +76,7 @@ public class FavoriteLocation extends BaseEntity {
     // 위치 업데이트
     public void updateLocation(ModifyFavoritePlaceRequest request) {
         this.name = request.getStationName();
+        this.address = request.getAddress();
         this.latitude = request.getLatitude();
         this.longitude = request.getLongitude();
     }

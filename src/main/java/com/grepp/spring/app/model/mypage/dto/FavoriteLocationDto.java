@@ -22,6 +22,7 @@ public class FavoriteLocationDto {
   private Long favoriteLocationId;
   private String memberId;
   private String stationName;
+  private String address;
   private Double latitude;
   private Double longitude;
 
@@ -31,6 +32,7 @@ public class FavoriteLocationDto {
         .favoriteLocationId(entity.getId())
         .memberId(entity.getMember().getId())
         .stationName(entity.getName())          //Entity 내 name 필드 -> stationName 으로 쓰기
+        .address(entity.getAddress())
         .latitude(entity.getLatitude())
         .longitude(entity.getLongitude())
         .build();
@@ -46,6 +48,7 @@ public class FavoriteLocationDto {
         .id(dto.getFavoriteLocationId())
         .member(member)
         .name(dto.getStationName())
+        .address(dto.getAddress())
         .latitude(dto.getLatitude())
         .longitude(dto.getLongitude())
         .build();
@@ -56,6 +59,7 @@ public class FavoriteLocationDto {
     FavoriteLocationList item = FavoriteLocationList.builder()
         .favoritePlaceId(dto.getFavoriteLocationId())
         .stationName(dto.getStationName())
+        .address(dto.getAddress())
         .latitude(dto.getLatitude())
         .longitude(dto.getLongitude())
         .build();
@@ -68,6 +72,7 @@ public class FavoriteLocationDto {
     return FavoriteLocationDto.builder()
         .memberId(member.getId())
         .stationName(request.getStationName())
+        .address(request.getAddress())
         .latitude(request.getLatitude())
         .longitude(request.getLongitude())
         .build();
@@ -78,6 +83,7 @@ public class FavoriteLocationDto {
         ModifyFavoritePlaceResponse.ModifyFavLocationList.builder()
             .favoritePlaceId(dto.getFavoriteLocationId())
             .stationName(dto.getStationName())
+            .address(dto.getAddress())
             .latitude(dto.getLatitude())
             .longitude(dto.getLongitude())
             .build();
