@@ -67,6 +67,49 @@ public class EventQueryService {
             .build();
     }
 
+//    public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
+//        Event event = eventRepository.findById(eventId)
+//            .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
+//
+//        if (!eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)) {
+//            throw new NotEventMemberException(EventErrorCode.NOT_EVENT_MEMBER);
+//        }
+//
+//        List<CandidateDate> candidateDates = candidateDateRepository
+//            .findAllByEventIdAndActivatedTrueOrderByDate(eventId);
+//
+//        List<EventMember> eventMembers = eventMemberRepository
+//            .findAllByEventIdAndActivatedTrue(eventId);
+//
+//        Map<Long, List<TempSchedule>> memberScheduleMap = getMemberScheduleMap(eventMembers);
+//
+//        AllTimeScheduleDto.TimeTableDto timeTable = buildTimeTable(candidateDates);
+//
+//        List<AllTimeScheduleDto.MemberScheduleDto> memberSchedules = eventMembers.stream()
+//            .map(member -> buildSingleMemberSchedule(member, candidateDates, memberScheduleMap))
+//            .collect(Collectors.toList());
+//
+//        Integer confirmedMembers = (int) eventMembers.stream()
+//            .filter(EventMember::getConfirmed)
+//            .count();
+//
+//        Map<String, List<Integer>> participantCounts = calculateParticipantCounts(candidateDates, memberScheduleMap);
+//
+//        AllTimeScheduleDto dto = AllTimeScheduleDto.builder()
+//            .eventId(event.getId())
+//            .eventTitle(event.getTitle())
+//            .description(event.getDescription())
+//            .timeTable(timeTable)
+//            .maxMembers(event.getMaxMember())
+//            .memberSchedules(memberSchedules)
+//            .totalMembers(eventMembers.size())
+//            .confirmedMembers(confirmedMembers)
+//            .participantCounts(participantCounts)
+//            .build();
+//
+//        return AllTimeScheduleDto.fromDto(dto);
+//    }
+
     public AllTimeScheduleResponse getAllTimeSchedules(Long eventId, String currentMemberId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new EventNotFoundException(EventErrorCode.EVENT_NOT_FOUND));
