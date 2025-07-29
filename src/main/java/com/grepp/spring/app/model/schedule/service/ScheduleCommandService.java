@@ -52,6 +52,7 @@ import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
 import com.grepp.spring.infra.error.exceptions.schedule.EventNotActivatedException;
+import com.grepp.spring.infra.error.exceptions.schedule.VoteAlreadyProgressException;
 import com.grepp.spring.infra.utils.RandomPicker;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
@@ -557,7 +558,7 @@ public class ScheduleCommandService {
             }
         }
         else {
-            throw new RuntimeException("투표중입니다! 투표중에는 후보장소를 등록할 수 없습니다.");
+            throw new VoteAlreadyProgressException(ScheduleErrorCode.VOTE_ALREADY_PROGRESS);
         }
 
     }

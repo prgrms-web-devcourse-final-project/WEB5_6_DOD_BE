@@ -21,6 +21,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(1)
 public class ScheduleExceptionAdvice {
 
+    @ExceptionHandler(VoteAlreadyProgressException.class)
+    public ResponseEntity<ApiResponse<String>> notScheduleMemberExHandler(
+        VoteAlreadyProgressException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error(ScheduleErrorCode.VOTE_ALREADY_PROGRESS));
+    }
+
     @ExceptionHandler(NotScheduleMemberException.class)
     public ResponseEntity<ApiResponse<String>> notScheduleMemberExHandler(
         NotScheduleMemberException ex) {
