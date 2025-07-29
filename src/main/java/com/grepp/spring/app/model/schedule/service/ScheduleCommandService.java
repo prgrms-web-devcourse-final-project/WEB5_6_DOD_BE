@@ -51,6 +51,7 @@ import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
 import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
+import com.grepp.spring.infra.error.exceptions.schedule.EventNotActivatedException;
 import com.grepp.spring.infra.utils.RandomPicker;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
@@ -153,6 +154,10 @@ public class ScheduleCommandService {
     public CreateSchedulesResponse createSchedule(CreateSchedulesRequest request, String userId) {
 
         Event event = scheduleQueryService.findEventById(request.getEventId());
+
+        if (!event.getActivated()) {
+            throw new EventNotActivatedException(ScheduleErrorCode.EVENT_NOT_ACTIVATED);
+        }
 
         event.activation();
         Schedule schedule = create(request, event);
