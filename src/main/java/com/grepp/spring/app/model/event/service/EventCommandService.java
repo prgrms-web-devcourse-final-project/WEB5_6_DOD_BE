@@ -46,6 +46,7 @@ public class EventCommandService {
     private final TempScheduleRepository tempScheduleRepository;
     private final EventScheduleResultService eventScheduleResultService;
     private final EventCreationStrategyFactory strategyFactory;
+    private final EventScheduleCacheService cacheService;
 
     public CreateEventResponse createEvent(CreateEventRequest webRequest, String currentMemberId) {
         CreateEventDto serviceRequest = CreateEventDto.toDto(webRequest, currentMemberId);
@@ -80,6 +81,8 @@ public class EventCommandService {
 
         EventMemberDto memberDto = EventMemberDto.toDto(dto.getEventId(), dto.getMemberId(), Role.ROLE_MEMBER);
         createEventMember(memberDto);
+
+        cacheService.invalidateEventCache(eventId);
     }
 
     public void createOrUpdateMyTime(MyTimeScheduleRequest request, Long eventId, String currentMemberId) {
@@ -93,6 +96,8 @@ public class EventCommandService {
         for (MyTimeScheduleDto.DailyTimeSlotDto slot : dto.getDailyTimeSlots()) {
             updateOrCreateTempSchedule(eventMember, slot);
         }
+
+        cacheService.invalidateEventCache(eventId);
     }
 
     private void updateOrCreateTempSchedule(EventMember eventMember, MyTimeScheduleDto.DailyTimeSlotDto slot) {
@@ -129,6 +134,8 @@ public class EventCommandService {
 
         eventMember.confirmScheduleOrThrow();
         eventMemberRepository.save(eventMember);
+
+        cacheService.invalidateEventCache(eventId);
     }
 
     public void createScheduleResult(Long eventId, String currentMemberId) {
