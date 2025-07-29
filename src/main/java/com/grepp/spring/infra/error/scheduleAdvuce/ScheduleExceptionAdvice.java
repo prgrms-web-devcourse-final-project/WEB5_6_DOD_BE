@@ -11,6 +11,7 @@ import com.grepp.spring.infra.response.ResponseCode;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,9 +21,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(1)
 public class ScheduleExceptionAdvice {
 
+    @ExceptionHandler(VoteAlreadyProgressException.class)
+    public ResponseEntity<ApiResponse<String>> notScheduleMemberExHandler(
+        VoteAlreadyProgressException ex) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiResponse.error(ScheduleErrorCode.VOTE_ALREADY_PROGRESS));
+    }
+
+    @ExceptionHandler(NotScheduleMemberException.class)
+    public ResponseEntity<ApiResponse<String>> notScheduleMemberExHandler(
+        NotScheduleMemberException ex) {
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ApiResponse.error(ScheduleErrorCode.NOT_SCHEDULE_MEMBER));
+    }
+
     @ExceptionHandler(WorkSpaceNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> workspaceNotFoundExHandler(
-        UserNotFoundException ex) {
+        WorkSpaceNotFoundException ex) {
 
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
             .body(ApiResponse.error(ScheduleErrorCode.SCHEDULE_MEMBER_NOT_FOUND));
@@ -30,7 +47,7 @@ public class ScheduleExceptionAdvice {
 
     @ExceptionHandler(ScheduleMemberNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> scheduleMemberNotFoundExHandler(
-        UserNotFoundException ex) {
+        ScheduleMemberNotFoundException ex) {
 
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
             .body(ApiResponse.error(ScheduleErrorCode.SCHEDULE_MEMBER_NOT_FOUND));
@@ -46,7 +63,7 @@ public class ScheduleExceptionAdvice {
 
     @ExceptionHandler(LocationNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> locationNotFoundExHandler(
-        ScheduleNotFoundException ex) {
+        LocationNotFoundException ex) {
 
         return ResponseEntity.status(ResponseCode.NOT_FOUND.status())
             .body(ApiResponse.error(GroupErrorCode.SCHEDULE_NOT_FOUND));

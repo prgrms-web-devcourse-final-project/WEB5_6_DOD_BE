@@ -257,7 +257,7 @@ class ScheduleQueryServiceTest {
 
 
         // When
-        var response = scheduleQueryService.showSchedule(dummySchedule1);
+        var response = scheduleQueryService.showSchedule(dummySchedule1,"GOOGLE_123");
 
         // Then
         assertNotNull(response);

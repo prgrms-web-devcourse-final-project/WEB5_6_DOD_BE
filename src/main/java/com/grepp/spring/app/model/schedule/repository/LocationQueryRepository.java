@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,4 +18,5 @@ public interface LocationQueryRepository extends JpaRepository<Location, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select l from Location l where l.id = :id")
     Optional<Location> findByIdWithPessimisticLock(@Param("id") Long id);
+
 }
