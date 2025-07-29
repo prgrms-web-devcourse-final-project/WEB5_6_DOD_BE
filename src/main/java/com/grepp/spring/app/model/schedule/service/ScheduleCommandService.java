@@ -438,21 +438,27 @@ public class ScheduleCommandService {
         return result;
     }
 
+    // 중간 장소 투표 메서드
     @Transactional
     public void voteMiddleLocation(Schedule schedule, ScheduleMember scheduleMember, Location lid) {
 
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMember, lid, schedule);
-        Vote vote = VoteMiddleLocationDto.fromDto(dto);
-        voteCommandRepository.save(vote);
+//        Location location = getLocation(lid);
+        // Location 엔티티에 비관적 락을 걸고 조회하기
+        // 파라미터를 id로 받으면 더 좋을 것 같음
+        Location location = locationQueryRepository.findByIdWithPessimisticLock(lid.getId())
+                .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
 
-        Location location = getLocation(lid);
-
+        // 락 이후 voteCnt 증가시키기
         location.setVoteCount(location.getVoteCount() + 1);
 
         List<Location> locationList = locationQueryRepository.findByScheduleId(schedule.getId());
-        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId())
-            .size();
+        int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
         int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
+
+        // vote 저장 시점을 뒤로 미뤄서, Location 락과의 교착을 방지
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMember, lid, schedule);
+        Vote vote = VoteMiddleLocationDto.fromDto(dto);
+        voteCommandRepository.save(vote);
 
         if (scheduleMemberNumber - voteCount == 0) {
             int winner = 0;
@@ -467,7 +473,6 @@ public class ScheduleCommandService {
             Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLid);
             winnerLocation.get().setStatus(VoteStatus.WINNER);
         }
-
     }
 
     @Transactional
