@@ -2,12 +2,14 @@ package com.grepp.spring.app.model.mainpage.service;
 
 import com.grepp.spring.app.controller.api.group.payload.response.ShowGroupResponse;
 import com.grepp.spring.app.controller.api.mainpage.payload.response.ShowMainPageResponse;
+import com.grepp.spring.app.model.group.dto.GroupDetailDto;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.service.GroupQueryMainpageService;
 import com.grepp.spring.app.model.mainpage.dto.UnifiedScheduleDto;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.mypage.dto.PublicCalendarEventDto;
 import com.grepp.spring.app.model.mypage.service.PublicCalendarIdService;
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
 import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
@@ -50,6 +52,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
   @AllArgsConstructor
   public static class UnifiedScheduleResult {
     private final List<UnifiedScheduleDto> schedules;
+    private final List<GroupDetailDto> groups;
     private final boolean googleFetchSuccess;
   }
   @Transactional(readOnly = true)
@@ -97,6 +100,10 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
   public UnifiedScheduleResult getUnifiedSchedules(String memberId, LocalDate start,
       LocalDate end) {
 
+    // 그룹 정보 가져오기
+    ShowGroupResponse groupResponse = groupQueryMainpageService.displayGroup();
+    List<GroupDetailDto> groups = groupResponse.getGroupDetails();
+
     LocalDateTime startDateTime = start.atStartOfDay();
     LocalDateTime endDateTime = end.atTime(23, 59, 59);
 
@@ -115,7 +122,7 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
     // 공개 캘린더 ID 없으면 내부 일정만 반환
     if (publicCalendarIdOpt.isEmpty()) {
       log.info("공개 캘린더 ID 없음 → 내부 일정만 반환");
-      return new UnifiedScheduleResult(internalDtos, true);
+      return new UnifiedScheduleResult(internalDtos, groups,true);
     }
 
 
@@ -148,13 +155,13 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
           .toList();
 
       // 구글까지 성공적으로 가져온 경우 → success=true
-      return new UnifiedScheduleResult(merged, true);
+      return new UnifiedScheduleResult(merged, groups,true);
 
     } catch (InvalidPublicCalendarIdException e) {
-      return new UnifiedScheduleResult(internalDtos, false);
+      return new UnifiedScheduleResult(internalDtos, groups,false);
 
     } catch (GoogleCalendarApiFailedException e) {
-      return new UnifiedScheduleResult(internalDtos, false);
+      return new UnifiedScheduleResult(internalDtos, groups,false);
 
     }
   }
@@ -170,6 +177,11 @@ public class MainPageService { // 메인페이지 & 달력 (구글 일정 + 내�
 
   private List<UnifiedScheduleDto> convertSchedulesToDtos(List<Schedule> schedules, String memberId) {
     return schedules.stream()
+        // l_recommend, e_recommend 걸러주기
+        .filter(schedule ->
+          schedule.getStatus() == ScheduleStatus.FIXED || schedule.getStatus() == ScheduleStatus.COMPLETE
+        )
+
         .map(schedule -> {
           Group group = schedule.getEvent().getGroup();
           List<ScheduleMember> participants = schedule.getScheduleMembers();

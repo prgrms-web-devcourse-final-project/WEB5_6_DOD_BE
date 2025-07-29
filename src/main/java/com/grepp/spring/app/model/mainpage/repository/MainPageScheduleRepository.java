@@ -1,5 +1,6 @@
 package com.grepp.spring.app.model.mainpage.repository;
 
+import com.grepp.spring.app.model.schedule.code.ScheduleStatus;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
 import java.time.LocalDateTime;
 import java.util.List;

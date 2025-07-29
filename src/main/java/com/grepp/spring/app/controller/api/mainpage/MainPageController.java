@@ -55,7 +55,7 @@ public class MainPageController {
 
   @Operation(summary = "날짜 범위 지정 (내부 + 구글 공개) 일정 통합 조회 (메인페이지 확장)")
   @GetMapping("/calendar")
-  public ApiResponse<Map<LocalDate,List<UnifiedScheduleDto>>> getSchedulesInRange(
+  public  ResponseEntity<ApiResponse<Map<String, Object>>> getSchedulesInRange(
       @CurrentUser String userId,
       @RequestParam LocalDate startDate,
       @RequestParam LocalDate endDate
@@ -73,8 +73,9 @@ public class MainPageController {
     Map<String, Object> response = new HashMap<>();
     response.put("googleCalendarFetchSuccess", result.isGoogleFetchSuccess());
     response.put("groupedSchedules", groupedByDate);
+    response.put("groupDetails", result.getGroups()); // 그룹 정보
 
-    return ApiResponse.success("월간 일정 조회 성공", groupedByDate);
+    return  ResponseEntity.ok(ApiResponse.success(response));
   }
 
   @Operation(summary = "내부 일정 목록만 조회하는 기능")
