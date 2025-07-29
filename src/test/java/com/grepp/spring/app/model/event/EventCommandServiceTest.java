@@ -153,6 +153,7 @@ class EventCommandServiceTest {
             Member mockMember = mock(Member.class);
 
             given(eventRepository.findById(eventId)).willReturn(Optional.of(mockEvent));
+            given(eventRepository.findEventForUpdate(eventId)).willReturn(Optional.of(mockEvent));
             given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(mockMember));
             given(eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)).willReturn(false);
             given(eventMemberRepository.countByEventId(eventId)).willReturn(5L);
@@ -176,7 +177,8 @@ class EventCommandServiceTest {
             Long eventId = 1L;
             String currentMemberId = "GOOGLE_1234";
 
-            given(eventRepository.findById(eventId)).willReturn(Optional.of(mock(Event.class)));
+            //given(eventRepository.findById(eventId)).willReturn(Optional.of(mock(Event.class)));
+            given(eventRepository.findEventForUpdate(eventId)).willReturn(Optional.of(mock(Event.class)));
             given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(mock(Member.class)));
             given(eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)).willReturn(true);
 
@@ -195,7 +197,8 @@ class EventCommandServiceTest {
             String currentMemberId = "GOOGLE_1234";
             Event mockEvent = mock(Event.class);
 
-            given(eventRepository.findById(eventId)).willReturn(Optional.of(mockEvent));
+            //given(eventRepository.findById(eventId)).willReturn(Optional.of(mockEvent));
+            given(eventRepository.findEventForUpdate(eventId)).willReturn(Optional.of(mockEvent));
             given(memberRepository.findById(currentMemberId)).willReturn(Optional.of(mock(Member.class)));
             given(eventMemberRepository.existsByEventIdAndMemberId(eventId, currentMemberId)).willReturn(false);
             given(eventMemberRepository.countByEventId(eventId)).willReturn(10L);
