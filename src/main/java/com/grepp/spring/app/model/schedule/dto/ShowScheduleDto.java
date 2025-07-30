@@ -68,7 +68,7 @@ public class ShowScheduleDto {
             .build();
     }
 
-    public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule, List<ScheduleMember> scheduleMembers, List<Workspace> workspace) {
+    public static ShowScheduleDto fromEntity(MeetingType meetingType, Long event, Schedule schedule, List<ScheduleMember> scheduleMembers, List<Workspace> workspace, List<Long> voteLocationId) {
 
         ScheduleStatus scheduleStatus;
 
@@ -88,7 +88,8 @@ public class ShowScheduleDto {
                 scheduleMembers.get(i).getRole(),
                 scheduleMembers.get(i).getDepartLocationName(),
                 scheduleMembers.get(i).getLatitude(),
-                scheduleMembers.get(i).getLongitude()
+                scheduleMembers.get(i).getLongitude(),
+                voteLocationId.get(i)
             ))
             .collect(Collectors.toList());
 
