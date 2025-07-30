@@ -1,18 +1,19 @@
 package com.grepp.spring.infra.config;
 
 import com.grepp.spring.infra.auth.CurrentUser;
-import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
-import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
@@ -20,6 +21,9 @@ import org.springframework.web.method.HandlerMethod;
 
 @Configuration
 public class SwaggerConfig {
+
+    @Value("${url.backend}")
+    private String backendServer;
 
     @Bean
     public OperationCustomizer customizeOperation() {
@@ -62,7 +66,8 @@ public class SwaggerConfig {
                             .description(
                                 "JWT 토큰을 입력하세요. Bearer 는 생략하세요")
                     ))
-            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+            .addServersItem(new Server().url(backendServer));
 
     }
 

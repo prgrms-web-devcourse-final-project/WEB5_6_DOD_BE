@@ -23,15 +23,28 @@ public class WebConfig implements WebMvcConfigurer {
 
     // 2025.7.11 기준 Front Server 테스트 주소인 https://localhost:3000 이 들어가야 합니다.
     // 빌드 시 application.yml 를 확인해주세요.
-    @Value("${front-server.domain}")
-    private String frontServer;
+    @Value("${front-server.domain-A}")
+    private String frontServerDomainA;
+
+    @Value("${front-server.domain-B}")
+    private String frontServerDomainB;
+
+    @Value("${url.backend}")
+    private String backendServer;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-            .allowedOrigins(frontServer,
-                "http://localhost:8080")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedOrigins(
+                frontServerDomainA,
+                frontServerDomainB,
+                backendServer,
+                "http://localhost:80",
+                "http://localhost:8080",
+                "http://localhost:3000",
+                "https://localhost:3000"
+            )
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             .allowedHeaders("*")
             .allowCredentials(true)
             .maxAge(3600);

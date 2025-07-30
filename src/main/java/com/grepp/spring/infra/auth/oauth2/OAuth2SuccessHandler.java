@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -30,11 +31,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final AuthService authService;
     private final CookieAuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
+    @Value("${front-server.domain-A}")
+    private String frontServerDomainA;
+
+    @Value("${url.backend}")
+    private String backendServer;
+
     // 허용 도메인
     private final List<String> ALLOWED_DOMAINS = Arrays.asList(
-        "https://localhost:3000", // frontend 로컬 도메인
-        "https://ittaeok.uk/" // 실제 배포 도메인
-
+        frontServerDomainA, // frontend 로컬 도메인
+        backendServer,
+        "https://localhost:3000"
     );
 
     @Override
