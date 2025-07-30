@@ -19,7 +19,7 @@ public class CreateSchedulesRequest {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    @Size(max = 10, message = "일정 제목은 10자를 초과할 수 없습니다.")
+    @Size(max = 20, message = "일정 제목은 20자를 초과할 수 없습니다.")
     private String scheduleName;
 
     @Size(max = 50, message = "일정 설명은 50자를 초과할 수 없습니다.")

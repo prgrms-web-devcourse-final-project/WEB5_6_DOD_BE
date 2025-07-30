@@ -257,8 +257,9 @@ public class ScheduleCommandService {
         if (dto.getMeetingPlatform() != null) {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
-
-        schedule.get().setPlatformUrl(dto.getPlatformURL());
+        if (dto.getPlatformURL() != null) {
+            schedule.get().setPlatformUrl(dto.getPlatformURL());
+        }
     }
 
     private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {
@@ -469,8 +470,11 @@ public class ScheduleCommandService {
         Vote vote = VoteMiddleLocationDto.fromDto(dto);
         voteCommandRepository.save(vote);
 
+
         int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
         log.info("voteCount = {}", voteCount);
+
+//        Optional<Schedule> schedule1 = scheduleQueryRepository.findById(schedule.getId());
 
 
         if (scheduleMemberNumber - voteCount == 0) {
@@ -487,6 +491,14 @@ public class ScheduleCommandService {
             Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLocationId);
             log.info("winnerLocation: {}", winnerLocation);
             winnerLocation.get().setStatus(VoteStatus.WINNER);
+
+            final String name = winnerLocation.get().getName();
+
+            log.info("name={}", name);
+            schedule.setLocation(name);
+            scheduleCommandRepository.save(schedule);
+
+//            em.flush();
         }
     }
 

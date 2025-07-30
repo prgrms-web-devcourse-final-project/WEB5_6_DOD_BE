@@ -22,11 +22,11 @@ public class CreateEventRequest {
 
     @Schema(description = "이벤트 제목", example = "스터디 모임")
     @NotBlank(message = "이벤트 제목은 필수입니다.")
-    @Size(max = 10, message = "이벤트 제목은 10자를 초과할 수 없습니다.")
+    @Size(max = 20, message = "이벤트 제목은 10자를 초과할 수 없습니다.")
     private String title;
 
     @Schema(description = "이벤트 설명", example = "매주 화요일 스터디 모임입니다.")
-    @Size(max = 500, message = "이벤트 설명은 500자를 초과할 수 없습니다.")
+    @Size(max = 50, message = "이벤트 설명은 50자를 초과할 수 없습니다.")
     private String description;
 
     @Schema(description = "미팅 타입", example = "ONLINE", allowableValues = {"ONLINE", "OFFLINE"})

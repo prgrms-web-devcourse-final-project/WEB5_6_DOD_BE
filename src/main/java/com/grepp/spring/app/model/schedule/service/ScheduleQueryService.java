@@ -69,9 +69,10 @@ public class ScheduleQueryService {
             List<Workspace> workspaces = workspaceQueryRepository.findAllByScheduleId(schedule.getId());
 
             MeetingType meetingType = eventRepository.findById(eventId).get().getMeetingType();
+            List<Long> voteLocationId = voteQueryRepository.findByScheduleIdAndMemberId(schedule.getId());
 
             ShowScheduleDto dto = ShowScheduleDto.fromEntity(meetingType, eventId, schedule,
-                scheduleMembers, workspaces);
+                scheduleMembers, workspaces, voteLocationId);
 
             return ShowScheduleDto.fromDto(dto);
         }
