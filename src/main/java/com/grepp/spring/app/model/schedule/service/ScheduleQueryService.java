@@ -80,6 +80,7 @@ public class ScheduleQueryService {
         throw new NotScheduleMemberException(ScheduleErrorCode.NOT_SCHEDULE_MEMBER);
     }
 
+    @Transactional(readOnly = true)
     public ShowSuggestedLocationsResponse showSuggestedLocation(Long scheduleId) {
         List<MetroInfoDto> infoDto = getMetroInfoDtos(scheduleId);
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(scheduleId).size();
@@ -114,6 +115,7 @@ public class ScheduleQueryService {
         return departLocationCount;
     }
 
+    @Transactional(readOnly = true)
     public ShowVoteMembersResponse findVoteMembers(Long scheduleId) {
 
         List<VoteMemberDto> voteMemberList = getVoteMemberDtos(scheduleId);
@@ -138,29 +140,34 @@ public class ScheduleQueryService {
         return voteMemberList;
     }
 
+    @Transactional(readOnly = true)
     public Schedule findScheduleById(Long scheduleId) {
         return scheduleQueryRepository.findById(scheduleId)
             .orElseThrow(() -> new ScheduleNotFoundException(
                 GroupErrorCode.SCHEDULE_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public Event findEventById(Long eventId) {
         return eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException(
             EventErrorCode.EVENT_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public Location findLocationById(Long locationId) {
         return locationQueryRepository.findById(locationId)
             .orElseThrow(() -> new LocationNotFoundException(
                 ScheduleErrorCode.LOCATION_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public ScheduleMember findScheduleMemberById(Long scheduleMemberId) {
         return scheduleMemberQueryRepository.findById(scheduleMemberId)
             .orElseThrow(() -> new ScheduleMemberNotFoundException(
                 ScheduleErrorCode.LOCATION_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public Workspace findWorkspaceById(Long workspaceId) {
         return workspaceQueryRepository.findById(workspaceId).orElseThrow(
             () -> new WorkSpaceNotFoundException(ScheduleErrorCode.WORKSPACE_NOT_FOUND));
