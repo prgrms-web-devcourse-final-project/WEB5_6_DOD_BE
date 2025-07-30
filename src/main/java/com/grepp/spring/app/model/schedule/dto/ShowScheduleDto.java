@@ -80,6 +80,8 @@ public class ShowScheduleDto {
             scheduleStatus = ScheduleStatus.FIXED;
         }
 
+
+
         List<ScheduleMembersDto> members = IntStream.range(0, scheduleMembers.size())
             .mapToObj(i-> new ScheduleMembersDto(
                 scheduleMembers.get(i).getMember().getId(),
@@ -89,7 +91,7 @@ public class ShowScheduleDto {
                 scheduleMembers.get(i).getDepartLocationName(),
                 scheduleMembers.get(i).getLatitude(),
                 scheduleMembers.get(i).getLongitude(),
-                voteLocationId.get(i)
+                voteLocationId.size() > i ? voteLocationId.get(i) : null
             ))
             .collect(Collectors.toList());
 
