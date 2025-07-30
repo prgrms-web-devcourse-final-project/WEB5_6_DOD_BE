@@ -37,6 +37,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${url.backend}")
     private String backendServer;
 
+    @Value("${front-server.redirect-url}")
+    private String DEFAULT_REDIRECT_URL;
+
     // 허용 도메인
     private final List<String> ALLOWED_DOMAINS = Arrays.asList(
         frontServerDomainA, // frontend 로컬 도메인
@@ -75,7 +78,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 'redirect_uri' 쿠키에서 uri를 가져오기
         // redirect uri 지정하지 않을 경우. 추후 실제 배포 도메인으로 변경해야 함.
-        String DEFAULT_REDIRECT_URL = "https://localhost:3000/auth/callback";
         String redirectUri = CookieUtils.getCookie(request, CookieAuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
             .map(Cookie::getValue)
             .orElse(DEFAULT_REDIRECT_URL); // 쿠키에 uri 없으면 default 로 이동

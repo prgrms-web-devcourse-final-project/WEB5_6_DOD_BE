@@ -21,8 +21,6 @@ public class WebConfig implements WebMvcConfigurer {
         resolvers.add(currentUserArgumentResolver);
     }
 
-    // 2025.7.11 기준 Front Server 테스트 주소인 https://localhost:3000 이 들어가야 합니다.
-    // 빌드 시 application.yml 를 확인해주세요.
     @Value("${front-server.domain-A}")
     private String frontServerDomainA;
 
