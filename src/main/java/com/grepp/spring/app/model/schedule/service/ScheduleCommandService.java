@@ -449,6 +449,8 @@ public class ScheduleCommandService {
     @Transactional
     public void voteMiddleLocation(Schedule schedule, ScheduleMember scheduleMember, Location lid) {
 
+        // 엔티티 객체 대신 ID를 사용하도록 변경
+        Long scheduleMemberId = scheduleMember.getId();
 //        Location location = getLocation(lid);
         // Location 엔티티에 비관적 락을 걸고 조회하기
         // 파라미터를 id로 받으면 더 좋을 것 같음
@@ -466,8 +468,8 @@ public class ScheduleCommandService {
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
 
         // vote 저장 시점을 뒤로 미뤄서, Location 락과의 교착을 방지
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMember, lid, schedule);
-        Vote vote = VoteMiddleLocationDto.fromDto(dto);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid, schedule);
+        Vote vote = VoteMiddleLocationDto.fromDto(dto, scheduleMemberRepository);
         voteCommandRepository.save(vote);
 
 

@@ -51,7 +51,7 @@ public class ScheduleQueryService {
     private final VoteQueryRepository voteQueryRepository;
     private final MetroTransferQueryRepository metroTransferQueryRepository;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ShowScheduleResponse showSchedule(Schedule schedule, String userId) {
 
         Long eventId = schedule.getEvent().getId();
