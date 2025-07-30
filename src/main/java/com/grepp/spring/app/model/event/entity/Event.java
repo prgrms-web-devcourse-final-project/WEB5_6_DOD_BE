@@ -82,8 +82,8 @@ public class Event extends BaseEntity {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("이벤트 제목은 필수입니다.");
         }
-        if (title.length() > 10) {
-            throw new IllegalArgumentException("이벤트 제목은 10자를 초과할 수 없습니다.");
+        if (title.length() > 20) {
+            throw new IllegalArgumentException("이벤트 제목은 20자를 초과할 수 없습니다.");
         }
     }
 
