@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -30,11 +31,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final AuthService authService;
     private final CookieAuthorizationRequestRepository cookieAuthorizationRequestRepository;
 
+    @Value("${front-server.domain-A}")
+    private String frontServerDomainA;
+
+    @Value("${url.backend}")
+    private String backendServer;
+
+    @Value("${front-server.redirect-url}")
+    private String DEFAULT_REDIRECT_URL;
+
     // 허용 도메인
     private final List<String> ALLOWED_DOMAINS = Arrays.asList(
-        "https://localhost:3000", // frontend 로컬 도메인
-        "https://ittaeok.uk/" // 실제 배포 도메인
-
+        frontServerDomainA, // frontend 로컬 도메인
+        backendServer,
+        "https://localhost:3000"
     );
 
     @Override
@@ -68,7 +78,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 'redirect_uri' 쿠키에서 uri를 가져오기
         // redirect uri 지정하지 않을 경우. 추후 실제 배포 도메인으로 변경해야 함.
-        String DEFAULT_REDIRECT_URL = "https://localhost:3000/auth/callback";
         String redirectUri = CookieUtils.getCookie(request, CookieAuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME)
             .map(Cookie::getValue)
             .orElse(DEFAULT_REDIRECT_URL); // 쿠키에 uri 없으면 default 로 이동
