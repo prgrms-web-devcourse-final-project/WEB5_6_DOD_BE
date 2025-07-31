@@ -22,4 +22,7 @@ public class ScheduleMembersDto {
     private String departLocationName;
     private Double latitude;
     private Double longitude;
+
+    // 어떤 장소에 투표했는지
+    private Long VoteLocationId;
 }

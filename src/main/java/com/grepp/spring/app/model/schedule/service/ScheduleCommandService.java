@@ -257,8 +257,9 @@ public class ScheduleCommandService {
         if (dto.getMeetingPlatform() != null) {
             schedule.get().setMeetingPlatform(dto.getMeetingPlatform());
         }
-
-        schedule.get().setPlatformUrl(dto.getPlatformURL());
+        if (dto.getPlatformURL() != null) {
+            schedule.get().setPlatformUrl(dto.getPlatformURL());
+        }
     }
 
     private void modifyWorkspaceEntity(Long scheduleId, ModifyScheduleDto dto, Long workspaceId) {
@@ -448,6 +449,8 @@ public class ScheduleCommandService {
     @Transactional
     public void voteMiddleLocation(Schedule schedule, ScheduleMember scheduleMember, Location lid) {
 
+        // 엔티티 객체 대신 ID를 사용하도록 변경
+        Long scheduleMemberId = scheduleMember.getId();
 //        Location location = getLocation(lid);
         // Location 엔티티에 비관적 락을 걸고 조회하기
         // 파라미터를 id로 받으면 더 좋을 것 같음
@@ -465,12 +468,15 @@ public class ScheduleCommandService {
         int scheduleMemberNumber = scheduleMemberQueryRepository.findByScheduleId(schedule.getId()).size();
 
         // vote 저장 시점을 뒤로 미뤄서, Location 락과의 교착을 방지
-        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMember, lid, schedule);
-        Vote vote = VoteMiddleLocationDto.fromDto(dto);
+        VoteMiddleLocationDto dto = VoteMiddleLocationDto.toDto(scheduleMemberId, lid, schedule);
+        Vote vote = VoteMiddleLocationDto.fromDto(dto, scheduleMemberRepository);
         voteCommandRepository.save(vote);
+
 
         int voteCount = voteQueryRepository.findByScheduleId(schedule.getId()).size();
         log.info("voteCount = {}", voteCount);
+
+//        Optional<Schedule> schedule1 = scheduleQueryRepository.findById(schedule.getId());
 
 
         if (scheduleMemberNumber - voteCount == 0) {
@@ -487,6 +493,14 @@ public class ScheduleCommandService {
             Optional<Location> winnerLocation = locationQueryRepository.findById(winnerLocationId);
             log.info("winnerLocation: {}", winnerLocation);
             winnerLocation.get().setStatus(VoteStatus.WINNER);
+
+            final String name = winnerLocation.get().getName();
+
+            log.info("name={}", name);
+            schedule.setLocation(name);
+            scheduleCommandRepository.save(schedule);
+
+//            em.flush();
         }
     }
 
