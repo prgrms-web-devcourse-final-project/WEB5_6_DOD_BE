@@ -40,7 +40,7 @@ services:
       start_period: 30s
 
   ittaeok-container:
-    image: # <도커 계정명/이미지 이름>/ittaeok-gcp:latest
+    image: ${DOCKER_IMAGES_NAME} # ex: leeseojun/ittaeok:latest
     container_name: ittaeok
     restart: always
     depends_on:
@@ -53,17 +53,17 @@ services:
       - "443:443"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/ittaeok?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-      - SPRING_DATASOURCE_USERNAME=ittaeok_user
-      - SPRING_DATASOURCE_PASSWORD=1234
-      
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+
       - SPRING_DATA_REDIS_HOST=redis-container
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
       - SPRING_DATA_REDIS_SSL_ENABLED=false
-      
+
       - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
       - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
-      
+
       - SPRING_CLOUD_GCP_SECRETMANAGER_ENABLED="true"
       - SPRING_CLOUD_GCP_PROJECT_ID=${GOOGLE_CLOUD_PROJECT}
     volumes:
