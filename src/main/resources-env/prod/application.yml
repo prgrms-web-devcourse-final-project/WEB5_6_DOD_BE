@@ -40,7 +40,7 @@ spring:
             client-name: google
             client-id: ${sm://google-client-id}
             client-secret: ${sm://google-client-secret}
-            redirect-uri: "https://api.ittaeok.com/login/oauth2/code/{registrationId}" # SM 붙이기
+            redirect-uri: ${sm://gcp-ip}+"/login/oauth2/code/{registrationId}" # SM 붙이기
             authorization-grant-type: authorization_code
             scope:
               - openid
@@ -50,7 +50,7 @@ spring:
             client-name: kakao
             client-id: ${sm://kakao-client-id}
             client-secret: ${sm://kakao-client-secret}
-            redirect-uri: "https://api.ittaeok.com/login/oauth2/code/{registrationId}" # SM 붙이기
+            redirect-uri: ${sm://gcp-ip}+"/login/oauth2/code/{registrationId}" # SM 붙이기
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             scope:
@@ -72,7 +72,7 @@ google:
   calendar:
     client-id: ${sm://google-client-id}
     client-secret: ${sm://google-client-secret}
-    redirect-uri: "https://api.ittaeok.com/oauth2/callback/google-calendar" # SM 붙이기
+    redirect-uri: ${sm://gcp-ip}+"/oauth2/callback/google-calendar" # SM 붙이기
   api:
     key: ${sm://google-api-key}
 zoom:
