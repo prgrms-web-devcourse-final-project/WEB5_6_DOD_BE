@@ -95,8 +95,12 @@ logging:
             sql: info
 
 url:
-  backend: https://api.ittaeok.com # SM 붙이기
+#  backend: https://api.ittaeok.com # SM 붙이기
+  backend: ${sm://gcp-ip} # SM 붙이기
 front-server:
-  domain-A: https://ittaeok.com # SM 붙이기
-  domain-B: https://www.ittaeok.com # SM 붙이기
-  redirect-url: https://ittaeok.com/auth/callback # SM 붙이기
+#  domain-A: https://ittaeok.com # SM 붙이기
+  domain-A: ${sm://front-domain-A} # SM 붙이기
+#  domain-B: https://www.ittaeok.com # SM 붙이기
+  domain-B: ${sm://front-domain-B} # SM 붙이기
+#  redirect-url: https://ittaeok.com/auth/callback # SM 붙이기
+  redirect-url: ${sm://front-callback} # SM 붙이기
