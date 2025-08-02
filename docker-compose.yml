@@ -40,7 +40,7 @@ services:
       start_period: 30s
 
   ittaeok-container:
-    image: # <도커 계정명/이미지 이름>/ittaeok-gcp:latest
+    image: ${DOCKER_IMAGES_NAME} # ex: leeseojun/ittaeok:latest
     container_name: ittaeok
     restart: always
     depends_on:
