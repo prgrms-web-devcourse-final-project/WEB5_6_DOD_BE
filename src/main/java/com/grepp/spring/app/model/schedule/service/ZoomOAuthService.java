@@ -1,6 +1,7 @@
 package com.grepp.spring.app.model.schedule.service;
 
-import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,24 +21,30 @@ public class ZoomOAuthService {
 
     @Value("${zoom.client-id}")
     private String clientId;
-
     @Value("${zoom.client-secret}")
     private String clientSecret;
+    @Value("${zoom.account-id}")
+    private String accountId;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public GoogleTokenResponse refreshAccessToken(String refreshToken) {
+    public String getAccessToken() {
         String url = "https://zoom.us/oauth/token";
         HttpHeaders headers = createBasicAuthHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "refresh_token");
-        params.add("refresh_token", refreshToken);
+        params.add("grant_type", "account_credentials");
+        params.add("account_id", accountId);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-        ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(url, request, GoogleTokenResponse.class);
-        return response.getBody();
+
+        ResponseEntity<ZoomTokenResponse> response = restTemplate.postForEntity(url, request, ZoomTokenResponse.class);
+
+        if (response.getBody() != null) {
+            return response.getBody().getAccessToken();
+        }
+        throw new RuntimeException("Zoom 액세스 토큰을 발급받지 못했습니다.");
     }
 
     private HttpHeaders createBasicAuthHeaders() {
@@ -47,5 +54,11 @@ public class ZoomOAuthService {
         String authHeader = "Basic " + new String(encodedAuth);
         headers.set("Authorization", authHeader);
         return headers;
+    }
+
+    @Data
+    private static class ZoomTokenResponse {
+        @JsonProperty("access_token")
+        private String accessToken;
     }
 }

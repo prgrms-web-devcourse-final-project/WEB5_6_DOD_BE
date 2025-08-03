@@ -3,12 +3,7 @@ package com.grepp.spring.app.model.schedule.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grepp.spring.app.controller.api.mypage.payload.response.GoogleTokenResponse;
-import com.grepp.spring.app.controller.api.schedule.payload.request.AddWorkspaceRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.CreateDepartLocationRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.CreateSchedulesRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.ModifySchedulesRequest;
-import com.grepp.spring.app.controller.api.schedule.payload.request.WriteSuggestedLocationRequest;
+import com.grepp.spring.app.controller.api.schedule.payload.request.*;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlineMeetingRoomResponse;
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.event.entity.Event;
@@ -17,67 +12,33 @@ import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.code.VoteStatus;
-import com.grepp.spring.app.model.schedule.dto.AddWorkspaceDto;
-import com.grepp.spring.app.model.schedule.dto.CreateDepartLocationDto;
-import com.grepp.spring.app.model.schedule.dto.CreateOnlineMeetingRoomDto;
-import com.grepp.spring.app.model.schedule.dto.CreateScheduleDto;
-import com.grepp.spring.app.model.schedule.dto.DepartLocationMetroTransferDto;
-import com.grepp.spring.app.model.schedule.dto.ModifyScheduleDto;
-import com.grepp.spring.app.model.schedule.dto.ModifyWorkspaceDto;
-import com.grepp.spring.app.model.schedule.dto.CreateScheduleMembersDto;
-import com.grepp.spring.app.model.schedule.dto.SubwayStationDto;
-import com.grepp.spring.app.model.schedule.dto.VoteMiddleLocationDto;
-import com.grepp.spring.app.model.schedule.dto.WriteSuggestedLocationDto;
-import com.grepp.spring.app.model.schedule.dto.WriteSuggestedMetroTransferDto;
-import com.grepp.spring.app.model.schedule.dto.ZoomMeetingDto;
-import com.grepp.spring.app.model.schedule.entity.Line;
-import com.grepp.spring.app.model.schedule.entity.Location;
-import com.grepp.spring.app.model.schedule.entity.Metro;
-import com.grepp.spring.app.model.schedule.entity.MetroTransfer;
-import com.grepp.spring.app.model.schedule.entity.Schedule;
-import com.grepp.spring.app.model.schedule.entity.ScheduleMember;
-import com.grepp.spring.app.model.schedule.entity.Vote;
-import com.grepp.spring.app.model.schedule.entity.Workspace;
-import com.grepp.spring.app.model.schedule.repository.LineQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.LocationCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.LocationQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.MetroQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.MetroTransferCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleMemberQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleMemberRepository;
-import com.grepp.spring.app.model.schedule.repository.ScheduleQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.VoteCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.VoteQueryRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceCommandRepository;
-import com.grepp.spring.app.model.schedule.repository.WorkspaceQueryRepository;
-import com.grepp.spring.infra.error.exceptions.schedule.EventNotActivatedException;
-import com.grepp.spring.infra.error.exceptions.schedule.VoteAlreadyProgressException;
-import com.grepp.spring.infra.utils.RandomPicker;
+import com.grepp.spring.app.model.schedule.dto.*;
+import com.grepp.spring.app.model.schedule.entity.*;
+import com.grepp.spring.app.model.schedule.repository.*;
 import com.grepp.spring.infra.error.exceptions.NotFoundException;
 import com.grepp.spring.infra.error.exceptions.group.UserNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.EventNotActivatedException;
 import com.grepp.spring.infra.error.exceptions.schedule.LocationNotFoundException;
+import com.grepp.spring.infra.error.exceptions.schedule.VoteAlreadyProgressException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
+import com.grepp.spring.infra.utils.RandomPicker;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -119,9 +80,6 @@ public class ScheduleCommandService {
 
     @Autowired
     private ZoomOAuthService zoomOAuthService;
-
-    @Value("${zoom.refresh-token}")
-    private String zoomRefreshToken;
 
     // 공통 로직
     private Optional<Schedule> getSchedule(Long scheduleId) {
@@ -183,8 +141,7 @@ public class ScheduleCommandService {
 
             if (entry.getMemberId().equals(userId)) {
                 role = ScheduleRole.ROLE_MASTER;
-            }
-            else {
+            } else {
                 role = ScheduleRole.ROLE_MEMBER;
             }
 
@@ -311,7 +268,7 @@ public class ScheduleCommandService {
         metroTransferCommandRepository.deleteByScheduleId(scheduleId);
         locationCommandRepository.deleteLocation(scheduleId);
 
-        ScheduleMember scheduleMember = getScheduleMember(scheduleId,userId);
+        ScheduleMember scheduleMember = getScheduleMember(scheduleId, userId);
         Optional<Metro> metro = getMetro(request.getDepartLocationName());
         setDepartLocation(request, metro, scheduleMember);
 
@@ -378,7 +335,7 @@ public class ScheduleCommandService {
     }
 
     private static void setDepartLocation(CreateDepartLocationRequest request, Optional<Metro> metro,
-        ScheduleMember scheduleMember) {
+                                          ScheduleMember scheduleMember) {
         // DB에 존재하지 않는다면
         if (metro.isEmpty()) {
             CreateDepartLocationDto dto = CreateDepartLocationDto.toDto(request);
@@ -455,7 +412,7 @@ public class ScheduleCommandService {
         // Location 엔티티에 비관적 락을 걸고 조회하기
         // 파라미터를 id로 받으면 더 좋을 것 같음
         Location location = locationQueryRepository.findByIdWithPessimisticLock(lid.getId())
-                .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("장소를 찾을 수 없습니다."));
 //        log.info("location = {}", location.toString());
 
 
@@ -510,8 +467,7 @@ public class ScheduleCommandService {
         Schedule schedule = scheduleQueryRepository.findById(scheduleId)
             .orElseThrow(() -> new NotFoundException("일정을 찾을 수 없습니다. (ID: " + scheduleId + ")"));
 
-        GoogleTokenResponse tokenResponse = zoomOAuthService.refreshAccessToken(zoomRefreshToken);
-        String accessToken = tokenResponse.getAccessToken();
+        String accessToken = zoomOAuthService.getAccessToken();
 
         if (accessToken == null || accessToken.trim().isEmpty()) {
             throw new IllegalStateException("Zoom 인증 토큰을 갱신하는데 실패했습니다. 리프레시 토큰을 확인하세요.");
@@ -551,17 +507,17 @@ public class ScheduleCommandService {
 
     @Transactional
     public void WriteSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
-        String userId) {
+                                       String userId) {
 
         List<Location> locationList = locationQueryRepository.findByScheduleId(schedule.getId());
         boolean bool = true;
 
         for (Location l : locationList) {
-            if(l.getVoteCount() != 0) bool = false;
+            if (l.getVoteCount() != 0) bool = false;
         }
 
         if (bool) {
-            ScheduleMember scheduleMember = getScheduleMember(schedule.getId(),userId);
+            ScheduleMember scheduleMember = getScheduleMember(schedule.getId(), userId);
             Member member = memberRepository.findById(userId).orElseThrow();
             Optional<Metro> metro = getMetro(request.getLocationName());
 
@@ -577,15 +533,14 @@ public class ScheduleCommandService {
                 MetroTransfer metroTransfer = WriteSuggestedMetroTransferDto.fromDto(dto);
                 metroTransferCommandRepository.save(metroTransfer);
             }
-        }
-        else {
+        } else {
             throw new VoteAlreadyProgressException(ScheduleErrorCode.VOTE_ALREADY_PROGRESS);
         }
 
     }
 
     private Location saveSuggestedLocation(Schedule schedule, WriteSuggestedLocationRequest request,
-        Optional<Metro> metro, Member member) {
+                                           Optional<Metro> metro, Member member) {
         Location location;
         // DB에 존재하지 않는다면
         if (metro.isEmpty()) {
