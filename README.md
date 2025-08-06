@@ -1,7 +1,8 @@
 # 🐰 클릭 몇 번으로 일정 합의 완료, 이때어때 (Ittaeok)
 
-효율적인 일정 조율을 위한 통합 스케줄링 플랫폼
-개인과 그룹의 일정 조율 과정에서 발생하는 비효율성을 해결하고 모든 구성원이 참여하지 못하는 현실적인 상황을 고려하여 유연한 일정 관리 서비스를 제공합니다.
+### 효율적인 일정 조율을 위한 통합 스케줄링 플랫폼<br>
+개인과 그룹의 일정 조율 과정에서 발생하는 비효율성을 해결하고 모든 구성원이 참여하지 못하는<br>
+현실적인 상황을 고려하여 유연한 일정 관리 서비스를 제공합니다.
 
 <img width="1200" height="630" alt="Frame_2608805" src="https://github.com/user-attachments/assets/2b889840-dbb1-4378-a453-7024cd385578" />
 
@@ -9,16 +10,35 @@
 
 ## [시연](https://www.youtube.com/watch?v=coeKWbkHD6g)
 
-# 프로젝트 소개
+## 📝 서비스 소개
 
-- 바쁜 현대인들의 일정 잡기를 클릭 몇번으로 쉽고 간편하게 해주는 서비스입니다.
-- 나의 가능한 시간을 등록하고 다른 모임원들의 시간을 취합하여 가장 빠른 일정, 긴 시간 볼 수 있는 일정을 확인하고 정할 수 있습니다.
-- (1회성 모임) 1번만 만나는 모임 일정을 조율할 수 있습니다.
-- (그룹 모임) 자주 만나는 모임을 그룹으로 설정하고 해당 그룹원끼리 일정을 계속 생성할 수 있습니다.
-- (오프라인 모임) 모임원들의 출발역 등록 후 모두의 출발지에서 가장 중간 지점을 계산하여 추천 목록을 보여주고 투표하여 중간 지점을 정할 수 있습니다.
-- (온라인 모임) 온라인 미팅 플랫폼을 정하지 못했다면 줌 회의장을 생성해 줍니다.
-- 정해진 일정에서는 다양한 워크스페이스 링크를 등록하여 사용할 수 있습니다.
-- 마이페이지에서 내가 자주 등록하는 역, 기본 정해진 시간을 등록하여 불러오기를 통해 더 쉽게 일정 등록에 사용할 수 있습니다.
+### 🗓️ 일정 조율
+- 한번 모임(일회성 일정)과 자주 모임(그룹 일) 두 가지 형태 중 선택이 가능해요.
+- 모임 날짜와 시간을 정하고, 참여 인원과 온/오프라인 여부를 설정해서 새로운 일정을 만들 수 있어요.
+- 일정에 초대받은 사람들은 각자 가능한 시간을 입력하면 돼요.
+- 모두의 시간을 모아서 최적의 시간대를 추천해 줘요. 그중 하나를 골라 모임을 확정해 보세요.
+
+### 🗺️ 모임 장소 지정
+- 오프라인 모임일 경우, 모임에 참여하는 사람들의 출발지를 기준으로 가장 합리적인 중간 지점을 추천해 드려요.
+- 추천받은 여러 지점 중에서 투표로 중간 지점을 확정할 수 있어요.
+- 투표로 정해진 지역 내에서 카페, 회의장 등 세부 모임 장소를 지정할 수 있어요.
+
+### 📌 편리한 워크스페이스 및 연동
+- 확정된 일정의 상세 페이지에 깃허브, 노션, 피그마 등 다양한 URL을 등록하고 공유할 수 있어요.
+- 온라인 모임이라면 자동으로 Zoom 회의실을 생성해 드려요.
+- 구글 캘린더를 연동하면, 나의 캘린더 일정을 서비스에서 한 번에 관리할 수 있어요.
+
+### 👥 그룹 관리
+- 자주 만나는 모임을 그룹으로 만들어 관리할 수 있어요. 카카오톡으로 초대 링크를 보내면 멤버들이 쉽게 참여할 수 있죠.
+- 초대 링크를 누르면, 소셜 로그인 후 바로 그룹에 참여할 수 있어요.
+- 그룹 내 멤버들과 새로운 일정을 만들거나, 이미 있는 개인 일정을 그룹으로 가져올 수 있어요.
+- 그룹장은 멤버를 확인하고, 내보내거나, 그룹장 권한을 주거나 회수할 수 있어요.
+- 그룹원별 참여율, 요일/장소별 모임 횟수를 통계로 보여줘서 그룹을 더 효과적으로 운영하는 데 도움을 받을 수 있어요.
+
+### ✨ 나만을 위한 기능
+- 대시보드에서 선택한 날짜의 일정을 확인할 수 있고, 어느 모임의 일정인지도 볼 수 있어요.
+- 자주 이용하는 출발역이나 선호하는 시간대를 등록해서, 매번 똑같은 정보를 다시 입력하지 않아도 돼요.
+
 
 ---
 ## 🧑‍💻 팀원 소개
@@ -49,10 +69,10 @@
 ---
 
 
-## 📍 System Architeture
+## 📍 System Architecture
 
 <div align="center">
-<img width="1473" height="762" alt="image" src="https://github.com/user-attachments/assets/ff5227f0-433f-475c-bf74-5fbea5568fb8" />
+<img width="1374" height="765" alt="system Architecture" src="https://github.com/user-attachments/assets/450608c2-bd68-4d37-9bc7-ba88f3dc28ea" />
 </div>
 <br/>
 
@@ -60,11 +80,118 @@
 
 ## 📊 ERD
 <div align="center">
-<img width="1488" height="784" alt="image" src="https://github.com/user-attachments/assets/9b1561f4-ee94-4f4a-9694-eda1c1d8bae9" />
+<img width="2592" height="1831" alt="ERD" src="https://github.com/user-attachments/assets/5c0df536-3a13-4c11-af2c-c8a748e14fa7" />
+
 </div>
 <br/>
 
 ---
+
+## 📁 Directory Structure
+<pre><code>
+spring
+├── app
+│   ├── controller
+│   │   ├── api
+│   │   │   ├── auth
+│   │   │   │   └── payload
+│   │   │   │       ├── request
+│   │   │   │       └── response
+│   │   │   ├── event
+│   │   │   │   └── payload
+│   │   │   │       ├── request
+│   │   │   │       └── response
+│   │   │   ├── group
+│   │   │   │   └── payload
+│   │   │   │       ├── request
+│   │   │   │       └── response
+│   │   │   ├── mainpage
+│   │   │   │   └── payload
+│   │   │   │       ├── request
+│   │   │   │       └── response
+│   │   │   ├── member
+│   │   │   │   └── payload
+│   │   │   ├── mypage
+│   │   │   │   └── payload
+│   │   │   │       ├── request
+│   │   │   │       └── response
+│   │   │   └── schedule
+│   │   │       └── payload
+│   │   │           ├── request
+│   │   │           └── response
+│   ├── model
+│   │   ├── auth
+│   │   │   ├── code
+│   │   │   ├── domain
+│   │   │   ├── dto
+│   │   │   └── token
+│   │   │       └── entity
+│   │   ├── event
+│   │   │   ├── code
+│   │   │   ├── dto
+│   │   │   ├── entity
+│   │   │   ├── factory
+│   │   │   ├── repository
+│   │   │   ├── service
+│   │   │   └── strategy
+│   │   ├── group
+│   │   │   ├── code
+│   │   │   ├── dto
+│   │   │   ├── entity
+│   │   │   ├── repository
+│   │   │   └── service
+│   │   ├── mainpage
+│   │   │   ├── code
+│   │   │   ├── dto
+│   │   │   ├── entity
+│   │   │   ├── repository
+│   │   │   └── service
+│   │   ├── member
+│   │   │   ├── code
+│   │   │   ├── dto
+│   │   │   ├── entity
+│   │   │   ├── repository
+│   │   │   └── service
+│   │   ├── mypage
+│   │   │   ├── converter
+│   │   │   ├── dto
+│   │   │   ├── entity
+│   │   │   ├── repository
+│   │   │   └── service
+│   │   └── schedule
+│   │       ├── code
+│   │       ├── dto
+│   │       ├── entity
+│   │       ├── repository
+│   │       └── service
+└── infra
+    ├── auth
+    │   ├── jwt
+    │   │   ├── dto
+    │   │   └── filter
+    │   └── oauth2
+    │       └── user
+    ├── config
+    │   └── security
+    ├── entity
+    ├── error
+    │   ├── eventAdvice
+    │   ├── exceptions
+    │   │   ├── event
+    │   │   ├── group
+    │   │   ├── member
+    │   │   ├── mypage
+    │   │   └── schedule
+    │   ├── groupAdvice
+    │   ├── memberAdvice
+    │   ├── mypageAdvice
+    │   └── scheduleAdvice
+    ├── response
+    └── utils
+        .
+        .
+        .
+</code></pre>
 
 ## 🧾 코드 컨벤션
 
