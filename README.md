@@ -1,15 +1,26 @@
-# WEB5_6_DOD_BE
-5기 6회차 그래도 해야지 어떡해(Do Or Die) 백엔드팀 레포지토리
+# 🐰 클릭 몇 번으로 일정 합의 완료, 이때어때 (Ittaeok)
 
-## 🚀 GitHub 활용 규칙
-- Issue, PR 올릴 때 라벨 사용하기
+효율적인 일정 조율을 위한 통합 스케줄링 플랫폼
+개인과 그룹의 일정 조율 과정에서 발생하는 비효율성을 해결하고 모든 구성원이 참여하지 못하는 현실적인 상황을 고려하여 유연한 일정 관리 서비스를 제공합니다.
 
-- CRUD까지는 PR merge 5명 모두 체크
+<img width="1200" height="630" alt="Frame_2608805" src="https://github.com/user-attachments/assets/2b889840-dbb1-4378-a453-7024cd385578" />
 
-- CRUD 끝나면 PR merge 시 2명 이상 체크
+## [이때어때](https://ittaeok.com)
+
+## [시연](https://www.youtube.com/watch?v=coeKWbkHD6g)
+
+# 프로젝트 소개
+
+- 바쁜 현대인들의 일정 잡기를 클릭 몇번으로 쉽고 간편하게 해주는 서비스입니다.
+- 나의 가능한 시간을 등록하고 다른 모임원들의 시간을 취합하여 가장 빠른 일정, 긴 시간 볼 수 있는 일정을 확인하고 정할 수 있습니다.
+- (1회성 모임) 1번만 만나는 모임 일정을 조율할 수 있습니다.
+- (그룹 모임) 자주 만나는 모임을 그룹으로 설정하고 해당 그룹원끼리 일정을 계속 생성할 수 있습니다.
+- (오프라인 모임) 모임원들의 출발역 등록 후 모두의 출발지에서 가장 중간 지점을 계산하여 추천 목록을 보여주고 투표하여 중간 지점을 정할 수 있습니다.
+- (온라인 모임) 온라인 미팅 플랫폼을 정하지 못했다면 줌 회의장을 생성해 줍니다.
+- 정해진 일정에서는 다양한 워크스페이스 링크를 등록하여 사용할 수 있습니다.
+- 마이페이지에서 내가 자주 등록하는 역, 기본 정해진 시간을 등록하여 불러오기를 통해 더 쉽게 일정 등록에 사용할 수 있습니다.
 
 ---
-
 ## 🧑‍💻 팀원 소개
 
 <div align="center">
@@ -34,6 +45,24 @@
 </table>
 
 </div>
+
+---
+
+
+## 📍 System Architeture
+
+<div align="center">
+<img width="1473" height="762" alt="image" src="https://github.com/user-attachments/assets/ff5227f0-433f-475c-bf74-5fbea5568fb8" />
+</div>
+<br/>
+
+---
+
+## 📊 ERD
+<div align="center">
+<img width="1488" height="784" alt="image" src="https://github.com/user-attachments/assets/9b1561f4-ee94-4f4a-9694-eda1c1d8bae9" />
+</div>
+<br/>
 
 ---
 
