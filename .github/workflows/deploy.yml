@@ -81,7 +81,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Deploy to GCP Instance
         uses: appleboy/ssh-action@v1.1.0
         with:
@@ -92,29 +91,91 @@ jobs:
           script: |
             cd $HOME/project
             
+            echo "Updating .env file with latest Secret Manager values..."
+            
+            # .env 파일 백업
+            cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
+            
+            # Secret Manager 관련 라인들 제거
+            sed -i '/^DB_URL=/d' .env
+            sed -i '/^JWT_SECRET=/d' .env
+            sed -i '/^GOOGLE_CLIENT_ID=/d' .env
+            sed -i '/^GOOGLE_CLIENT_SECRET=/d' .env
+            sed -i '/^GOOGLE_API_KEY=/d' .env
+            sed -i '/^GOOGLE_CALENDAR_REDIRECT_URI=/d' .env
+            sed -i '/^OAUTH_REDIRECT_URI=/d' .env
+            sed -i '/^KAKAO_CLIENT_ID=/d' .env
+            sed -i '/^KAKAO_CLIENT_SECRET=/d' .env
+            sed -i '/^KAKAO_API_KEY=/d' .env
+            sed -i '/^ZOOM_ACCOUNT_ID=/d' .env
+            sed -i '/^ZOOM_CLIENT_ID=/d' .env
+            sed -i '/^ZOOM_CLIENT_SECRET=/d' .env
+            sed -i '/^GCP_IP=/d' .env
+            sed -i '/^FRONT_DOMAIN_A=/d' .env
+            sed -i '/^FRONT_DOMAIN_B=/d' .env
+            sed -i '/^FRONT_CALLBACK=/d' .env
+            sed -i '/^REDIS_HOST=/d' .env
+            sed -i '/^REDIS_PORT=/d' .env
+            
+            # Secret Manager에서 최신 값들을 가져와서 .env에 추가
+            echo "" >> .env
+            echo "DB_URL=$(gcloud secrets versions access latest --secret='db-url')" >> .env
+            echo "JWT_SECRET=$(gcloud secrets versions access latest --secret='jwt-secret')" >> .env
+            echo "GOOGLE_CLIENT_ID=$(gcloud secrets versions access latest --secret='google-client-id')" >> .env
+            echo "GOOGLE_CLIENT_SECRET=$(gcloud secrets versions access latest --secret='google-client-secret')" >> .env
+            echo "GOOGLE_API_KEY=$(gcloud secrets versions access latest --secret='google-api-key')" >> .env
+            echo "GOOGLE_CALENDAR_REDIRECT_URI=$(gcloud secrets versions access latest --secret='google-calendar-redirect-uri')" >> .env
+            echo "OAUTH_REDIRECT_URI=$(gcloud secrets versions access latest --secret='oauth-redirect-uri')" >> .env
+            echo "KAKAO_CLIENT_ID=$(gcloud secrets versions access latest --secret='kakao-client-id')" >> .env
+            echo "KAKAO_CLIENT_SECRET=$(gcloud secrets versions access latest --secret='kakao-client-secret')" >> .env
+            echo "KAKAO_API_KEY=$(gcloud secrets versions access latest --secret='kakao-api-key')" >> .env
+            echo "ZOOM_ACCOUNT_ID=$(gcloud secrets versions access latest --secret='zoom-account-id')" >> .env
+            echo "ZOOM_CLIENT_ID=$(gcloud secrets versions access latest --secret='zoom-client-id')" >> .env
+            echo "ZOOM_CLIENT_SECRET=$(gcloud secrets versions access latest --secret='zoom-client-secret')" >> .env
+            echo "GCP_IP=$(gcloud secrets versions access latest --secret='gcp-ip')" >> .env
+            echo "FRONT_DOMAIN_A=$(gcloud secrets versions access latest --secret='front-domain-A')" >> .env
+            echo "FRONT_DOMAIN_B=$(gcloud secrets versions access latest --secret='front-domain-B')" >> .env
+            echo "FRONT_CALLBACK=$(gcloud secrets versions access latest --secret='front-callback')" >> .env
+            echo "REDIS_HOST=$(gcloud secrets versions access latest --secret='redis-host')" >> .env
+            echo "REDIS_PORT=$(gcloud secrets versions access latest --secret='redis-port')" >> .env
+            
+            echo "Updated Secret Manager Values"
+            
+            echo "Stopping existing containers..."
             sudo docker-compose down || true
             
+            echo "Cleaning up old images..."
             sudo docker image prune -f
-            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/ittaeok-gcp:latest || true
+            sudo docker rmi ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE_NAME }}:latest || true
             sudo docker system prune -f || true
             
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/ittaeok-gcp:latest --disable-content-trust
+            echo "Pulling latest image..."
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_IMAGE_NAME }}:latest --disable-content-trust
             
+            echo "Starting containers with updated configuration..."
             sudo docker-compose up -d
             
+            echo "Container status:"
             sudo docker-compose ps
             
-            sleep 10
-            sudo docker-compose logs --tail=20
+            echo "Waiting for application to start..."
+            sleep 15
+            
+            echo "Recent logs:"
+            sudo docker-compose logs --tail=30
             
             echo "=== Deployed Image Info ==="
-            sudo docker images | grep ittaeok-gcp
+            sudo docker images | grep ${{ secrets.DOCKER_IMAGE_NAME }}
             
             echo "=== Container Info ==="
             sudo docker ps | grep ittaeok
+            
+            echo "=== Environment Variables Verification ==="
+            sudo docker exec ittaeok env | grep -E "(DB_URL|JWT_SECRET|REDIS_HOST)" | head -3
 
       - name: Deployment completed
         run: |
           echo "Deployment completed successfully"
           echo "Deployed commit: ${{ github.sha }}"
           echo "Repository: ${{ github.repository }}"
+          echo "Secret Manager values automatically updated"
