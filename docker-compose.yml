@@ -40,7 +40,7 @@ services:
       start_period: 30s
 
   ittaeok-container:
-    image: # <도커 계정명/이미지 이름>/ittaeok-gcp:latest
+    image: ${DOCKER_IMAGES_NAME}
     container_name: ittaeok
     restart: always
     depends_on:
@@ -52,20 +52,41 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-container:3306/ittaeok?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-      - SPRING_DATASOURCE_USERNAME=ittaeok_user
-      - SPRING_DATASOURCE_PASSWORD=1234
-      
-      - SPRING_DATA_REDIS_HOST=redis-container
-      - SPRING_DATA_REDIS_PORT=6379
-      - SPRING_DATA_REDIS_PASSWORD=${REDIS_PASSWORD}
-      - SPRING_DATA_REDIS_SSL_ENABLED=false
-      
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
-      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
-      
-      - SPRING_CLOUD_GCP_SECRETMANAGER_ENABLED="true"
-      - SPRING_CLOUD_GCP_PROJECT_ID=${GOOGLE_CLOUD_PROJECT}
+      # Database
+      - DB_URL=${DB_URL}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+      # Redis
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Google
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - OAUTH_REDIRECT_URI=${OAUTH_REDIRECT_URI}
+      - GOOGLE_CALENDAR_REDIRECT_URI=${GOOGLE_CALENDAR_REDIRECT_URI}
+
+      # Kakao
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - KAKAO_API_KEY=${KAKAO_API_KEY}
+
+      # Zoom
+      - ZOOM_ACCOUNT_ID=${ZOOM_ACCOUNT_ID}
+      - ZOOM_CLIENT_ID=${ZOOM_CLIENT_ID}
+      - ZOOM_CLIENT_SECRET=${ZOOM_CLIENT_SECRET}
+
+      # URL
+      - GCP_IP=${GCP_IP}
+      - FRONT_DOMAIN_A=${FRONT_DOMAIN_A}
+      - FRONT_DOMAIN_B=${FRONT_DOMAIN_B}
+      - FRONT_CALLBACK=${FRONT_CALLBACK}
     volumes:
       - ./gcp-key.json:/app/gcp-key.json:ro
     networks:

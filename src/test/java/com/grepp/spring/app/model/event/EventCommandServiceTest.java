@@ -11,6 +11,8 @@ import com.grepp.spring.app.model.event.repository.EventMemberRepository;
 import com.grepp.spring.app.model.event.repository.EventRepository;
 import com.grepp.spring.app.model.event.repository.TempScheduleRepository;
 import com.grepp.spring.app.model.event.service.EventCommandService;
+import com.grepp.spring.app.model.event.service.EventScheduleCacheService;
+import com.grepp.spring.app.model.event.service.EventScheduleResultService;
 import com.grepp.spring.app.model.event.strategy.EventCreationStrategy;
 import com.grepp.spring.app.model.group.entity.Group;
 import com.grepp.spring.app.model.group.entity.GroupMember;
@@ -63,6 +65,10 @@ class EventCommandServiceTest {
     private EventCreationStrategyFactory strategyFactory;
     @Mock
     private EventCreationStrategy eventCreationStrategy;
+    @Mock
+    private EventScheduleCacheService cacheService;
+    @Mock
+    private EventScheduleResultService eventScheduleResultService;
 
     private CreateEventRequest createValidCreateEventRequest() {
         CreateEventRequest request = new CreateEventRequest();

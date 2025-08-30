@@ -253,11 +253,11 @@ class ScheduleQueryServiceTest {
         // Given
         when(scheduleMemberQueryRepository.findByScheduleId(10000L)).thenReturn(scheduleMembers);
         when(workspaceQueryRepository.findAllByScheduleId(10000L)).thenReturn(workspaces);
-        when(eventRepository.findById(10000L)).thenReturn(Optional.of(dummyEvent1));
+        when(eventRepository.findById(dummyEvent1.getId())).thenReturn(Optional.of(dummyEvent1));
 
 
         // When
-        var response = scheduleQueryService.showSchedule(dummySchedule1,"GOOGLE_123");
+        var response = scheduleQueryService.showSchedule(dummySchedule1,"GOOGLE_1234");
 
         // Then
         assertNotNull(response);

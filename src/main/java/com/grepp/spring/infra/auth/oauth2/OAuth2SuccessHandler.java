@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.auth.code.AuthToken;
 import com.grepp.spring.app.model.auth.dto.TokenDto;
 import com.grepp.spring.infra.auth.jwt.TokenCookieFactory;
 import com.grepp.spring.infra.auth.oauth2.user.OAuth2UserInfo;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,18 +37,27 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Value("${front-server.domain-A}")
     private String frontServerDomainA;
 
+    @Value("${front-server.domain-B}")
+    private String frontServerDomainB;
+
     @Value("${url.backend}")
     private String backendServer;
 
     @Value("${front-server.redirect-url}")
     private String DEFAULT_REDIRECT_URL;
 
-    // 허용 도메인
-    private final List<String> ALLOWED_DOMAINS = Arrays.asList(
-        frontServerDomainA, // frontend 로컬 도메인
-        backendServer,
-        "https://localhost:3000"
-    );
+    private List<String> allowedDomains;
+
+    @PostConstruct
+    private void initAllowedDomains() {
+        allowedDomains = Stream.of(
+                frontServerDomainA,
+                frontServerDomainB,
+                backendServer
+            )
+            .filter(StringUtils::hasText)
+            .collect(java.util.stream.Collectors.toList());
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -108,7 +120,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 return false;
             }
 
-            return ALLOWED_DOMAINS.stream()
+            return allowedDomains.stream()
                 .anyMatch(allowedDomain -> {
                     try {
                         URI allowedUri = new URI(allowedDomain);
