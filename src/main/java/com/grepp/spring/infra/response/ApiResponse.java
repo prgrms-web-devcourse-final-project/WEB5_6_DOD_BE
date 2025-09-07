@@ -1,5 +1,6 @@
 package com.grepp.spring.infra.response;
 
+import com.grepp.spring.infra.response.error.ErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "공통 응답 DTO", name = "ApiResponse")
@@ -24,6 +25,10 @@ public record ApiResponse<T>(
 
     public static <T> ApiResponse<T> noContent() {
         return new ApiResponse<>(ResponseCode.OK.code(), ResponseCode.OK.message(), null);
+    }
+
+    public static <T> ApiResponse<T> error(ErrorCode code) {
+        return new ApiResponse<>(code.code(), code.message(), null);
     }
 
     public static <T> ApiResponse<T> error(ResponseCode code) {

@@ -1,8 +1,9 @@
 package com.grepp.spring.infra.response;
 
+import com.grepp.spring.infra.response.error.ErrorCode;
 import org.springframework.http.HttpStatus;
 
-public enum EventErrorCode {
+public enum EventErrorCode implements ErrorCode {
     INVALID_EVENT_DATA("400", HttpStatus.BAD_REQUEST, "잘못된 이벤트 데이터입니다."),
     ALREADY_CONFIRMED_SCHEDULE("400", HttpStatus.BAD_REQUEST, "이미 확정된 일정입니다."),
     CANNOT_COMPLETE_EMPTY_SCHEDULE("400", HttpStatus.BAD_REQUEST, "빈 일정은 확정할 수 없습니다."),
