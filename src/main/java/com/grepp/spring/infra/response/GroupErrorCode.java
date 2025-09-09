@@ -1,8 +1,9 @@
 package com.grepp.spring.infra.response;
 
+import com.grepp.spring.infra.response.error.ErrorCode;
 import org.springframework.http.HttpStatus;
 
-public enum GroupErrorCode {
+public enum GroupErrorCode implements ErrorCode {
 
     AUTHENTICATION_REQUIRED("401", HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. "),
     NOT_GROUP_LEADER("403", HttpStatus.FORBIDDEN,"해당 그룹의 그룹장이 아닙니다. 권한을 확인해주세요"),

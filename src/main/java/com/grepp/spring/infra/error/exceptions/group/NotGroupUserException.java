@@ -1,23 +1,19 @@
 package com.grepp.spring.infra.error.exceptions.group;
 
+import com.grepp.spring.infra.error.exceptions.CustomException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class NotGroupUserException extends RuntimeException {
+public class NotGroupUserException extends CustomException {
 
-    private final GroupErrorCode code;
 
     public NotGroupUserException(GroupErrorCode code) {
-        this.code = code;
+        super(code);
     }
 
     public NotGroupUserException(GroupErrorCode code, Exception e) {
-        this.code = code;
-        log.error(e.getMessage(), e);
+        super(code,e);
     }
 
-    public GroupErrorCode code() {
-        return code;
-    }
 }

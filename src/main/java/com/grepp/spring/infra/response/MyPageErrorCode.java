@@ -1,8 +1,9 @@
 package com.grepp.spring.infra.response;
 
+import com.grepp.spring.infra.response.error.ErrorCode;
 import org.springframework.http.HttpStatus;
 
-public enum MyPageErrorCode {
+public enum MyPageErrorCode implements ErrorCode {
   INVALID_FAVORITE_REQUEST("400", HttpStatus.BAD_REQUEST, "잘못된 즐겨찾기 요청입니다."),
   INVALID_MEMBER_REQUEST("400", HttpStatus.BAD_REQUEST, "잘못된 회원 요청입니다."),
   INVALID_PUBLIC_CALENDAR_ID("400", HttpStatus.BAD_REQUEST, "유효하지 않은 공개 캘린더 ID 입니다."),
