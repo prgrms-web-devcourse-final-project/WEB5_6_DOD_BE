@@ -304,6 +304,7 @@ public class ScheduleCommandService {
             log.info("locationName = {}", location.getName());
 
             metro = metroQueryRepository.findByName(location.getName());
+            log.info("metro_True_Or_False = {}", metro.isEmpty());
             log.info("elkLocation5 = {}",metro.get().getId());
             List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
             log.info("elkLocation6");
