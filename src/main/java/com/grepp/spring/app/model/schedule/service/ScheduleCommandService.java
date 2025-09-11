@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -285,7 +286,8 @@ public class ScheduleCommandService {
         em.clear();  // 영속성 컨텍스트 초기화
     }
 
-    private void saveMiddleLocation(List<JsonNode> subwayStation, Optional<Schedule> schedule) {
+    private void saveMiddleLocation(List<JsonNode> subwayStation, Optional<Schedule> schedule)
+        throws JsonProcessingException {
         log.info("elkSaveMiddleLocationStart");
         Optional<Metro> metro;
         for (JsonNode subwayStationJson : subwayStation) {
@@ -298,6 +300,7 @@ public class ScheduleCommandService {
             log.info("elkLocation4");
 
             log.info("location = {}", location.toString());
+            log.info("locationChecking = {}", new ObjectMapper().writeValueAsString(location));
             log.info("location = {}", location.getName());
 
             metro = metroQueryRepository.findByName(location.getName());
