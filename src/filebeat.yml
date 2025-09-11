@@ -1,0 +1,11 @@
+filebeat.inputs:
+  - type: container
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    processors:
+      - add_docker_metadata: ~
+
+output.elasticsearch:
+  hosts: ["http://10.178.0.5:9200"]   # ELK VM 내부 IP
+  username: "elastic"
+  password: "changeme"
