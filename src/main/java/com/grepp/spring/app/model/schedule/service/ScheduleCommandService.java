@@ -261,62 +261,60 @@ public class ScheduleCommandService {
 
     @Transactional // Transactional 내에서 수정이 되어야 자동 변경 감지된다.
     public void createDepartLocation(Long scheduleId, CreateDepartLocationRequest request, String userId) throws JsonProcessingException {
-        log.info("elkTest1");
         Optional<Schedule> schedule = getSchedule(scheduleId);
-        log.info("elkTest2");
         // 출발장소 추가될때마다 매번 다른 중간장소가 나와야함. 기존의 중간장소는 모두 삭제
         metroTransferCommandRepository.deleteByScheduleId(scheduleId);
-        log.info("elkTest4");
         locationCommandRepository.deleteLocation(scheduleId);
-        log.info("elkTest5");
 
         ScheduleMember scheduleMember = getScheduleMember(scheduleId, userId);
-        log.info("elkTest6");
         Optional<Metro> metro = getMetro(request.getDepartLocationName());
-        log.info("elkTest7");
         setDepartLocation(request, metro, scheduleMember);
-        log.info("elkTest8");
 
         List<ScheduleMember> scheduleLocations = scheduleMemberQueryRepository.findByScheduleId(scheduleId);
-        log.info("elkTest9");
 
         // 출발장소들을 이용하여 중간장소 계산
         Double middleLatitude = getLatitude(scheduleLocations);
-        log.info("elkTest10");
         Double middleLongitude = getLongitude(scheduleLocations);
-        log.info("elkTest11");
         // 3개의 지하철역 정보를 가져오기
         List<JsonNode> subwayStation = findNearestStations(middleLatitude, middleLongitude);
-        log.info("elkTest12");
 
         // 중간 지하철역 후보 저장
         saveMiddleLocation(subwayStation, schedule);
-        log.info("elkTest13");
 
         em.flush();  // DB 반영
-        log.info("elkTest14");
         em.clear();  // 영속성 컨텍스트 초기화
-        log.info("elkTest15");
     }
 
     private void saveMiddleLocation(List<JsonNode> subwayStation, Optional<Schedule> schedule) {
+        log.info("elkSaveMiddleLocationStart");
         Optional<Metro> metro;
         for (JsonNode subwayStationJson : subwayStation) {
+            log.info("elkLocation1");
             SubwayStationDto subwayStationDto = SubwayStationDto.toDto(subwayStationJson, schedule.get());
+            log.info("elkLocation2");
             Location location = SubwayStationDto.fromDto(subwayStationDto);
+            log.info("elkLocation3");
             location = locationCommandRepository.save(location);
+            log.info("elkLocation4");
 
             log.info("location = {}", location);
 
             metro = metroQueryRepository.findByName(location.getName());
+            log.info("elkLocation5");
             List<Line> line = lineQueryRepository.findByMetroId(metro.get().getId());
+            log.info("elkLocation6");
 
             for (Line l : line) {
+                log.info("elkLine1");
                 DepartLocationMetroTransferDto dto = DepartLocationMetroTransferDto.toDto(location, l);
+                log.info("elkLine2");
                 MetroTransfer metroTransfer = DepartLocationMetroTransferDto.fromDto(dto);
+                log.info("elkLine3");
                 metroTransferCommandRepository.save(metroTransfer);
+                log.info("elkLine4");
             }
         }
+        log.info("elkSaveMiddleLocationEnd");
     }
 
     private static Double getLongitude(List<ScheduleMember> scheduleLocations) {
