@@ -1,24 +1,17 @@
 package com.grepp.spring.infra.error.exceptions.group;
 
+import com.grepp.spring.infra.error.exceptions.CustomException;
 import com.grepp.spring.infra.response.GroupErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ScheduleNotFoundException extends RuntimeException {
-
-    private final GroupErrorCode code;
+public class ScheduleNotFoundException extends CustomException {
 
     public ScheduleNotFoundException(GroupErrorCode code) {
-        this.code = code;
+        super(code);
     }
 
     public ScheduleNotFoundException(GroupErrorCode code, Exception e) {
-        this.code = code;
-        log.error(e.getMessage(), e);
+        super(code, e);
     }
-
-    public GroupErrorCode code() {
-        return code;
-    }
-
 }

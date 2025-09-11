@@ -1,8 +1,9 @@
 package com.grepp.spring.infra.response;
 
+import com.grepp.spring.infra.response.error.ErrorCode;
 import org.springframework.http.HttpStatus;
 
-public enum ScheduleErrorCode {
+public enum ScheduleErrorCode implements ErrorCode {
     NOT_SCHEDULE_MASTER("404", HttpStatus.NOT_FOUND, "❌권한 이슈❌ ROLE_MASTER 계정만 가능한 작업입니다."),
     LOCATION_NOT_FOUND("404",HttpStatus.NOT_FOUND, "해당 투표리스트(장소)를 찾을 수 없습니다. locationId를 확인해주세요."),
     SCHEDULE_MEMBER_NOT_FOUND("404",HttpStatus.NOT_FOUND, "스케줄에서 회원을 찾을 수 없습니다."),

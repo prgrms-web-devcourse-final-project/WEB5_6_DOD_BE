@@ -31,11 +31,4 @@ public class MemberExceptionAdvice {
         return ResponseEntity.status(ResponseCode.BAD_REQUEST.status())
             .body(ApiResponse.error(ResponseCode.BAD_REQUEST, ex.getMessage()));
     }
-
-    @ExceptionHandler(MemberNotFoundException.class)
-    public ResponseEntity<ApiResponse<String>> memberNotFoundExHandler(MemberNotFoundException ex) {
-        return ResponseEntity.status(MyPageErrorCode.MEMBER_NOT_FOUND.status())
-            .body(ApiResponse.error(MyPageErrorCode.MEMBER_NOT_FOUND, MyPageErrorCode.MEMBER_NOT_FOUND.message()));
-    }
-
 }

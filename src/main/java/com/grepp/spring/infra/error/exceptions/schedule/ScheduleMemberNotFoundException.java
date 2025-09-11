@@ -1,22 +1,18 @@
 package com.grepp.spring.infra.error.exceptions.schedule;
 
+import com.grepp.spring.infra.error.exceptions.CustomException;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ScheduleMemberNotFoundException extends RuntimeException {
-    private final ScheduleErrorCode code;
+public class ScheduleMemberNotFoundException extends CustomException {
 
     public ScheduleMemberNotFoundException(ScheduleErrorCode code) {
-        this.code = code;
+        super(code);
     }
 
     public ScheduleMemberNotFoundException(ScheduleErrorCode code, Exception e) {
-        this.code = code;
-        log.error(e.getMessage(), e);
+        super(code, e);
     }
 
-    public ScheduleErrorCode code() {
-        return code;
-    }
 }

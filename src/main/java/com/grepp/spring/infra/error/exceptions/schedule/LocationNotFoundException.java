@@ -1,24 +1,18 @@
 package com.grepp.spring.infra.error.exceptions.schedule;
 
+import com.grepp.spring.infra.error.exceptions.CustomException;
 import com.grepp.spring.infra.response.ScheduleErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LocationNotFoundException extends RuntimeException {
-
-    private final ScheduleErrorCode code;
+public class LocationNotFoundException extends CustomException {
 
     public LocationNotFoundException(ScheduleErrorCode code) {
-        this.code = code;
+        super(code);
     }
 
     public LocationNotFoundException(ScheduleErrorCode code, Exception e) {
-        this.code = code;
-        log.error(e.getMessage(), e);
-    }
-
-    public ScheduleErrorCode code() {
-        return code;
+        super(code, e);
     }
 
 }
