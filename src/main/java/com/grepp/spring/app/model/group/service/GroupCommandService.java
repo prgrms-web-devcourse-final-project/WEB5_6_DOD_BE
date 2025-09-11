@@ -17,6 +17,7 @@ import com.grepp.spring.app.model.group.repository.GroupCommandRepository;
 import com.grepp.spring.app.model.group.repository.GroupMemberCommandRepository;
 import com.grepp.spring.app.model.group.repository.GroupMemberRepository;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.event.MemberWithdrawalEvent;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
 import com.grepp.spring.app.model.schedule.entity.Schedule;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -430,6 +432,14 @@ public class GroupCommandService {
             // 그룹멤버 조회 - 403 NOT_GROUP_MEMBER 예외 처리
             GroupMember groupMember = findGroupMemberOrThrow(request.getGroupId(), member1.getId());
         }
+    }
+
+    // 회원 탈퇴 이벤트 리스너
+    @EventListener
+    @Transactional
+    public void handleMemberWithdrawal(MemberWithdrawalEvent event) {
+        Member member = event.getMember();
+        handleGroupWithdrawal(member);
     }
 
     // 회원 탈퇴 중 그룹 관련 처리 메서드
