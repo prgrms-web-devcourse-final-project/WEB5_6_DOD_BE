@@ -299,9 +299,9 @@ public class ScheduleCommandService {
             location = locationCommandRepository.save(location);
             log.info("elkLocation4");
 
-            log.info("location = {}", location.toString());
-            log.info("locationChecking = {}", new ObjectMapper().writeValueAsString(location));
-            log.info("location = {}", location.getName());
+            log.info("locationContent = {}", location.toString());
+            //log.info("locationChecking = {}", new ObjectMapper().writeValueAsString(location));
+            log.info("locationName = {}", location.getName());
 
             metro = metroQueryRepository.findByName(location.getName());
             log.info("elkLocation5 = {}",metro.get().getId());
