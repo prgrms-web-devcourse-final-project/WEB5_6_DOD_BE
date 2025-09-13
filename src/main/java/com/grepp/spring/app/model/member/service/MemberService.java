@@ -5,6 +5,7 @@ import com.grepp.spring.app.model.auth.AuthService;
 import com.grepp.spring.app.controller.api.member.payload.ModifyMemberInfoResponse;
 import com.grepp.spring.app.model.group.service.GroupCommandService;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.event.MemberWithdrawalEvent;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.service.ScheduleCommandService;
 import com.grepp.spring.infra.error.exceptions.mypage.MemberNotFoundException;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +27,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final AuthService authService;
-    private final GroupCommandService groupCommandService;
-    private final ScheduleCommandService scheduleCommandService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Optional<Member> findById(String userId) {
         return memberRepository.findById(userId);
@@ -75,14 +76,14 @@ public class MemberService {
     public void withdraw(String userId, HttpServletResponse response, HttpServletRequest request) {
         Member member = memberRepository.findById(userId)
             .orElseThrow(() -> new MemberNotFoundException(MyPageErrorCode.MEMBER_NOT_FOUND));
-        // 1. 그룹 관련
-        groupCommandService.handleGroupWithdrawal(member);
-        // 2. 일정 관련
-        scheduleCommandService.handleScheduleWithdrawal(member);
-        // 3. 회원 탈퇴(삭제)
+
+        // 1. 회원 탈퇴 이벤트 발행
+        eventPublisher.publishEvent(new MemberWithdrawalEvent(this, member));
+
+        // 2. 회원 탈퇴(삭제)
         memberRepository.delete(member);
         log.info("회원 탈퇴가 완료되었습니다. 회원 ID: {}, 회원명: {}", member.getId(), member.getName());
-        // 4. 로그아웃 (토큰 무효화)
+        // 3. 로그아웃 (토큰 무효화)
         authService.logout(request, response); // 다른 서비스 참조. 괜찮은가 ?
         SecurityContextHolder.clearContext();
     }

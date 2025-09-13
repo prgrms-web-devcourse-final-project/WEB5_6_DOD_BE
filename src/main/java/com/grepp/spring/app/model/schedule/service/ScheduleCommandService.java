@@ -8,6 +8,7 @@ import com.grepp.spring.app.controller.api.schedule.payload.response.CreateOnlin
 import com.grepp.spring.app.controller.api.schedule.payload.response.CreateSchedulesResponse;
 import com.grepp.spring.app.model.event.entity.Event;
 import com.grepp.spring.app.model.member.entity.Member;
+import com.grepp.spring.app.model.member.event.MemberWithdrawalEvent;
 import com.grepp.spring.app.model.member.repository.MemberRepository;
 import com.grepp.spring.app.model.schedule.code.MeetingPlatform;
 import com.grepp.spring.app.model.schedule.code.ScheduleRole;
@@ -29,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -553,6 +555,14 @@ public class ScheduleCommandService {
             location = locationCommandRepository.save(location);
         }
         return location;
+    }
+
+    // 회원 탈퇴 이벤트 리스너
+    @EventListener
+    @Transactional
+    public void handleMemberWithdrawal(MemberWithdrawalEvent event) {
+        Member member = event.getMember();
+        handleScheduleWithdrawal(member);
     }
 
     // 회원 탈퇴 중 일정 관련 처리 메서드
